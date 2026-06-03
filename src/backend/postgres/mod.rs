@@ -6,7 +6,7 @@ pub(crate) mod table;
 pub(crate) mod types;
 
 use super::*;
-use crate::extension::postgres::{create::{FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns}, drop::FunctionDropStatement, *};
+use crate::extension::postgres::{alter::{FunctionAlterOption, FunctionAlterStatement}, create::{FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns}, drop::FunctionDropStatement, *};
 
 /// Postgres query builder.
 #[derive(Default, Debug)]
@@ -126,6 +126,116 @@ impl FunctionBuilder for PostgresQueryBuilder {
             sql.write_str(" CASCADE").unwrap();
         }
         if drop.restrict {
+            sql.write_str(" RESTRICT").unwrap();
+        }
+    }
+
+    fn prepare_function_alter_statement(
+        &self,
+        alter: &FunctionAlterStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("ALTER FUNCTION ").unwrap();
+       
+        if let Some(name) = &alter.name {
+            self.prepare_iden(name, sql);
+        }
+        if let Some(args) = &alter.arg_types {
+            sql.write_str(" (").unwrap();
+            for (i, ty) in args.iter().enumerate() {
+                if i > 0 {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_column_type(ty, sql);
+            }
+            sql.write_str(")").unwrap();
+        }
+        for (i, option) in alter.options.iter().enumerate() {
+            if i > 0 {
+                sql.write_str(", ").unwrap();
+            } else {
+                sql.write_str(" ").unwrap();
+            }
+            match option {
+                FunctionAlterOption::RenameTo(new_name) => {
+                    sql.write_str("RENAME TO ").unwrap();
+                    self.prepare_iden(new_name, sql);
+                }
+                FunctionAlterOption::OwnerTo(new_owner) => {
+                    sql.write_str("OWNER TO ").unwrap();
+                    self.prepare_iden(new_owner, sql);
+                }
+                FunctionAlterOption::SetSchema(new_schema) => {
+                    sql.write_str("SET SCHEMA ").unwrap();
+                    self.prepare_iden(new_schema, sql);
+                }
+                FunctionAlterOption::Behavior(behavior) => {
+                    sql.write_str(match behavior {
+                        FunctionBehavior::Immutable => "IMMUTABLE",
+                        FunctionBehavior::Stable => "STABLE",
+                        FunctionBehavior::Volatile => "VOLATILE",
+                        FunctionBehavior::CalledOnNullInput => "CALLED ON NULL INPUT",
+                        FunctionBehavior::ReturnsNullOnNullInput => "RETURNS NULL ON NULL INPUT",
+                        FunctionBehavior::Strict => "STRICT",
+                        FunctionBehavior::SecurityInvoker => "SECURITY INVOKER",
+                        FunctionBehavior::SecurityDefiner => "SECURITY DEFINER",
+                        FunctionBehavior::ParallelUnsafe => "PARALLEL UNSAFE",
+                        FunctionBehavior::ParallelRestricted => "PARALLEL RESTRICTED",
+                        FunctionBehavior::ParallelSafe => "PARALLEL SAFE",
+                    })
+                    .unwrap();
+                }
+                FunctionAlterOption::Leakproof(leakproof) => {
+                    if *leakproof {
+                        sql.write_str("LEAKPROOF").unwrap();
+                    } else {
+                        sql.write_str("NOT LEAKPROOF").unwrap();
+                    }
+                }
+                FunctionAlterOption::Cost(cost) => {
+                    write!(sql, "COST {cost}").unwrap();
+                }
+                FunctionAlterOption::Rows(rows) => {
+                    write!(sql, "ROWS {rows}").unwrap();
+                }
+                FunctionAlterOption::Support(support_fn) => {
+                    sql.write_str("SUPPORT ").unwrap();
+                    self.prepare_iden(support_fn, sql);
+                }
+                FunctionAlterOption::DependsOnExtension(ext) => {
+                    sql.write_str("DEPENDS ON EXTENSION ").unwrap();
+                    self.prepare_iden(ext, sql);
+                }
+                FunctionAlterOption::NoDependsOnExtension(ext) => {
+                    sql.write_str("NO DEPENDS ON EXTENSION ").unwrap();
+                    self.prepare_iden(ext, sql);
+                }
+                FunctionAlterOption::SetConfig(param, value) => {
+                    sql.write_str("SET ").unwrap();
+                    self.prepare_iden(param, sql);
+                    sql.write_str(" TO ").unwrap();
+                    sql.write_str(value).unwrap();
+                }
+                FunctionAlterOption::SetConfigDefault(param) => {
+                    sql.write_str("SET ").unwrap();
+                    self.prepare_iden(param, sql);
+                    sql.write_str(" TO DEFAULT").unwrap();
+                }
+                FunctionAlterOption::SetConfigFromCurrent(param) => {
+                    sql.write_str("SET ").unwrap();
+                    self.prepare_iden(param, sql);
+                    sql.write_str(" FROM CURRENT").unwrap();
+                }
+                FunctionAlterOption::ResetConfig(param) => {
+                    sql.write_str("RESET ").unwrap();
+                    self.prepare_iden(param, sql);
+                }
+                FunctionAlterOption::ResetAll => {
+                    sql.write_str("RESET ALL").unwrap();
+                }
+            }
+        }
+        if alter.restrict {
             sql.write_str(" RESTRICT").unwrap();
         }
     }

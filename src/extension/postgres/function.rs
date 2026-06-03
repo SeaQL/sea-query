@@ -3,12 +3,14 @@ use crate::{
 };
 
 pub use create::*;
+pub use alter::*;
 pub use drop::*;
 
 pub(crate) mod create;
+pub(crate) mod alter;
 pub(crate) mod drop;
 
-/// Creates a new "CREATE or DROP FUNCTION" statement for PostgreSQL.
+/// Creates a new "CREATE, ALTER or DROP FUNCTION" statement for PostgreSQL.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct PgFunctionStmt;
 
@@ -35,6 +37,28 @@ impl PgFunctionStmt {
     /// ```
     pub fn create() -> FunctionCreateStatement {
         FunctionCreateStatement::new()
+    }
+
+    /// Creates a new [`FunctionAlterStatement`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    ///
+    /// let alter = PgFunctionStmt::alter()
+    ///     .name(Alias::new("my_function"))
+    ///     .arg_types([ColumnType::Integer])
+    ///     .rename_to(Alias::new("new_function"))
+    ///     .to_string(PostgresQueryBuilder);
+    ///
+    /// assert_eq!(
+    ///     alter,
+    ///     r#"ALTER FUNCTION "my_function" (integer) RENAME TO "new_function""#
+    /// );
+    /// ```
+    pub fn alter() -> FunctionAlterStatement {
+        FunctionAlterStatement::new()
     }
 
     /// Creates a new [`FunctionDropStatement`]
@@ -73,6 +97,13 @@ pub trait FunctionBuilder: QuotedBuilder {
     fn prepare_function_drop_statement(
         &self,
         drop: &FunctionDropStatement,
+        sql: &mut impl SqlWriter,
+    );
+
+    /// Translate [`FunctionAlterStatement`] into database-specific SQL.
+    fn prepare_function_alter_statement(
+        &self,
+        alter: &FunctionAlterStatement,
         sql: &mut impl SqlWriter,
     );
 }
@@ -115,6 +146,7 @@ macro_rules! impl_function_statement_builder {
 
 impl_function_statement_builder!(FunctionCreateStatement, prepare_function_create_statement);
 impl_function_statement_builder!(FunctionDropStatement, prepare_function_drop_statement);
+impl_function_statement_builder!(FunctionAlterStatement, prepare_function_alter_statement);
 
 #[cfg(test)]
 mod tests {
@@ -303,6 +335,58 @@ mod tests {
         assert!(stmt.arg_types.as_ref().unwrap().is_empty());
     }
 
+    // ── FunctionAlterStatement ──────────────────────────────────────────────
+
+    #[test]
+    fn alter_statement_defaults() {
+        let stmt = FunctionAlterStatement::new();
+        assert!(stmt.name.is_none());
+        assert!(stmt.arg_types.is_none());
+        assert!(stmt.options.is_empty());
+    }
+
+    #[test]
+    fn alter_statement_name() {
+        let mut stmt = FunctionAlterStatement::new();
+        stmt.name(Alias::new("my_fn"));
+        assert!(stmt.name.is_some());
+    }
+
+    #[test]
+    fn alter_statement_arg_types() {
+        let mut stmt = FunctionAlterStatement::new();
+        stmt.arg_types([ColumnType::Integer, ColumnType::Text]);
+        let types = stmt.arg_types.as_ref().unwrap();
+        assert_eq!(types.len(), 2);
+    }
+
+    #[test]
+    fn alter_statement_rename_to() {
+        let mut stmt = FunctionAlterStatement::new();
+        stmt.rename_to(Alias::new("new_fn"));
+        assert_eq!(stmt.options.len(), 1);
+        assert!(matches!(stmt.options[0], FunctionAlterOption::RenameTo(_)));
+    }
+
+    #[test]
+    fn alter_statement_owner_to() {
+        let mut stmt = FunctionAlterStatement::new();
+        stmt.owner_to(Alias::new("new_owner"));
+        assert_eq!(stmt.options.len(), 1);
+        assert!(matches!(stmt.options[0], FunctionAlterOption::OwnerTo(_)));
+    }
+
+    #[test]
+    fn alter_statement_set_schema() {
+        let mut stmt = FunctionAlterStatement::new();
+        stmt.set_schema(Alias::new("new_schema"));
+        assert_eq!(stmt.options.len(), 1);
+        assert!(matches!(
+            stmt.options[0],
+            FunctionAlterOption::SetSchema(_)
+        ));
+    }
+
     // ── SQL output (PostgresQueryBuilder) ────────────────────────────────────
 
     #[cfg(feature = "backend-postgres")]
@@ -420,6 +504,40 @@ mod tests {
                 .to_string(PostgresQueryBuilder);
 
             assert!(sql.contains("(integer, text)"));
+        }
+
+        #[test]
+        fn alter_rename() {
+            let sql = PgFunctionStmt::alter()
+                .name(Alias::new("old_fn"))
+                .arg_types([ColumnType::Integer])
+                .rename_to(Alias::new("new_fn"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"ALTER FUNCTION "old_fn" (integer) RENAME TO "new_fn""#
+            );
+        }
+
+        #[test]
+        fn alter_owner() {
+            let sql = PgFunctionStmt::alter()
+                .name(Alias::new("my_fn"))
+                .owner_to(Alias::new("new_owner"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(sql, r#"ALTER FUNCTION "my_fn" OWNER TO "new_owner""#);
+        }
+
+        #[test]
+        fn alter_schema() {
+            let sql = PgFunctionStmt::alter()
+                .name(Alias::new("my_fn"))
+                .set_schema(Alias::new("new_schema"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(sql, r#"ALTER FUNCTION "my_fn" SET SCHEMA "new_schema""#);
         }
     }
 }
