@@ -5,7 +5,7 @@ use crate::{ColumnType, DynIden, Expr, IntoIden};
 pub enum FunctionArgMode {
     In,
     Out,
-    Inout,
+    InOut,
     Variadic,
 }
 

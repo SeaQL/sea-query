@@ -35,7 +35,7 @@ impl FunctionBuilder for PostgresQueryBuilder {
                 sql.write_str(match mode {
                     FunctionArgMode::In => "IN ",
                     FunctionArgMode::Out => "OUT ",
-                    FunctionArgMode::Inout => "INOUT ",
+                    FunctionArgMode::InOut => "INOUT ",
                     FunctionArgMode::Variadic => "VARIADIC ",
                 })
                 .unwrap();

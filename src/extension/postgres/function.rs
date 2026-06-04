@@ -178,8 +178,8 @@ mod tests {
         let arg = FunctionArg::new(ColumnType::Integer).mode(FunctionArgMode::Out);
         assert_eq!(arg.mode, Some(FunctionArgMode::Out));
 
-        let arg = FunctionArg::new(ColumnType::Integer).mode(FunctionArgMode::Inout);
-        assert_eq!(arg.mode, Some(FunctionArgMode::Inout));
+        let arg = FunctionArg::new(ColumnType::Integer).mode(FunctionArgMode::InOut);
+        assert_eq!(arg.mode, Some(FunctionArgMode::InOut));
 
         let arg = FunctionArg::new(ColumnType::Integer).mode(FunctionArgMode::Variadic);
         assert_eq!(arg.mode, Some(FunctionArgMode::Variadic));
