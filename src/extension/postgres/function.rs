@@ -23,10 +23,10 @@ impl PgFunctionStmt {
     /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
     ///
     /// let create = PgFunctionStmt::create()
-    ///     .name(Alias::new("my_function"))
-    ///     .arg(FunctionArg::new(ColumnType::Integer).name(Alias::new("a")))
+    ///     .name("my_function")
+    ///     .arg(FunctionArg::new(ColumnType::Integer).name("a"))
     ///     .returns(FunctionReturns::Type(ColumnType::Integer))
-    ///     .language(Alias::new("plpgsql"))
+    ///     .language("plpgsql")
     ///     .as_definition("BEGIN RETURN a + 1; END;")
     ///     .to_string(PostgresQueryBuilder);
     ///
@@ -47,9 +47,9 @@ impl PgFunctionStmt {
     /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
     ///
     /// let alter = PgFunctionStmt::alter()
-    ///     .name(Alias::new("my_function"))
+    ///     .name("my_function")
     ///     .arg_types([ColumnType::Integer])
-    ///     .rename_to(Alias::new("new_function"))
+    ///     .rename_to("new_function")
     ///     .to_string(PostgresQueryBuilder);
     ///
     /// assert_eq!(
@@ -69,7 +69,7 @@ impl PgFunctionStmt {
     /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
     ///
     /// let drop = PgFunctionStmt::drop()
-    ///     .name(Alias::new("my_function"))
+    ///     .name("my_function")
     ///     .if_exists()
     ///     .arg_types([ColumnType::Integer])
     ///     .cascade()

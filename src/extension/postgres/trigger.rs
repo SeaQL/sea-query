@@ -21,12 +21,12 @@ impl PgTriggerStmt {
     /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
     ///
     /// let create = PgTriggerStmt::create()
-    ///     .name(Alias::new("my_trigger"))
+    ///     .name("my_trigger")
     ///     .before()
     ///     .event(TriggerEvent::Insert)
-    ///     .table(Alias::new("my_table"))
+    ///     .table("my_table")
     ///     .for_each_row()
-    ///     .function(Alias::new("my_trigger_func"))
+    ///     .function("my_trigger_func")
     ///     .to_string(PostgresQueryBuilder);
     ///
     /// assert_eq!(
@@ -46,9 +46,9 @@ impl PgTriggerStmt {
     /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
     ///
     /// let alter = PgTriggerStmt::alter()
-    ///     .name(Alias::new("my_trigger"))
-    ///     .table(Alias::new("my_table"))
-    ///     .rename_to(Alias::new("new_trigger"))
+    ///     .name("my_trigger")
+    ///     .table("my_table")
+    ///     .rename_to("new_trigger")
     ///     .to_string(PostgresQueryBuilder);
     ///
     /// assert_eq!(
@@ -68,8 +68,8 @@ impl PgTriggerStmt {
     /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
     ///
     /// let drop = PgTriggerStmt::drop()
-    ///     .name(Alias::new("my_trigger"))
-    ///     .table(Alias::new("my_table"))
+    ///     .name("my_trigger")
+    ///     .table("my_table")
     ///     .if_exists()
     ///     .cascade()
     ///     .to_string(PostgresQueryBuilder);
