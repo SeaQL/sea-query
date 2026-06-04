@@ -36,13 +36,13 @@ impl FunctionArg {
     }
 
     /// Set the name of the argument
-    pub fn name<T: IntoIden>(mut self, name: T) -> Self {
+    pub fn name(mut self, name: impl IntoIden) -> Self {
         self.name = Some(name.into_iden());
         self
     }
 
     /// Set the default expression for the argument
-    pub fn default<T: Into<Expr>>(mut self, expr: T) -> Self {
+    pub fn default(mut self, expr: impl Into<Expr>) -> Self {
         self.default = Some(expr.into());
         self
     }
@@ -90,7 +90,7 @@ impl FunctionCreateStatement {
     }
 
     /// Set the function name
-    pub fn name<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn name(&mut self, name: impl IntoIden) -> &mut Self {
         self.name = Some(name.into_iden());
         self
     }
@@ -108,7 +108,7 @@ impl FunctionCreateStatement {
     }
 
     /// Add multiple arguments to the function
-    pub fn args<I: IntoIterator<Item = FunctionArg>>(&mut self, args: I) -> &mut Self {
+    pub fn args(&mut self, args: impl IntoIterator<Item = FunctionArg>) -> &mut Self {
         self.args.extend(args);
         self
     }
@@ -120,7 +120,7 @@ impl FunctionCreateStatement {
     }
 
     /// Set the function language (e.g., PL/pgSQL, SQL)
-    pub fn language<T: IntoIden>(&mut self, lang: T) -> &mut Self {
+    pub fn language(&mut self, lang: impl IntoIden) -> &mut Self {
         self.language = Some(lang.into_iden());
         self
     }
@@ -132,13 +132,13 @@ impl FunctionCreateStatement {
     }
 
     /// Set function definition string (AS '...')
-    pub fn as_definition<T: Into<String>>(&mut self, definition: T) -> &mut Self {
+    pub fn as_definition(&mut self, definition: impl Into<String>) -> &mut Self {
         self.as_definition = Some(definition.into());
         self
     }
 
     /// Set SQL function body
-    pub fn sql_body<T: Into<String>>(&mut self, body: T) -> &mut Self {
+    pub fn sql_body(&mut self, body: impl Into<String>) -> &mut Self {
         self.sql_body = Some(body.into());
         self
     }

@@ -16,7 +16,7 @@ impl TriggerDropStatement {
     }
 
     /// Set the trigger name to drop
-    pub fn name<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn name(&mut self, name: impl IntoIden) -> &mut Self {
         self.name = Some(name.into_iden());
         self
     }
@@ -28,7 +28,7 @@ impl TriggerDropStatement {
     }
 
     /// Set the table on which the trigger is defined
-    pub fn table<T: IntoTableRef>(&mut self, table: T) -> &mut Self {
+    pub fn table(&mut self, table: impl IntoTableRef) -> &mut Self {
         self.table = Some(table.into_table_ref());
         self
     }

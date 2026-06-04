@@ -37,33 +37,33 @@ impl FunctionAlterStatement {
     }
 
     /// Set the function name to alter
-    pub fn name<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn name(&mut self, name: impl IntoIden) -> &mut Self {
         self.name = Some(name.into_iden());
         self
     }
 
     /// Specify the argument types to uniquely identify the function overload to alter
-    pub fn arg_types<I: IntoIterator<Item = ColumnType>>(&mut self, types: I) -> &mut Self {
+    pub fn arg_types(&mut self, types: impl IntoIterator<Item = ColumnType>) -> &mut Self {
         self.arg_types = Some(types.into_iter().collect());
         self
     }
 
     /// Add a "RENAME TO" option to the ALTER FUNCTION statement
-    pub fn rename_to<T: IntoIden>(&mut self, new_name: T) -> &mut Self {
+    pub fn rename_to(&mut self, new_name: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::RenameTo(new_name.into_iden()));
         self
     }
 
     /// Add an "OWNER TO" option to the ALTER FUNCTION statement
-    pub fn owner_to<T: IntoIden>(&mut self, new_owner: T) -> &mut Self {
+    pub fn owner_to(&mut self, new_owner: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::OwnerTo(new_owner.into_iden()));
         self
     }
 
     /// Add a "SET SCHEMA" option to the ALTER FUNCTION statement
-    pub fn set_schema<T: IntoIden>(&mut self, new_schema: T) -> &mut Self {
+    pub fn set_schema(&mut self, new_schema: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::SetSchema(new_schema.into_iden()));
         self
@@ -94,42 +94,42 @@ impl FunctionAlterStatement {
     }
 
     /// Add a "SUPPORT" option
-    pub fn support<T: IntoIden>(&mut self, support_fn: T) -> &mut Self {
+    pub fn support(&mut self, support_fn: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::Support(support_fn.into_iden()));
         self
     }
 
     /// Add a "DEPENDS ON EXTENSION" option
-    pub fn depends_on_extension<T: IntoIden>(&mut self, ext: T) -> &mut Self {
+    pub fn depends_on_extension(&mut self, ext: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::DependsOnExtension(ext.into_iden()));
         self
     }
 
     /// Add a "NO DEPENDS ON EXTENSION" option
-    pub fn no_depends_on_extension<T: IntoIden>(&mut self, ext: T) -> &mut Self {
+    pub fn no_depends_on_extension(&mut self, ext: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::NoDependsOnExtension(ext.into_iden()));
         self
     }
 
     /// Add a "SET configuration_parameter TO value" option
-    pub fn set_config<K: IntoIden, V: Into<String>>(&mut self, param: K, value: V) -> &mut Self {
+    pub fn set_config(&mut self, param: impl IntoIden, value: impl Into<String>) -> &mut Self {
         self.options
             .push(FunctionAlterOption::SetConfig(param.into_iden(), value.into()));
         self
     }
 
     /// Add a "SET configuration_parameter TO DEFAULT" option
-    pub fn set_config_default<K: IntoIden>(&mut self, param: K) -> &mut Self {
+    pub fn set_config_default(&mut self, param: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::SetConfigDefault(param.into_iden()));
         self
     }
 
     /// Add a "SET configuration_parameter FROM CURRENT" option
-    pub fn set_config_from_current<K: IntoIden>(&mut self, param: K) -> &mut Self {
+    pub fn set_config_from_current(&mut self, param: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::SetConfigFromCurrent(param.into_iden()));
         self
@@ -191,7 +191,7 @@ impl FunctionAlterStatement {
     }
 
     /// Add a "RESET configuration_parameter" option
-    pub fn reset_config<K: IntoIden>(&mut self, param: K) -> &mut Self {
+    pub fn reset_config(&mut self, param: impl IntoIden) -> &mut Self {
         self.options
             .push(FunctionAlterOption::ResetConfig(param.into_iden()));
         self

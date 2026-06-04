@@ -71,7 +71,7 @@ impl TriggerCreateStatement {
     }
 
     /// Set the trigger name
-    pub fn name<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn name(&mut self, name: impl IntoIden) -> &mut Self {
         self.name = Some(name.into_iden());
         self
     }
@@ -89,13 +89,13 @@ impl TriggerCreateStatement {
     }
 
     /// Set the target table
-    pub fn table<T: IntoTableRef>(&mut self, table: T) -> &mut Self {
+    pub fn table(&mut self, table: impl IntoTableRef) -> &mut Self {
         self.table = Some(table.into_table_ref());
         self
     }
 
     /// Set the referenced table (FROM referenced_table_name)
-    pub fn from_table<T: IntoTableRef>(&mut self, table: T) -> &mut Self {
+    pub fn from_table(&mut self, table: impl IntoTableRef) -> &mut Self {
         self.referenced_table = Some(table.into_table_ref());
         self
     }
@@ -150,7 +150,7 @@ impl TriggerCreateStatement {
     }
 
     /// Add multiple trigger events
-    pub fn events<I: IntoIterator<Item = TriggerEvent>>(&mut self, events: I) -> &mut Self {
+    pub fn events(&mut self, events: impl IntoIterator<Item = TriggerEvent>) -> &mut Self {
         self.events.extend(events);
         self
     }
@@ -162,12 +162,12 @@ impl TriggerCreateStatement {
     }
 
     /// Referencing OLD TABLE AS name
-    pub fn referencing_old_table<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn referencing_old_table(&mut self, name: impl IntoIden) -> &mut Self {
         self.referencing(TriggerReferencing::OldTable(name.into_iden()))
     }
 
     /// Referencing NEW TABLE AS name
-    pub fn referencing_new_table<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn referencing_new_table(&mut self, name: impl IntoIden) -> &mut Self {
         self.referencing(TriggerReferencing::NewTable(name.into_iden()))
     }
 
@@ -188,33 +188,33 @@ impl TriggerCreateStatement {
     }
 
     /// Set WHEN condition
-    pub fn r#when<T: Into<Expr>>(&mut self, condition: T) -> &mut Self {
+    pub fn r#when(&mut self, condition: impl Into<Expr>) -> &mut Self {
         self.r#when = Some(condition.into());
         self
     }
 
     /// Set trigger execution function
-    pub fn function<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn function(&mut self, name: impl IntoIden) -> &mut Self {
         self.function = Some(name.into_iden());
         self.execution_type = Some(TriggerExecutionType::Function);
         self
     }
 
     /// Set trigger execution procedure
-    pub fn procedure<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn procedure(&mut self, name: impl IntoIden) -> &mut Self {
         self.function = Some(name.into_iden());
         self.execution_type = Some(TriggerExecutionType::Procedure);
         self
     }
 
     /// Add a trigger execution argument
-    pub fn function_arg<T: Into<Expr>>(&mut self, arg: T) -> &mut Self {
+    pub fn function_arg(&mut self, arg: impl Into<Expr>) -> &mut Self {
         self.function_args.push(arg.into());
         self
     }
 
     /// Add multiple trigger execution arguments
-    pub fn function_args<I: IntoIterator<Item = Expr>>(&mut self, args: I) -> &mut Self {
+    pub fn function_args(&mut self, args: impl IntoIterator<Item = Expr>) -> &mut Self {
         self.function_args.extend(args);
         self
     }

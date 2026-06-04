@@ -16,7 +16,7 @@ impl FunctionDropStatement {
     }
 
     /// Set the function name to drop
-    pub fn name<T: IntoIden>(&mut self, name: T) -> &mut Self {
+    pub fn name(&mut self, name: impl IntoIden) -> &mut Self {
         self.name = Some(name.into_iden());
         self
     }
@@ -28,7 +28,7 @@ impl FunctionDropStatement {
     }
 
     /// Specify the argument types to uniquely identify the function overload to drop
-    pub fn arg_types<I: IntoIterator<Item = ColumnType>>(&mut self, types: I) -> &mut Self {
+    pub fn arg_types(&mut self, types: impl IntoIterator<Item = ColumnType>) -> &mut Self {
         self.arg_types = Some(types.into_iter().collect());
         self
     }
