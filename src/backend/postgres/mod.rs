@@ -238,6 +238,7 @@ impl FunctionBuilder for PostgresQueryBuilder {
 }
 
 impl TriggerBuilder for PostgresQueryBuilder {
+    #[allow(deprecated)]
     fn prepare_trigger_create_statement(
         &self,
         create: &TriggerCreateStatement,
@@ -692,6 +693,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_trigger_create() {
         use crate::{Alias, Expr};
         use crate::extension::postgres::{TriggerCreateStatement, TriggerEvent};

@@ -432,6 +432,7 @@ mod tests {
         }
 
         #[test]
+        #[allow(deprecated)]
         fn create_procedure() {
             let sql = PgTriggerStmt::create()
                 .name(Alias::new("my_trigger"))
