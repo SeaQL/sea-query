@@ -150,12 +150,8 @@ impl FunctionBuilder for PostgresQueryBuilder {
             }
             sql.write_str(")").unwrap();
         }
-        for (i, option) in alter.options.iter().enumerate() {
-            if i > 0 {
-                sql.write_str(", ").unwrap();
-            } else {
-                sql.write_str(" ").unwrap();
-            }
+        for option in alter.options.iter() {
+            sql.write_str(" ").unwrap();
             match option {
                 FunctionAlterOption::RenameTo(new_name) => {
                     sql.write_str("RENAME TO ").unwrap();
@@ -651,7 +647,7 @@ mod tests {
             .set_schema(Alias::new("new_schema"));
         assert_eq!(
             change_owner_function_stmt.to_string(PostgresQueryBuilder),
-            r#"ALTER FUNCTION "my_func" OWNER TO "new_owner", SET SCHEMA "new_schema""#
+            r#"ALTER FUNCTION "my_func" OWNER TO "new_owner" SET SCHEMA "new_schema""#
         );
 
         
@@ -667,7 +663,7 @@ mod tests {
             .restrict();
         assert_eq!(
             behaviour_function_stmt.to_string(PostgresQueryBuilder),
-            r#"ALTER FUNCTION "my_func" IMMUTABLE, LEAKPROOF, COST 10, ROWS 100, SET "search_path" TO public, RESET "search_path", RESET ALL RESTRICT"#
+            r#"ALTER FUNCTION "my_func" IMMUTABLE LEAKPROOF COST 10 ROWS 100 SET "search_path" TO public RESET "search_path" RESET ALL RESTRICT"#
         );
     }
 
