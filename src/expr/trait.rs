@@ -920,11 +920,11 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
     /// );
     /// ```
-    fn like<L>(self, like: L) -> Expr
+    fn like<R>(self, right: R) -> Expr
     where
-        L: IntoLikeExpr,
+        R: Into<Expr>,
     {
-        self.binary(BinOper::Like, like.into_like_expr())
+        self.binary(BinOper::Like, right)
     }
 
     /// Express a less than (`<`) expression.
@@ -1255,11 +1255,11 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE 'Ours''%'"#
     /// );
     /// ```
-    fn not_like<L>(self, like: L) -> Expr
+    fn not_like<R>(self, right: R) -> Expr
     where
-        L: IntoLikeExpr,
+        R: Into<Expr>,
     {
-        self.binary(BinOper::NotLike, like.into_like_expr())
+        self.binary(BinOper::NotLike, right)
     }
 
     /// Express a logical `OR` operation.
