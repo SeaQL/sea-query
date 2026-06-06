@@ -41,13 +41,17 @@ impl TriggerAlterStatement {
 
     /// Mark the trigger as dependent on an extension
     pub fn depends_on_extension(&mut self, extension_name: impl IntoIden) -> &mut Self {
-        self.option = Some(TriggerAlterOption::DependsOnExtension(extension_name.into_iden()));
+        self.option = Some(TriggerAlterOption::DependsOnExtension(
+            extension_name.into_iden(),
+        ));
         self
     }
 
     /// Remove extension dependency from the trigger
     pub fn no_depends_on_extension(&mut self, extension_name: impl IntoIden) -> &mut Self {
-        self.option = Some(TriggerAlterOption::NoDependsOnExtension(extension_name.into_iden()));
+        self.option = Some(TriggerAlterOption::NoDependsOnExtension(
+            extension_name.into_iden(),
+        ));
         self
     }
 }

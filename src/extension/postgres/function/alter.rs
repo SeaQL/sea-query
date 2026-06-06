@@ -1,5 +1,5 @@
-use crate::{ColumnType, DynIden, IntoIden};
 use super::create::FunctionBehavior;
+use crate::{ColumnType, DynIden, IntoIden};
 
 /// Represents PostgreSQL function alteration options
 #[derive(Debug, Clone, PartialEq)]
@@ -116,8 +116,10 @@ impl FunctionAlterStatement {
 
     /// Add a "SET configuration_parameter TO value" option
     pub fn set_config(&mut self, param: impl IntoIden, value: impl Into<String>) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::SetConfig(param.into_iden(), value.into()));
+        self.options.push(FunctionAlterOption::SetConfig(
+            param.into_iden(),
+            value.into(),
+        ));
         self
     }
 

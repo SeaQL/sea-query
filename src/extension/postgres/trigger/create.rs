@@ -38,7 +38,6 @@ pub enum TriggerInitially {
     Deferred,
 }
 
-
 /// Creates a new "CREATE TRIGGER" statement for PostgreSQL
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct TriggerCreateStatement {

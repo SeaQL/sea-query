@@ -1,11 +1,11 @@
 use crate::{QueryBuilder, QuotedBuilder, SqlWriter};
 
-pub use create::*;
 pub use alter::*;
+pub use create::*;
 pub use drop::*;
 
-pub(crate) mod create;
 pub(crate) mod alter;
+pub(crate) mod create;
 pub(crate) mod drop;
 
 /// Creates a new "CREATE, ALTER or DROP TRIGGER" statement for PostgreSQL.
@@ -43,7 +43,7 @@ impl PgTriggerStmt {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    /// use sea_query::{extension::postgres::*, tests_cfg::*, *};
     ///
     /// let alter = PgTriggerStmt::alter()
     ///     .name("my_trigger")
@@ -65,7 +65,7 @@ impl PgTriggerStmt {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    /// use sea_query::{extension::postgres::*, tests_cfg::*, *};
     ///
     /// let drop = PgTriggerStmt::drop()
     ///     .name("my_trigger")
@@ -100,11 +100,7 @@ pub trait TriggerBuilder: QuotedBuilder {
     );
 
     /// Translate [`TriggerDropStatement`] into database-specific SQL.
-    fn prepare_trigger_drop_statement(
-        &self,
-        drop: &TriggerDropStatement,
-        sql: &mut impl SqlWriter,
-    );
+    fn prepare_trigger_drop_statement(&self, drop: &TriggerDropStatement, sql: &mut impl SqlWriter);
 }
 
 macro_rules! impl_trigger_statement_builder {
@@ -249,7 +245,9 @@ mod tests {
             .rename_to(Alias::new("new_trigger"));
         assert_eq!(
             stmt.option,
-            Some(TriggerAlterOption::RenameTo(Alias::new("new_trigger").into_iden()))
+            Some(TriggerAlterOption::RenameTo(
+                Alias::new("new_trigger").into_iden()
+            ))
         );
     }
 
@@ -261,7 +259,9 @@ mod tests {
             .depends_on_extension(Alias::new("my_ext"));
         assert_eq!(
             stmt.option,
-            Some(TriggerAlterOption::DependsOnExtension(Alias::new("my_ext").into_iden()))
+            Some(TriggerAlterOption::DependsOnExtension(
+                Alias::new("my_ext").into_iden()
+            ))
         );
     }
 
@@ -479,10 +479,7 @@ mod tests {
                 .table(Alias::new("my_table"))
                 .to_string(PostgresQueryBuilder);
 
-            assert_eq!(
-                sql,
-                r#"DROP TRIGGER "my_trigger" ON "my_table""#
-            );
+            assert_eq!(sql, r#"DROP TRIGGER "my_trigger" ON "my_table""#);
         }
 
         #[test]
@@ -508,10 +505,7 @@ mod tests {
                 .restrict()
                 .to_string(PostgresQueryBuilder);
 
-            assert_eq!(
-                sql,
-                r#"DROP TRIGGER "my_trigger" ON "my_table" RESTRICT"#
-            );
+            assert_eq!(sql, r#"DROP TRIGGER "my_trigger" ON "my_table" RESTRICT"#);
         }
     }
 }

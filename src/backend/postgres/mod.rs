@@ -6,7 +6,14 @@ pub(crate) mod table;
 pub(crate) mod types;
 
 use super::*;
-use crate::extension::postgres::{function::alter::{FunctionAlterOption, FunctionAlterStatement}, function::create::{FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns}, function::drop::FunctionDropStatement, *};
+use crate::extension::postgres::{
+    function::alter::{FunctionAlterOption, FunctionAlterStatement},
+    function::create::{
+        FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns,
+    },
+    function::drop::FunctionDropStatement,
+    *,
+};
 
 /// Postgres query builder.
 #[derive(Default, Debug)]
@@ -136,7 +143,7 @@ impl FunctionBuilder for PostgresQueryBuilder {
         sql: &mut impl SqlWriter,
     ) {
         sql.write_str("ALTER FUNCTION ").unwrap();
-       
+
         if let Some(name) = &alter.name {
             self.prepare_iden(name, sql);
         }
@@ -541,8 +548,8 @@ impl TableRefBuilder for PostgresQueryBuilder {}
 
 #[cfg(test)]
 mod tests {
-    use crate::{EscapeBuilder, PostgresQueryBuilder, IntoIden, ExprTrait};
     use crate::extension::postgres::{FunctionBuilder, TriggerBuilder};
+    use crate::{EscapeBuilder, ExprTrait, IntoIden, PostgresQueryBuilder};
 
     #[test]
     fn test_write_escaped() {
@@ -587,11 +594,15 @@ mod tests {
 
     #[test]
     fn test_function_create() {
+        use crate::extension::postgres::{
+            FunctionArg, FunctionArgMode, FunctionBehavior, FunctionCreateStatement,
+            FunctionReturns,
+        };
         use crate::{Alias, ColumnType, Expr};
-        use crate::extension::postgres::{FunctionArg, FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns};
 
         let mut basic_function_stmt = FunctionCreateStatement::new();
-        basic_function_stmt.name(Alias::new("my_func"))
+        basic_function_stmt
+            .name(Alias::new("my_func"))
             .arg(FunctionArg::new(ColumnType::Integer).name(Alias::new("a")))
             .returns(FunctionReturns::Type(ColumnType::Integer))
             .language(Alias::new("plpgsql"))
@@ -602,10 +613,20 @@ mod tests {
         );
 
         let mut replace_function_stmt = FunctionCreateStatement::new();
-        replace_function_stmt.or_replace()
+        replace_function_stmt
+            .or_replace()
             .name(Alias::new("complex_func"))
-            .arg(FunctionArg::new(ColumnType::Integer).mode(FunctionArgMode::In).name(Alias::new("x")).default(Expr::val(0)))
-            .arg(FunctionArg::new(ColumnType::Text).mode(FunctionArgMode::Out).name(Alias::new("y")))
+            .arg(
+                FunctionArg::new(ColumnType::Integer)
+                    .mode(FunctionArgMode::In)
+                    .name(Alias::new("x"))
+                    .default(Expr::val(0)),
+            )
+            .arg(
+                FunctionArg::new(ColumnType::Text)
+                    .mode(FunctionArgMode::Out)
+                    .name(Alias::new("y")),
+            )
             .returns(FunctionReturns::Table(vec![
                 (Alias::new("id").into_iden(), ColumnType::Integer),
                 (Alias::new("val").into_iden(), ColumnType::Text),
@@ -623,11 +644,12 @@ mod tests {
 
     #[test]
     fn test_function_alter() {
-        use crate::{Alias, ColumnType};
         use crate::extension::postgres::{FunctionAlterStatement, FunctionBehavior};
+        use crate::{Alias, ColumnType};
 
         let mut rename_function_stmt = FunctionAlterStatement::new();
-        rename_function_stmt.name(Alias::new("old_func"))
+        rename_function_stmt
+            .name(Alias::new("old_func"))
             .arg_types([ColumnType::Integer, ColumnType::Text])
             .rename_to(Alias::new("new_func"));
         assert_eq!(
@@ -636,7 +658,8 @@ mod tests {
         );
 
         let mut change_owner_function_stmt = FunctionAlterStatement::new();
-        change_owner_function_stmt.name(Alias::new("my_func"))
+        change_owner_function_stmt
+            .name(Alias::new("my_func"))
             .owner_to(Alias::new("new_owner"))
             .set_schema(Alias::new("new_schema"));
         assert_eq!(
@@ -644,9 +667,9 @@ mod tests {
             r#"ALTER FUNCTION "my_func" OWNER TO "new_owner" SET SCHEMA "new_schema""#
         );
 
-        
         let mut behaviour_function_stmt = FunctionAlterStatement::new();
-        behaviour_function_stmt.name(Alias::new("my_func"))
+        behaviour_function_stmt
+            .name(Alias::new("my_func"))
             .behavior(FunctionBehavior::Immutable)
             .leakproof(true)
             .cost(10.0)
@@ -663,11 +686,12 @@ mod tests {
 
     #[test]
     fn test_function_drop() {
-        use crate::{Alias, ColumnType};
         use crate::extension::postgres::FunctionDropStatement;
+        use crate::{Alias, ColumnType};
 
         let mut basic_drop_stmt = FunctionDropStatement::new();
-        basic_drop_stmt.name(Alias::new("my_func"))
+        basic_drop_stmt
+            .name(Alias::new("my_func"))
             .if_exists()
             .arg_types([ColumnType::Integer, ColumnType::Text])
             .cascade();
@@ -677,8 +701,7 @@ mod tests {
         );
 
         let mut drop_restrict_stmt = FunctionDropStatement::new();
-        drop_restrict_stmt.name(Alias::new("my_func"))
-            .restrict();
+        drop_restrict_stmt.name(Alias::new("my_func")).restrict();
         assert_eq!(
             drop_restrict_stmt.to_string(PostgresQueryBuilder),
             r#"DROP FUNCTION "my_func" RESTRICT"#
@@ -687,11 +710,12 @@ mod tests {
 
     #[test]
     fn test_trigger_create() {
-        use crate::{Alias, Expr};
         use crate::extension::postgres::{TriggerCreateStatement, TriggerEvent};
+        use crate::{Alias, Expr};
 
         let mut before_insert_trigger = TriggerCreateStatement::new();
-        before_insert_trigger.name(Alias::new("my_trigger"))
+        before_insert_trigger
+            .name(Alias::new("my_trigger"))
             .before()
             .event(TriggerEvent::Insert)
             .table(Alias::new("my_table"))
@@ -703,7 +727,8 @@ mod tests {
         );
 
         let mut replace_after_delete_trigger = TriggerCreateStatement::new();
-        replace_after_delete_trigger.or_replace()
+        replace_after_delete_trigger
+            .or_replace()
             .constraint()
             .name(Alias::new("my_constraint_trig"))
             .after()
@@ -720,9 +745,13 @@ mod tests {
         );
 
         let mut update_col_trigger = TriggerCreateStatement::new();
-        update_col_trigger.name(Alias::new("complex_trigger"))
+        update_col_trigger
+            .name(Alias::new("complex_trigger"))
             .before()
-            .event(TriggerEvent::Update(vec![Alias::new("col1").into_iden(), Alias::new("col2").into_iden()]))
+            .event(TriggerEvent::Update(vec![
+                Alias::new("col1").into_iden(),
+                Alias::new("col2").into_iden(),
+            ]))
             .table(Alias::new("my_table"))
             .referencing_old_table(Alias::new("old_t"))
             .referencing_new_table(Alias::new("new_t"))
@@ -743,7 +772,8 @@ mod tests {
         use crate::extension::postgres::TriggerAlterStatement;
 
         let mut rename_trigger = TriggerAlterStatement::new();
-        rename_trigger.name(Alias::new("old_trig"))
+        rename_trigger
+            .name(Alias::new("old_trig"))
             .table(Alias::new("my_table"))
             .rename_to(Alias::new("new_trig"));
         assert_eq!(
@@ -752,7 +782,8 @@ mod tests {
         );
 
         let mut depends_on_trigger = TriggerAlterStatement::new();
-        depends_on_trigger.name(Alias::new("my_trig"))
+        depends_on_trigger
+            .name(Alias::new("my_trig"))
             .table(Alias::new("my_table"))
             .depends_on_extension(Alias::new("my_ext"));
         assert_eq!(
@@ -761,7 +792,8 @@ mod tests {
         );
 
         let mut no_depends_on_trigger = TriggerAlterStatement::new();
-        no_depends_on_trigger.name(Alias::new("my_trig"))
+        no_depends_on_trigger
+            .name(Alias::new("my_trig"))
             .table(Alias::new("my_table"))
             .no_depends_on_extension(Alias::new("my_ext"));
         assert_eq!(
@@ -776,7 +808,8 @@ mod tests {
         use crate::extension::postgres::TriggerDropStatement;
 
         let mut drop_exists_trigger = TriggerDropStatement::new();
-        drop_exists_trigger.name(Alias::new("my_trigger"))
+        drop_exists_trigger
+            .name(Alias::new("my_trigger"))
             .table(Alias::new("my_table"))
             .if_exists()
             .cascade();
@@ -786,7 +819,8 @@ mod tests {
         );
 
         let mut drop_restrict_trigger = TriggerDropStatement::new();
-        drop_restrict_trigger.name(Alias::new("my_trigger"))
+        drop_restrict_trigger
+            .name(Alias::new("my_trigger"))
             .table(Alias::new("my_table"))
             .restrict();
         assert_eq!(

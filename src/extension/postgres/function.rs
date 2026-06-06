@@ -1,13 +1,11 @@
-use crate::{
-    QueryBuilder, QuotedBuilder, SqlWriter,
-};
+use crate::{QueryBuilder, QuotedBuilder, SqlWriter};
 
-pub use create::*;
 pub use alter::*;
+pub use create::*;
 pub use drop::*;
 
-pub(crate) mod create;
 pub(crate) mod alter;
+pub(crate) mod create;
 pub(crate) mod drop;
 
 /// Creates a new "CREATE, ALTER or DROP FUNCTION" statement for PostgreSQL.
@@ -44,7 +42,7 @@ impl PgFunctionStmt {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    /// use sea_query::{extension::postgres::*, tests_cfg::*, *};
     ///
     /// let alter = PgFunctionStmt::alter()
     ///     .name("my_function")
@@ -66,7 +64,7 @@ impl PgFunctionStmt {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    /// use sea_query::{extension::postgres::*, tests_cfg::*, *};
     ///
     /// let drop = PgFunctionStmt::drop()
     ///     .name("my_function")
@@ -381,10 +379,7 @@ mod tests {
         let mut stmt = FunctionAlterStatement::new();
         stmt.set_schema(Alias::new("new_schema"));
         assert_eq!(stmt.options.len(), 1);
-        assert!(matches!(
-            stmt.options[0],
-            FunctionAlterOption::SetSchema(_)
-        ));
+        assert!(matches!(stmt.options[0], FunctionAlterOption::SetSchema(_)));
     }
 
     // ── SQL output (PostgresQueryBuilder) ────────────────────────────────────
