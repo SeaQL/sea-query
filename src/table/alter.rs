@@ -1,6 +1,6 @@
 use crate::{
-    ColumnDef, IntoColumnDef, SchemaStatementBuilder, TableForeignKey, backend::SchemaBuilder,
-    types::*,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, TableConstraint, TableForeignKey,
+    backend::SchemaBuilder, types::*,
 };
 
 /// Alter a table
@@ -60,6 +60,7 @@ pub enum TableAlterOption {
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
     DropConstraint(DynIden),
+    AddConstraint(TableConstraint),
 }
 
 impl TableAlterStatement {
@@ -420,6 +421,33 @@ impl TableAlterStatement {
         T: IntoIden,
     {
         self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
+    }
+
+    /// Add a constraint to an existing table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .add_constraint(&TableConstraint::new().primary().col(Font::Id))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     r#"ALTER TABLE `font` ADD PRIMARY KEY (`id`)"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" ADD PRIMARY KEY ("id")"#
+    /// );
+    ///
+    /// // Sqlite does not support adding constraints to existing tables
+    /// ```
+    pub fn add_constraint(&mut self, constraint: &TableConstraint) -> &mut Self {
+        self.add_alter_option(TableAlterOption::AddConstraint(constraint.to_owned()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {

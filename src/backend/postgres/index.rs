@@ -184,7 +184,7 @@ impl IndexBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut impl SqlWriter) {
+    pub(crate) fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut impl SqlWriter) {
         sql.write_str("INCLUDE (").unwrap();
 
         let mut cols = columns.iter();
