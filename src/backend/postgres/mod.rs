@@ -238,7 +238,6 @@ impl FunctionBuilder for PostgresQueryBuilder {
 }
 
 impl TriggerBuilder for PostgresQueryBuilder {
-    #[allow(deprecated)]
     fn prepare_trigger_create_statement(
         &self,
         create: &TriggerCreateStatement,
@@ -348,13 +347,7 @@ impl TriggerBuilder for PostgresQueryBuilder {
             sql.write_str(")").unwrap();
         }
         if let Some(function) = &create.function {
-            sql.write_str(" EXECUTE ").unwrap();
-            let execution_type = create.execution_type.unwrap_or(TriggerExecutionType::Function);
-            sql.write_str(match execution_type {
-                TriggerExecutionType::Function => "FUNCTION ",
-                TriggerExecutionType::Procedure => "PROCEDURE ",
-            })
-            .unwrap();
+            sql.write_str(" EXECUTE FUNCTION ").unwrap();
             self.prepare_iden(function, sql);
             sql.write_str("(").unwrap();
             for (i, arg) in create.function_args.iter().enumerate() {
@@ -693,7 +686,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(deprecated)]
     fn test_trigger_create() {
         use crate::{Alias, Expr};
         use crate::extension::postgres::{TriggerCreateStatement, TriggerEvent};
@@ -736,12 +728,12 @@ mod tests {
             .referencing_new_table(Alias::new("new_t"))
             .for_each_statement()
             .r#when(Expr::col(Alias::new("col1")).gt(10))
-            .procedure(Alias::new("my_proc"))
+            .function(Alias::new("my_proc"))
             .function_arg(Expr::val("arg1"))
             .function_arg(Expr::val(42));
         assert_eq!(
             update_col_trigger.to_string(PostgresQueryBuilder),
-            r#"CREATE TRIGGER "complex_trigger" BEFORE UPDATE OF "col1", "col2" ON "my_table" REFERENCING OLD TABLE AS "old_t" NEW TABLE AS "new_t" FOR EACH STATEMENT WHEN ("col1" > 10) EXECUTE PROCEDURE "my_proc"('arg1', 42)"#
+            r#"CREATE TRIGGER "complex_trigger" BEFORE UPDATE OF "col1", "col2" ON "my_table" REFERENCING OLD TABLE AS "old_t" NEW TABLE AS "new_t" FOR EACH STATEMENT WHEN ("col1" > 10) EXECUTE FUNCTION "my_proc"('arg1', 42)"#
         );
     }
 

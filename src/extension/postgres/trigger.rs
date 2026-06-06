@@ -171,7 +171,6 @@ mod tests {
         assert!(stmt.r#when.is_none());
         assert!(stmt.function.is_none());
         assert!(stmt.function_args.is_empty());
-        assert!(stmt.execution_type.is_none());
     }
 
     #[test]
@@ -428,25 +427,6 @@ mod tests {
             assert_eq!(
                 sql,
                 r#"CREATE TRIGGER "my_trigger" BEFORE INSERT ON "my_table" FOR EACH ROW WHEN ("val" > 10) EXECUTE FUNCTION "my_trigger_func"()"#
-            );
-        }
-
-        #[test]
-        #[allow(deprecated)]
-        fn create_procedure() {
-            let sql = PgTriggerStmt::create()
-                .name(Alias::new("my_trigger"))
-                .before()
-                .event(TriggerEvent::Insert)
-                .table(Alias::new("my_table"))
-                .for_each_row()
-                .procedure(Alias::new("my_proc"))
-                .function_arg(Expr::val("arg1"))
-                .to_string(PostgresQueryBuilder);
-
-            assert_eq!(
-                sql,
-                r#"CREATE TRIGGER "my_trigger" BEFORE INSERT ON "my_table" FOR EACH ROW EXECUTE PROCEDURE "my_proc"('arg1')"#
             );
         }
 

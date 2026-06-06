@@ -38,16 +38,6 @@ pub enum TriggerInitially {
     Deferred,
 }
 
-/// Represents PostgreSQL trigger execution type (FUNCTION or PROCEDURE)
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TriggerExecutionType {
-    Function,
-    #[deprecated(
-        since = "1.0.0-rc.34",
-        note = "Use Function instead. PROCEDURE is deprecated by PostgreSQL."
-    )]
-    Procedure,
-}
 
 /// Creates a new "CREATE TRIGGER" statement for PostgreSQL
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -66,7 +56,6 @@ pub struct TriggerCreateStatement {
     pub(crate) r#when: Option<Expr>,
     pub(crate) function: Option<DynIden>,
     pub(crate) function_args: Vec<Expr>,
-    pub(crate) execution_type: Option<TriggerExecutionType>,
 }
 
 impl TriggerCreateStatement {
@@ -200,19 +189,6 @@ impl TriggerCreateStatement {
     /// Set trigger execution function
     pub fn function(&mut self, name: impl IntoIden) -> &mut Self {
         self.function = Some(name.into_iden());
-        self.execution_type = Some(TriggerExecutionType::Function);
-        self
-    }
-
-    /// Set trigger execution procedure
-    #[deprecated(
-        since = "1.0.0-rc.34",
-        note = "Use `function` instead. PROCEDURE is deprecated by PostgreSQL."
-    )]
-    #[allow(deprecated)]
-    pub fn procedure(&mut self, name: impl IntoIden) -> &mut Self {
-        self.function = Some(name.into_iden());
-        self.execution_type = Some(TriggerExecutionType::Procedure);
         self
     }
 
