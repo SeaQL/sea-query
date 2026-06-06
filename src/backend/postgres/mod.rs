@@ -19,6 +19,64 @@ use crate::extension::postgres::{
 #[derive(Default, Debug)]
 pub struct PostgresQueryBuilder;
 
+impl PostgresQueryBuilder {
+    fn prepare_trigger_events(
+        &self,
+        events: &[TriggerEvent],
+        sql: &mut impl SqlWriter,
+    ) {
+        if !events.is_empty() {
+            sql.write_str(" ").unwrap();
+            for (i, event) in events.iter().enumerate() {
+                if i > 0 {
+                    sql.write_str(" OR ").unwrap();
+                }
+                match event {
+                    TriggerEvent::Insert => sql.write_str("INSERT").unwrap(),
+                    TriggerEvent::Update(cols) => {
+                        sql.write_str("UPDATE").unwrap();
+                        if !cols.is_empty() {
+                            sql.write_str(" OF ").unwrap();
+                            for (j, col) in cols.iter().enumerate() {
+                                if j > 0 {
+                                    sql.write_str(", ").unwrap();
+                                }
+                                self.prepare_iden(col, sql);
+                            }
+                        }
+                    }
+                    TriggerEvent::Delete => sql.write_str("DELETE").unwrap(),
+                    TriggerEvent::Truncate => sql.write_str("TRUNCATE").unwrap(),
+                }
+            }
+        }
+    }
+
+    fn prepare_trigger_referencing(
+        &self,
+        referencing: &[TriggerReferencing],
+        sql: &mut impl SqlWriter,
+    ) {
+        if !referencing.is_empty() {
+            sql.write_str(" REFERENCING").unwrap();
+            for ref_table in referencing {
+                sql.write_str(" ").unwrap();
+                match ref_table {
+                    TriggerReferencing::OldTable(name) => {
+                        sql.write_str("OLD TABLE AS ").unwrap();
+                        self.prepare_iden(name, sql);
+                    }
+                    TriggerReferencing::NewTable(name) => {
+                        sql.write_str("NEW TABLE AS ").unwrap();
+                        self.prepare_iden(name, sql);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 impl FunctionBuilder for PostgresQueryBuilder {
     fn prepare_function_create_statement(
         &self,
@@ -270,31 +328,7 @@ impl TriggerBuilder for PostgresQueryBuilder {
             })
             .unwrap();
         }
-        if !create.events.is_empty() {
-            sql.write_str(" ").unwrap();
-            for (i, event) in create.events.iter().enumerate() {
-                if i > 0 {
-                    sql.write_str(" OR ").unwrap();
-                }
-                match event {
-                    TriggerEvent::Insert => sql.write_str("INSERT").unwrap(),
-                    TriggerEvent::Update(cols) => {
-                        sql.write_str("UPDATE").unwrap();
-                        if !cols.is_empty() {
-                            sql.write_str(" OF ").unwrap();
-                            for (j, col) in cols.iter().enumerate() {
-                                if j > 0 {
-                                    sql.write_str(", ").unwrap();
-                                }
-                                self.prepare_iden(col, sql);
-                            }
-                        }
-                    }
-                    TriggerEvent::Delete => sql.write_str("DELETE").unwrap(),
-                    TriggerEvent::Truncate => sql.write_str("TRUNCATE").unwrap(),
-                }
-            }
-        }
+        self.prepare_trigger_events(&create.events, sql);
         if let Some(table) = &create.table {
             sql.write_str(" ON ").unwrap();
             match table {
@@ -324,22 +358,7 @@ impl TriggerBuilder for PostgresQueryBuilder {
             })
             .unwrap();
         }
-        if !create.referencing.is_empty() {
-            sql.write_str(" REFERENCING").unwrap();
-            for ref_table in &create.referencing {
-                sql.write_str(" ").unwrap();
-                match ref_table {
-                    TriggerReferencing::OldTable(name) => {
-                        sql.write_str("OLD TABLE AS ").unwrap();
-                        self.prepare_iden(name, sql);
-                    }
-                    TriggerReferencing::NewTable(name) => {
-                        sql.write_str("NEW TABLE AS ").unwrap();
-                        self.prepare_iden(name, sql);
-                    }
-                }
-            }
-        }
+        self.prepare_trigger_referencing(&create.referencing, sql);
         if let Some(each) = &create.each {
             sql.write_str(" FOR EACH ").unwrap();
             sql.write_str(match each {
@@ -366,6 +385,7 @@ impl TriggerBuilder for PostgresQueryBuilder {
             sql.write_str(")").unwrap();
         }
     }
+
 
     fn prepare_trigger_alter_statement(
         &self,
