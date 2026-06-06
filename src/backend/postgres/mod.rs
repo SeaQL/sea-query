@@ -20,11 +20,7 @@ use crate::extension::postgres::{
 pub struct PostgresQueryBuilder;
 
 impl PostgresQueryBuilder {
-    fn prepare_trigger_events(
-        &self,
-        events: &[TriggerEvent],
-        sql: &mut impl SqlWriter,
-    ) {
+    fn prepare_trigger_events(&self, events: &[TriggerEvent], sql: &mut impl SqlWriter) {
         if !events.is_empty() {
             sql.write_str(" ").unwrap();
             for (i, event) in events.iter().enumerate() {
@@ -75,7 +71,6 @@ impl PostgresQueryBuilder {
         }
     }
 }
-
 
 impl FunctionBuilder for PostgresQueryBuilder {
     fn prepare_function_create_statement(
@@ -385,7 +380,6 @@ impl TriggerBuilder for PostgresQueryBuilder {
             sql.write_str(")").unwrap();
         }
     }
-
 
     fn prepare_trigger_alter_statement(
         &self,
