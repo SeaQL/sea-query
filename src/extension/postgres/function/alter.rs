@@ -1,5 +1,5 @@
-use crate::{ColumnType, DynIden, IntoIden};
 use super::create::FunctionBehavior;
+use crate::{ColumnType, DynIden, IntoIden};
 
 /// Represents PostgreSQL function alteration dependency option
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,16 +30,16 @@ pub struct FunctionAlterStatement {
     pub(crate) name: Option<DynIden>,
     pub(crate) if_exists: bool,
     pub(crate) arg_types: Option<Vec<ColumnType>>,
-    
+
     pub(crate) rename_to: Option<DynIden>,
     pub(crate) owner_to: Option<DynIden>,
     pub(crate) set_schema: Option<DynIden>,
-    
+
     pub(crate) volatility: Option<FunctionBehavior>,
     pub(crate) strictness: Option<FunctionBehavior>,
     pub(crate) security: Option<FunctionBehavior>,
     pub(crate) parallel: Option<FunctionBehavior>,
-    
+
     pub(crate) leakproof: Option<bool>,
     pub(crate) cost: Option<f64>,
     pub(crate) rows: Option<f64>,
@@ -47,7 +47,7 @@ pub struct FunctionAlterStatement {
     pub(crate) depends_on: Option<FunctionDependsOption>,
     pub(crate) configs: Vec<FunctionAlterConfig>,
     pub(crate) reset_all: bool,
-    
+
     pub(crate) restrict: bool,
 }
 
@@ -89,9 +89,7 @@ impl FunctionAlterStatement {
     /// Add a behavior / volatility modifier
     pub fn behavior(&mut self, behavior: FunctionBehavior) -> &mut Self {
         match behavior {
-            FunctionBehavior::Immutable
-            | FunctionBehavior::Stable
-            | FunctionBehavior::Volatile => {
+            FunctionBehavior::Immutable | FunctionBehavior::Stable | FunctionBehavior::Volatile => {
                 self.volatility = Some(behavior);
             }
             FunctionBehavior::CalledOnNullInput

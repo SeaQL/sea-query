@@ -2,12 +2,10 @@ use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
-use sea_query::{
-    ColumnDef, ColumnType, Iden, IntoIden, Order, PostgresQueryBuilder, Query, Table,
-};
 use sea_query::extension::postgres::{
     FunctionReturns, PgFunctionStmt, PgTriggerStmt, TriggerEvent,
 };
+use sea_query::{ColumnDef, ColumnType, Iden, IntoIden, Order, PostgresQueryBuilder, Query, Table};
 use sea_query_postgres::PostgresBinder;
 use time::{
     OffsetDateTime, PrimitiveDateTime,
@@ -175,7 +173,9 @@ fn main() {
     let create_function_sql = PgFunctionStmt::create()
         .or_replace()
         .name("doc_trigger_func")
-        .returns(FunctionReturns::Type(ColumnType::Custom("TRIGGER".into_iden())))
+        .returns(FunctionReturns::Type(ColumnType::Custom(
+            "TRIGGER".into_iden(),
+        )))
         .language("plpgsql")
         .as_definition("BEGIN RETURN NEW; END;")
         .to_string(PostgresQueryBuilder);
