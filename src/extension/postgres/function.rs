@@ -340,7 +340,20 @@ mod tests {
         let stmt = FunctionAlterStatement::new();
         assert!(stmt.name.is_none());
         assert!(stmt.arg_types.is_none());
-        assert!(stmt.options.is_empty());
+        assert!(stmt.rename_to.is_none());
+        assert!(stmt.owner_to.is_none());
+        assert!(stmt.set_schema.is_none());
+        assert!(stmt.volatility.is_none());
+        assert!(stmt.strictness.is_none());
+        assert!(stmt.security.is_none());
+        assert!(stmt.parallel.is_none());
+        assert!(stmt.leakproof.is_none());
+        assert!(stmt.cost.is_none());
+        assert!(stmt.rows.is_none());
+        assert!(stmt.support.is_none());
+        assert!(stmt.depends_on.is_none());
+        assert!(stmt.configs.is_empty());
+        assert!(!stmt.reset_all);
     }
 
     #[test]
@@ -362,24 +375,21 @@ mod tests {
     fn alter_statement_rename_to() {
         let mut stmt = FunctionAlterStatement::new();
         stmt.rename_to(Alias::new("new_fn"));
-        assert_eq!(stmt.options.len(), 1);
-        assert!(matches!(stmt.options[0], FunctionAlterOption::RenameTo(_)));
+        assert!(stmt.rename_to.is_some());
     }
 
     #[test]
     fn alter_statement_owner_to() {
         let mut stmt = FunctionAlterStatement::new();
         stmt.owner_to(Alias::new("new_owner"));
-        assert_eq!(stmt.options.len(), 1);
-        assert!(matches!(stmt.options[0], FunctionAlterOption::OwnerTo(_)));
+        assert!(stmt.owner_to.is_some());
     }
 
     #[test]
     fn alter_statement_set_schema() {
         let mut stmt = FunctionAlterStatement::new();
         stmt.set_schema(Alias::new("new_schema"));
-        assert_eq!(stmt.options.len(), 1);
-        assert!(matches!(stmt.options[0], FunctionAlterOption::SetSchema(_)));
+        assert!(stmt.set_schema.is_some());
     }
 
     // ── SQL output (PostgresQueryBuilder) ────────────────────────────────────

@@ -1,24 +1,27 @@
-use super::create::FunctionBehavior;
 use crate::{ColumnType, DynIden, IntoIden};
+use super::create::FunctionBehavior;
 
-/// Represents PostgreSQL function alteration options
-#[derive(Debug, Clone, PartialEq)]
-pub enum FunctionAlterOption {
-    RenameTo(DynIden),
-    OwnerTo(DynIden),
-    SetSchema(DynIden),
-    Behavior(FunctionBehavior),
-    Leakproof(bool),
-    Cost(f64),
-    Rows(f64),
-    Support(DynIden),
-    DependsOnExtension(DynIden),
-    NoDependsOnExtension(DynIden),
-    SetConfig(DynIden, String),
-    SetConfigDefault(DynIden),
-    SetConfigFromCurrent(DynIden),
-    ResetConfig(DynIden),
-    ResetAll,
+/// Represents PostgreSQL function alteration dependency option
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FunctionDependsOption {
+    DependsOn(DynIden),
+    NoDependsOn(DynIden),
+}
+
+/// Represents PostgreSQL function alteration configuration options
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FunctionConfigOption {
+    Set(String),
+    SetDefault,
+    SetFromCurrent,
+    Reset,
+}
+
+/// Represents PostgreSQL function alteration configuration parameter and option
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FunctionAlterConfig {
+    pub(crate) param: DynIden,
+    pub(crate) option: FunctionConfigOption,
 }
 
 /// Creates a new "ALTER FUNCTION" statement for PostgreSQL
@@ -27,7 +30,24 @@ pub struct FunctionAlterStatement {
     pub(crate) name: Option<DynIden>,
     pub(crate) if_exists: bool,
     pub(crate) arg_types: Option<Vec<ColumnType>>,
-    pub(crate) options: Vec<FunctionAlterOption>,
+    
+    pub(crate) rename_to: Option<DynIden>,
+    pub(crate) owner_to: Option<DynIden>,
+    pub(crate) set_schema: Option<DynIden>,
+    
+    pub(crate) volatility: Option<FunctionBehavior>,
+    pub(crate) strictness: Option<FunctionBehavior>,
+    pub(crate) security: Option<FunctionBehavior>,
+    pub(crate) parallel: Option<FunctionBehavior>,
+    
+    pub(crate) leakproof: Option<bool>,
+    pub(crate) cost: Option<f64>,
+    pub(crate) rows: Option<f64>,
+    pub(crate) support: Option<DynIden>,
+    pub(crate) depends_on: Option<FunctionDependsOption>,
+    pub(crate) configs: Vec<FunctionAlterConfig>,
+    pub(crate) reset_all: bool,
+    
     pub(crate) restrict: bool,
 }
 
@@ -50,90 +70,110 @@ impl FunctionAlterStatement {
 
     /// Add a "RENAME TO" option to the ALTER FUNCTION statement
     pub fn rename_to(&mut self, new_name: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::RenameTo(new_name.into_iden()));
+        self.rename_to = Some(new_name.into_iden());
         self
     }
 
     /// Add an "OWNER TO" option to the ALTER FUNCTION statement
     pub fn owner_to(&mut self, new_owner: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::OwnerTo(new_owner.into_iden()));
+        self.owner_to = Some(new_owner.into_iden());
         self
     }
 
     /// Add a "SET SCHEMA" option to the ALTER FUNCTION statement
     pub fn set_schema(&mut self, new_schema: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::SetSchema(new_schema.into_iden()));
+        self.set_schema = Some(new_schema.into_iden());
         self
     }
 
     /// Add a behavior / volatility modifier
     pub fn behavior(&mut self, behavior: FunctionBehavior) -> &mut Self {
-        self.options.push(FunctionAlterOption::Behavior(behavior));
+        match behavior {
+            FunctionBehavior::Immutable
+            | FunctionBehavior::Stable
+            | FunctionBehavior::Volatile => {
+                self.volatility = Some(behavior);
+            }
+            FunctionBehavior::CalledOnNullInput
+            | FunctionBehavior::ReturnsNullOnNullInput
+            | FunctionBehavior::Strict => {
+                self.strictness = Some(behavior);
+            }
+            FunctionBehavior::SecurityInvoker | FunctionBehavior::SecurityDefiner => {
+                self.security = Some(behavior);
+            }
+            FunctionBehavior::ParallelUnsafe
+            | FunctionBehavior::ParallelRestricted
+            | FunctionBehavior::ParallelSafe => {
+                self.parallel = Some(behavior);
+            }
+        }
         self
     }
 
     /// Add a "LEAKPROOF" or "NOT LEAKPROOF" modifier
     pub fn leakproof(&mut self, leakproof: bool) -> &mut Self {
-        self.options.push(FunctionAlterOption::Leakproof(leakproof));
+        self.leakproof = Some(leakproof);
         self
     }
 
     /// Add a "COST" option
     pub fn cost(&mut self, cost: f64) -> &mut Self {
-        self.options.push(FunctionAlterOption::Cost(cost));
+        self.cost = Some(cost);
         self
     }
 
     /// Add a "ROWS" option
     pub fn rows(&mut self, rows: f64) -> &mut Self {
-        self.options.push(FunctionAlterOption::Rows(rows));
+        self.rows = Some(rows);
         self
     }
 
     /// Add a "SUPPORT" option
     pub fn support(&mut self, support_fn: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::Support(support_fn.into_iden()));
+        self.support = Some(support_fn.into_iden());
         self
     }
 
     /// Add a "DEPENDS ON EXTENSION" option
     pub fn depends_on_extension(&mut self, ext: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::DependsOnExtension(ext.into_iden()));
+        self.depends_on = Some(FunctionDependsOption::DependsOn(ext.into_iden()));
         self
     }
 
     /// Add a "NO DEPENDS ON EXTENSION" option
     pub fn no_depends_on_extension(&mut self, ext: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::NoDependsOnExtension(ext.into_iden()));
+        self.depends_on = Some(FunctionDependsOption::NoDependsOn(ext.into_iden()));
         self
+    }
+
+    fn set_config_option(&mut self, param: DynIden, option: FunctionConfigOption) {
+        if let Some(config) = self
+            .configs
+            .iter_mut()
+            .find(|c| c.param.to_string() == param.to_string())
+        {
+            config.option = option;
+        } else {
+            self.configs.push(FunctionAlterConfig { param, option });
+        }
     }
 
     /// Add a "SET configuration_parameter TO value" option
     pub fn set_config(&mut self, param: impl IntoIden, value: impl Into<String>) -> &mut Self {
-        self.options.push(FunctionAlterOption::SetConfig(
-            param.into_iden(),
-            value.into(),
-        ));
+        self.set_config_option(param.into_iden(), FunctionConfigOption::Set(value.into()));
         self
     }
 
     /// Add a "SET configuration_parameter TO DEFAULT" option
     pub fn set_config_default(&mut self, param: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::SetConfigDefault(param.into_iden()));
+        self.set_config_option(param.into_iden(), FunctionConfigOption::SetDefault);
         self
     }
 
     /// Add a "SET configuration_parameter FROM CURRENT" option
     pub fn set_config_from_current(&mut self, param: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::SetConfigFromCurrent(param.into_iden()));
+        self.set_config_option(param.into_iden(), FunctionConfigOption::SetFromCurrent);
         self
     }
 
@@ -194,14 +234,13 @@ impl FunctionAlterStatement {
 
     /// Add a "RESET configuration_parameter" option
     pub fn reset_config(&mut self, param: impl IntoIden) -> &mut Self {
-        self.options
-            .push(FunctionAlterOption::ResetConfig(param.into_iden()));
+        self.set_config_option(param.into_iden(), FunctionConfigOption::Reset);
         self
     }
 
     /// Add a "RESET ALL" option
     pub fn reset_all(&mut self) -> &mut Self {
-        self.options.push(FunctionAlterOption::ResetAll);
+        self.reset_all = true;
         self
     }
 
