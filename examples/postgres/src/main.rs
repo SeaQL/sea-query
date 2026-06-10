@@ -2,7 +2,10 @@ use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, ColumnType, Iden, Order, PostgresQueryBuilder, Query, Table};
+use sea_query::extension::postgres::{
+    FunctionReturns, PgFunctionStmt, PgTriggerStmt, TriggerEvent,
+};
+use sea_query::{ColumnDef, ColumnType, Iden, IntoIden, Order, PostgresQueryBuilder, Query, Table};
 use sea_query_postgres::PostgresBinder;
 use time::{
     OffsetDateTime, PrimitiveDateTime,
@@ -147,6 +150,72 @@ fn main() {
         println!("{item:?}");
     }
     println!();
+
+    // Postgres Extension: Function and Trigger
+
+    // 1. Drop trigger & function if they exist
+    let drop_trigger_sql = PgTriggerStmt::drop()
+        .name("doc_trigger")
+        .table(Document::Table)
+        .if_exists()
+        .to_string(PostgresQueryBuilder);
+    println!("Drop trigger SQL: {drop_trigger_sql}");
+    let _ = client.execute(&drop_trigger_sql, &[]);
+
+    let drop_function_sql = PgFunctionStmt::drop()
+        .name("doc_trigger_func")
+        .if_exists()
+        .to_string(PostgresQueryBuilder);
+    println!("Drop function SQL: {drop_function_sql}");
+    let _ = client.execute(&drop_function_sql, &[]);
+
+    // 2. Create function that returns TRIGGER
+    let create_function_sql = PgFunctionStmt::create()
+        .or_replace()
+        .name("doc_trigger_func")
+        .returns(FunctionReturns::Type(ColumnType::Custom(
+            "TRIGGER".into_iden(),
+        )))
+        .language("plpgsql")
+        .as_definition("BEGIN RETURN NEW; END;")
+        .to_string(PostgresQueryBuilder);
+    println!("Create function SQL: {create_function_sql}");
+    let _ = client.execute(&create_function_sql, &[]);
+
+    // 3. Create trigger executing that function
+    let create_trigger_sql = PgTriggerStmt::create()
+        .name("doc_trigger")
+        .before()
+        .event(TriggerEvent::Insert)
+        .table(Document::Table)
+        .for_each_row()
+        .function("doc_trigger_func")
+        .to_string(PostgresQueryBuilder);
+    println!("Create trigger SQL: {create_trigger_sql}");
+    let _ = client.execute(&create_trigger_sql, &[]);
+
+    // 4. Alter trigger name
+    let alter_trigger_sql = PgTriggerStmt::alter()
+        .name("doc_trigger")
+        .table(Document::Table)
+        .rename_to("doc_trigger_new")
+        .to_string(PostgresQueryBuilder);
+    println!("Alter trigger SQL: {alter_trigger_sql}");
+    let _ = client.execute(&alter_trigger_sql, &[]);
+
+    // 5. Clean up: Drop new trigger and function
+    let drop_new_trigger_sql = PgTriggerStmt::drop()
+        .name("doc_trigger_new")
+        .table(Document::Table)
+        .to_string(PostgresQueryBuilder);
+    println!("Drop new trigger SQL: {drop_new_trigger_sql}");
+    let _ = client.execute(&drop_new_trigger_sql, &[]);
+
+    let drop_function_final_sql = PgFunctionStmt::drop()
+        .name("doc_trigger_func")
+        .to_string(PostgresQueryBuilder);
+    println!("Drop function SQL: {drop_function_final_sql}");
+    let _ = client.execute(&drop_function_final_sql, &[]);
 }
 
 #[derive(Iden)]
