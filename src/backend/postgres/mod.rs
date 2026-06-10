@@ -248,7 +248,9 @@ impl FunctionBuilder for PostgresQueryBuilder {
                             FunctionBehavior::Stable => "STABLE",
                             FunctionBehavior::Volatile => "VOLATILE",
                             FunctionBehavior::CalledOnNullInput => "CALLED ON NULL INPUT",
-                            FunctionBehavior::ReturnsNullOnNullInput => "RETURNS NULL ON NULL INPUT",
+                            FunctionBehavior::ReturnsNullOnNullInput => {
+                                "RETURNS NULL ON NULL INPUT"
+                            }
                             FunctionBehavior::Strict => "STRICT",
                             FunctionBehavior::SecurityInvoker => "SECURITY INVOKER",
                             FunctionBehavior::SecurityDefiner => "SECURITY DEFINER",
@@ -603,7 +605,6 @@ impl TableRefBuilder for PostgresQueryBuilder {}
 
 #[cfg(test)]
 mod tests {
-    use crate::extension::postgres::{FunctionBuilder, TriggerBuilder};
     use crate::{EscapeBuilder, ExprTrait, IntoIden, PostgresQueryBuilder};
 
     #[test]
