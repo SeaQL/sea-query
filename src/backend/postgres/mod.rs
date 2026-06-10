@@ -85,6 +85,10 @@ impl FunctionBuilder for PostgresQueryBuilder {
             sql.write_str("OR REPLACE ").unwrap();
         }
         sql.write_str("FUNCTION ").unwrap();
+        if let Some(schema) = &create.schema {
+            self.prepare_iden(schema, sql);
+            sql.write_str(".").unwrap();
+        }
         if let Some(name) = &create.name {
             self.prepare_iden(name, sql);
         }
@@ -171,6 +175,10 @@ impl FunctionBuilder for PostgresQueryBuilder {
         if drop.if_exists {
             sql.write_str("IF EXISTS ").unwrap();
         }
+        if let Some(schema) = &drop.schema {
+            self.prepare_iden(schema, sql);
+            sql.write_str(".").unwrap();
+        }
         if let Some(name) = &drop.name {
             self.prepare_iden(name, sql);
         }
@@ -199,6 +207,10 @@ impl FunctionBuilder for PostgresQueryBuilder {
     ) {
         sql.write_str("ALTER FUNCTION ").unwrap();
 
+        if let Some(schema) = &alter.schema {
+            self.prepare_iden(schema, sql);
+            sql.write_str(".").unwrap();
+        }
         if let Some(name) = &alter.name {
             self.prepare_iden(name, sql);
         }

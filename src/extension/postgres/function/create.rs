@@ -74,6 +74,7 @@ pub enum FunctionReturns {
 /// Creates a new "CREATE FUNCTION" statement for PostgreSQL
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct FunctionCreateStatement {
+    pub(crate) schema: Option<DynIden>,
     pub(crate) name: Option<DynIden>,
     pub(crate) or_replace: bool,
     pub(crate) args: Vec<FunctionArg>,
@@ -87,6 +88,12 @@ pub struct FunctionCreateStatement {
 impl FunctionCreateStatement {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Set the function schema
+    pub fn schema(&mut self, schema: impl IntoIden) -> &mut Self {
+        self.schema = Some(schema.into_iden());
+        self
     }
 
     /// Set the function name

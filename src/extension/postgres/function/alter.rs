@@ -54,6 +54,7 @@ pub struct FunctionAlterAction {
 /// Creates a new "ALTER FUNCTION" statement for PostgreSQL
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct FunctionAlterStatement {
+    pub(crate) schema: Option<DynIden>,
     pub(crate) name: Option<DynIden>,
     pub(crate) if_exists: bool,
     pub(crate) arg_types: Option<Vec<ColumnType>>,
@@ -63,6 +64,12 @@ pub struct FunctionAlterStatement {
 impl FunctionAlterStatement {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Set the function schema
+    pub fn schema(&mut self, schema: impl IntoIden) -> &mut Self {
+        self.schema = Some(schema.into_iden());
+        self
     }
 
     /// Set the function name to alter

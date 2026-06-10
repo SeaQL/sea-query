@@ -200,6 +200,7 @@ mod tests {
     #[test]
     fn create_statement_defaults() {
         let stmt = FunctionCreateStatement::new();
+        assert!(stmt.schema.is_none());
         assert!(stmt.name.is_none());
         assert!(!stmt.or_replace);
         assert!(stmt.args.is_empty());
@@ -289,6 +290,7 @@ mod tests {
     #[test]
     fn drop_statement_defaults() {
         let stmt = FunctionDropStatement::new();
+        assert!(stmt.schema.is_none());
         assert!(stmt.name.is_none());
         assert!(!stmt.if_exists);
         assert!(stmt.arg_types.is_none());
@@ -338,6 +340,7 @@ mod tests {
     #[test]
     fn alter_statement_defaults() {
         let stmt = FunctionAlterStatement::new();
+        assert!(stmt.schema.is_none());
         assert!(stmt.name.is_none());
         assert!(stmt.arg_types.is_none());
         assert!(stmt.alter_option.is_none());
@@ -400,6 +403,23 @@ mod tests {
     mod sql {
         use super::*;
         use crate::PostgresQueryBuilder;
+
+        #[test]
+        fn create_with_schema() {
+            let sql = PgFunctionStmt::create()
+                .schema(Alias::new("my_schema"))
+                .name(Alias::new("my_fn"))
+                .arg(FunctionArg::new(ColumnType::Integer).name(Alias::new("a")))
+                .returns(FunctionReturns::Type(ColumnType::Integer))
+                .language(Alias::new("plpgsql"))
+                .as_definition("BEGIN RETURN a + 1; END;")
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"CREATE FUNCTION "my_schema"."my_fn" ("a" integer) RETURNS integer LANGUAGE "plpgsql" AS 'BEGIN RETURN a + 1; END;'"#
+            );
+        }
 
         #[test]
         fn create_basic() {
@@ -473,6 +493,16 @@ mod tests {
         }
 
         #[test]
+        fn drop_with_schema() {
+            let sql = PgFunctionStmt::drop()
+                .schema(Alias::new("my_schema"))
+                .name(Alias::new("my_fn"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(sql, r#"DROP FUNCTION "my_schema"."my_fn""#);
+        }
+
+        #[test]
         fn drop_basic() {
             let sql = PgFunctionStmt::drop()
                 .name(Alias::new("my_fn"))
@@ -511,6 +541,21 @@ mod tests {
                 .to_string(PostgresQueryBuilder);
 
             assert!(sql.contains("(integer, text)"));
+        }
+
+        #[test]
+        fn alter_rename_with_schema() {
+            let sql = PgFunctionStmt::alter()
+                .schema(Alias::new("my_schema"))
+                .name(Alias::new("old_fn"))
+                .arg_types([ColumnType::Integer])
+                .rename_to(Alias::new("new_fn"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"ALTER FUNCTION "my_schema"."old_fn" (integer) RENAME TO "new_fn""#
+            );
         }
 
         #[test]
