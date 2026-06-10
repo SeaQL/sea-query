@@ -7,7 +7,9 @@ pub(crate) mod types;
 
 use super::*;
 use crate::extension::postgres::{
-    function::alter::{FunctionAlterStatement, FunctionConfigOption, FunctionDependsOption},
+    function::alter::{
+        FunctionAlterOption, FunctionAlterStatement, FunctionConfigOption, FunctionDependsOption,
+    },
     function::create::{
         FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns,
     },
@@ -211,125 +213,127 @@ impl FunctionBuilder for PostgresQueryBuilder {
             sql.write_str(")").unwrap();
         }
 
-        if let Some(new_name) = &alter.rename_to {
-            sql.write_str(" RENAME TO ").unwrap();
-            self.prepare_iden(new_name, sql);
-        }
+        if let Some(option) = &alter.alter_option {
+            match option {
+                FunctionAlterOption::RenameTo(new_name) => {
+                    sql.write_str(" RENAME TO ").unwrap();
+                    self.prepare_iden(new_name, sql);
+                }
+                FunctionAlterOption::OwnerTo(new_owner) => {
+                    sql.write_str(" OWNER TO ").unwrap();
+                    self.prepare_iden(new_owner, sql);
+                }
+                FunctionAlterOption::SetSchema(new_schema) => {
+                    sql.write_str(" SET SCHEMA ").unwrap();
+                    self.prepare_iden(new_schema, sql);
+                }
+                FunctionAlterOption::DependsOn(depends_on) => {
+                    sql.write_str(" ").unwrap();
+                    match depends_on {
+                        FunctionDependsOption::DependsOn(ext) => {
+                            sql.write_str("DEPENDS ON EXTENSION ").unwrap();
+                            self.prepare_iden(ext, sql);
+                        }
+                        FunctionDependsOption::NoDependsOn(ext) => {
+                            sql.write_str("NO DEPENDS ON EXTENSION ").unwrap();
+                            self.prepare_iden(ext, sql);
+                        }
+                    }
+                }
+                FunctionAlterOption::Action(action) => {
+                    fn write_behavior(behavior: &FunctionBehavior, sql: &mut impl SqlWriter) {
+                        sql.write_str(" ").unwrap();
+                        sql.write_str(match behavior {
+                            FunctionBehavior::Immutable => "IMMUTABLE",
+                            FunctionBehavior::Stable => "STABLE",
+                            FunctionBehavior::Volatile => "VOLATILE",
+                            FunctionBehavior::CalledOnNullInput => "CALLED ON NULL INPUT",
+                            FunctionBehavior::ReturnsNullOnNullInput => "RETURNS NULL ON NULL INPUT",
+                            FunctionBehavior::Strict => "STRICT",
+                            FunctionBehavior::SecurityInvoker => "SECURITY INVOKER",
+                            FunctionBehavior::SecurityDefiner => "SECURITY DEFINER",
+                            FunctionBehavior::ParallelUnsafe => "PARALLEL UNSAFE",
+                            FunctionBehavior::ParallelRestricted => "PARALLEL RESTRICTED",
+                            FunctionBehavior::ParallelSafe => "PARALLEL SAFE",
+                        })
+                        .unwrap();
+                    }
 
-        if let Some(new_owner) = &alter.owner_to {
-            sql.write_str(" OWNER TO ").unwrap();
-            self.prepare_iden(new_owner, sql);
-        }
+                    if let Some(volatility) = &action.volatility {
+                        write_behavior(volatility, sql);
+                    }
 
-        if let Some(new_schema) = &alter.set_schema {
-            sql.write_str(" SET SCHEMA ").unwrap();
-            self.prepare_iden(new_schema, sql);
-        }
+                    if let Some(strictness) = &action.strictness {
+                        write_behavior(strictness, sql);
+                    }
 
-        fn write_behavior(behavior: &FunctionBehavior, sql: &mut impl SqlWriter) {
-            sql.write_str(" ").unwrap();
-            sql.write_str(match behavior {
-                FunctionBehavior::Immutable => "IMMUTABLE",
-                FunctionBehavior::Stable => "STABLE",
-                FunctionBehavior::Volatile => "VOLATILE",
-                FunctionBehavior::CalledOnNullInput => "CALLED ON NULL INPUT",
-                FunctionBehavior::ReturnsNullOnNullInput => "RETURNS NULL ON NULL INPUT",
-                FunctionBehavior::Strict => "STRICT",
-                FunctionBehavior::SecurityInvoker => "SECURITY INVOKER",
-                FunctionBehavior::SecurityDefiner => "SECURITY DEFINER",
-                FunctionBehavior::ParallelUnsafe => "PARALLEL UNSAFE",
-                FunctionBehavior::ParallelRestricted => "PARALLEL RESTRICTED",
-                FunctionBehavior::ParallelSafe => "PARALLEL SAFE",
-            })
-            .unwrap();
-        }
+                    if let Some(security) = &action.security {
+                        write_behavior(security, sql);
+                    }
 
-        if let Some(volatility) = &alter.volatility {
-            write_behavior(volatility, sql);
-        }
+                    if let Some(parallel) = &action.parallel {
+                        write_behavior(parallel, sql);
+                    }
 
-        if let Some(strictness) = &alter.strictness {
-            write_behavior(strictness, sql);
-        }
+                    if let Some(leakproof) = action.leakproof {
+                        sql.write_str(" ").unwrap();
+                        if leakproof {
+                            sql.write_str("LEAKPROOF").unwrap();
+                        } else {
+                            sql.write_str("NOT LEAKPROOF").unwrap();
+                        }
+                    }
 
-        if let Some(security) = &alter.security {
-            write_behavior(security, sql);
-        }
+                    if let Some(cost) = action.cost {
+                        sql.write_str(" ").unwrap();
+                        write!(sql, "COST {cost}").unwrap();
+                    }
 
-        if let Some(parallel) = &alter.parallel {
-            write_behavior(parallel, sql);
-        }
+                    if let Some(rows) = action.rows {
+                        sql.write_str(" ").unwrap();
+                        write!(sql, "ROWS {rows}").unwrap();
+                    }
 
-        if let Some(leakproof) = alter.leakproof {
-            sql.write_str(" ").unwrap();
-            if leakproof {
-                sql.write_str("LEAKPROOF").unwrap();
-            } else {
-                sql.write_str("NOT LEAKPROOF").unwrap();
+                    if let Some(support_fn) = &action.support {
+                        sql.write_str(" SUPPORT ").unwrap();
+                        self.prepare_iden(support_fn, sql);
+                    }
+
+                    for config in &action.configs {
+                        sql.write_str(" ").unwrap();
+                        match &config.option {
+                            FunctionConfigOption::Set(value) => {
+                                sql.write_str("SET ").unwrap();
+                                self.prepare_iden(&config.param, sql);
+                                sql.write_str(" TO ").unwrap();
+                                sql.write_str(value).unwrap();
+                            }
+                            FunctionConfigOption::SetDefault => {
+                                sql.write_str("SET ").unwrap();
+                                self.prepare_iden(&config.param, sql);
+                                sql.write_str(" TO DEFAULT").unwrap();
+                            }
+                            FunctionConfigOption::SetFromCurrent => {
+                                sql.write_str("SET ").unwrap();
+                                self.prepare_iden(&config.param, sql);
+                                sql.write_str(" FROM CURRENT").unwrap();
+                            }
+                            FunctionConfigOption::Reset => {
+                                sql.write_str("RESET ").unwrap();
+                                self.prepare_iden(&config.param, sql);
+                            }
+                        }
+                    }
+
+                    if action.reset_all {
+                        sql.write_str(" RESET ALL").unwrap();
+                    }
+
+                    if action.restrict {
+                        sql.write_str(" RESTRICT").unwrap();
+                    }
+                }
             }
-        }
-
-        if let Some(cost) = alter.cost {
-            sql.write_str(" ").unwrap();
-            write!(sql, "COST {cost}").unwrap();
-        }
-
-        if let Some(rows) = alter.rows {
-            sql.write_str(" ").unwrap();
-            write!(sql, "ROWS {rows}").unwrap();
-        }
-
-        if let Some(support_fn) = &alter.support {
-            sql.write_str(" SUPPORT ").unwrap();
-            self.prepare_iden(support_fn, sql);
-        }
-
-        if let Some(depends_on) = &alter.depends_on {
-            sql.write_str(" ").unwrap();
-            match depends_on {
-                FunctionDependsOption::DependsOn(ext) => {
-                    sql.write_str("DEPENDS ON EXTENSION ").unwrap();
-                    self.prepare_iden(ext, sql);
-                }
-                FunctionDependsOption::NoDependsOn(ext) => {
-                    sql.write_str("NO DEPENDS ON EXTENSION ").unwrap();
-                    self.prepare_iden(ext, sql);
-                }
-            }
-        }
-
-        for config in &alter.configs {
-            sql.write_str(" ").unwrap();
-            match &config.option {
-                FunctionConfigOption::Set(value) => {
-                    sql.write_str("SET ").unwrap();
-                    self.prepare_iden(&config.param, sql);
-                    sql.write_str(" TO ").unwrap();
-                    sql.write_str(value).unwrap();
-                }
-                FunctionConfigOption::SetDefault => {
-                    sql.write_str("SET ").unwrap();
-                    self.prepare_iden(&config.param, sql);
-                    sql.write_str(" TO DEFAULT").unwrap();
-                }
-                FunctionConfigOption::SetFromCurrent => {
-                    sql.write_str("SET ").unwrap();
-                    self.prepare_iden(&config.param, sql);
-                    sql.write_str(" FROM CURRENT").unwrap();
-                }
-                FunctionConfigOption::Reset => {
-                    sql.write_str("RESET ").unwrap();
-                    self.prepare_iden(&config.param, sql);
-                }
-            }
-        }
-
-        if alter.reset_all {
-            sql.write_str(" RESET ALL").unwrap();
-        }
-
-        if alter.restrict {
-            sql.write_str(" RESTRICT").unwrap();
         }
     }
 }
@@ -711,11 +715,19 @@ mod tests {
         let mut change_owner_function_stmt = FunctionAlterStatement::new();
         change_owner_function_stmt
             .name(Alias::new("my_func"))
-            .owner_to(Alias::new("new_owner"))
-            .set_schema(Alias::new("new_schema"));
+            .owner_to(Alias::new("new_owner"));
         assert_eq!(
             change_owner_function_stmt.to_string(PostgresQueryBuilder),
-            r#"ALTER FUNCTION "my_func" OWNER TO "new_owner" SET SCHEMA "new_schema""#
+            r#"ALTER FUNCTION "my_func" OWNER TO "new_owner""#
+        );
+
+        let mut change_schema_function_stmt = FunctionAlterStatement::new();
+        change_schema_function_stmt
+            .name(Alias::new("my_func"))
+            .set_schema(Alias::new("new_schema"));
+        assert_eq!(
+            change_schema_function_stmt.to_string(PostgresQueryBuilder),
+            r#"ALTER FUNCTION "my_func" SET SCHEMA "new_schema""#
         );
 
         let mut behaviour_function_stmt = FunctionAlterStatement::new();
