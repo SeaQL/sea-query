@@ -1925,6 +1925,43 @@ impl SelectStatement {
         )
     }
 
+    /// Join with a "USING" clause.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .join_using(JoinType::LeftJoin, Font::Table, [Char::FontId])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` LEFT JOIN `font` USING (`font_id`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" LEFT JOIN "font" USING ("font_id")"#
+    /// );
+    /// ```
+    pub fn join_using(
+        &mut self,
+        join: JoinType,
+        tbl_ref: impl IntoTableRef,
+        columns: impl IntoIterator<Item = impl IntoColumnRef>,
+    ) -> &mut Self {
+        let columns = columns
+            .into_iter()
+            .map(IntoColumnRef::into_column_ref)
+            .map(Expr::from)
+            .collect();
+
+        self.push_join(join, tbl_ref.into(), JoinOn::Columns(columns), false)
+    }
+
     fn push_join(
         &mut self,
         join: JoinType,
