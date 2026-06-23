@@ -1135,14 +1135,19 @@ macro_rules! type_to_value {
 #[allow(unused_imports)]
 use type_to_value;
 
-/// Like [`type_to_value!`], but for the integer scalar types. Identical in every
-/// respect (`From`, `Nullable`, `type_name`, `array_type`, `column_type`) except
-/// that `try_from` accepts *any* integer `Value` variant and converts it with a
-/// *checked* std `TryFrom` conversion. This lets an integer be read
-/// from a variant other than its own — e.g. an `i32` model field from a
-/// `Value::BigInt` emitted by a backend whose database has only one integer width
-/// (such as Spanner's `INT64`). NULL and out-of-range both map to `ValueTypeErr`,
-/// preserving the original strict behaviour for those cases (no silent truncation).
+/// Same as [`type_to_value!`], but produces a more forgiving `try_from` for the
+/// integer types.
+///
+/// With `type_to_value!` a value can only be read back from its own variant, so
+/// reading an `i32` out of a `Value::BigInt` fails. That is a problem for backends
+/// built on a database with a single integer width: Spanner, for example, only
+/// has `INT64`, so its proxy backend can only ever hand back `Value::BigInt`, and
+/// an `i32` field becomes unreadable.
+///
+/// Here `try_from` accepts any integer variant and converts it with the standard
+/// library's checked `TryFrom`. If the value does not fit the target type (or it
+/// is NULL) the result is still `ValueTypeErr`, so nothing is truncated silently.
+/// Everything else the macro generates is identical to `type_to_value!`.
 macro_rules! int_type_to_value {
     ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
@@ -1159,9 +1164,9 @@ macro_rules! int_type_to_value {
 
         impl ValueType for $type {
             fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-                // Fully-qualified `TryFrom` because `$type` also has a
-                // `ValueType::try_from` in scope (the impl below), which would
-                // otherwise make the call ambiguous.
+                // `$type` now has two `try_from`s in scope: `TryFrom`'s and the
+                // one from the `ValueType` impl just below. Name `TryFrom`
+                // explicitly so the call is not ambiguous.
                 let converted: Option<$type> = match v {
                     Value::TinyInt(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
                     Value::SmallInt(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
