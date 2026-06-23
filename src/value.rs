@@ -1138,7 +1138,7 @@ use type_to_value;
 /// Like [`type_to_value!`], but for the integer scalar types. Identical in every
 /// respect (`From`, `Nullable`, `type_name`, `array_type`, `column_type`) except
 /// that `try_from` accepts *any* integer `Value` variant and converts it with a
-/// *checked* std conversion (`<$type>::try_from`). This lets an integer be read
+/// *checked* std `TryFrom` conversion. This lets an integer be read
 /// from a variant other than its own — e.g. an `i32` model field from a
 /// `Value::BigInt` emitted by a backend whose database has only one integer width
 /// (such as Spanner's `INT64`). NULL and out-of-range both map to `ValueTypeErr`,

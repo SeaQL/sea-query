@@ -52,7 +52,7 @@ fn test_value() {
 fn integer_value_type_is_lenient_and_checked() {
     use crate::{Value, ValueType};
 
-    // Widen / narrow within range.
+    // An integer can be read from any integer variant, not just its own.
     assert_eq!(
         <i32 as ValueType>::try_from(Value::BigInt(Some(123))).unwrap(),
         123
@@ -73,7 +73,6 @@ fn integer_value_type_is_lenient_and_checked() {
     // NULL -> Err, preserving original semantics.
     assert!(<i32 as ValueType>::try_from(Value::Int(None)).is_err());
 
-    // Non-integer -> Err.
     assert!(<i32 as ValueType>::try_from(Value::String(None)).is_err());
 }
 
