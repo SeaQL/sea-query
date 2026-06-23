@@ -1135,15 +1135,81 @@ macro_rules! type_to_value {
 #[allow(unused_imports)]
 use type_to_value;
 
+/// Like [`type_to_value!`], but for the integer scalar types. Identical in every
+/// respect (`From`, `Nullable`, `type_name`, `array_type`, `column_type`) except
+/// that `try_from` accepts *any* integer `Value` variant and converts it with a
+/// *checked* std conversion (`<$type>::try_from`). This lets an integer be read
+/// from a variant other than its own — e.g. an `i32` model field from a
+/// `Value::BigInt` emitted by a backend whose database has only one integer width
+/// (such as Spanner's `INT64`). NULL and out-of-range both map to `ValueTypeErr`,
+/// preserving the original strict behaviour for those cases (no silent truncation).
+macro_rules! int_type_to_value {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
+        impl From<$type> for Value {
+            fn from(x: $type) -> Value {
+                Value::$name(Some(x))
+            }
+        }
+
+        impl Nullable for $type {
+            fn null() -> Value {
+                Value::$name(None)
+            }
+        }
+
+        impl ValueType for $type {
+            fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                // Fully-qualified `TryFrom` because `$type` also has a
+                // `ValueType::try_from` in scope (the impl below), which would
+                // otherwise make the call ambiguous.
+                let converted: Option<$type> = match v {
+                    Value::TinyInt(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
+                    Value::SmallInt(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
+                    Value::Int(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
+                    Value::BigInt(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
+                    Value::TinyUnsigned(x) => {
+                        x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok())
+                    }
+                    Value::SmallUnsigned(x) => {
+                        x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok())
+                    }
+                    Value::Unsigned(x) => x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok()),
+                    Value::BigUnsigned(x) => {
+                        x.and_then(|n| <$type as TryFrom<_>>::try_from(n).ok())
+                    }
+                    _ => return Err(ValueTypeErr),
+                };
+                converted.ok_or(ValueTypeErr)
+            }
+
+            fn type_name() -> String {
+                stringify!($type).to_owned()
+            }
+
+            fn array_type() -> ArrayType {
+                ArrayType::$name
+            }
+
+            fn column_type() -> ColumnType {
+                use ColumnType::*;
+                $col_type
+            }
+        }
+    };
+}
+
+#[allow(unused_imports)]
+use int_type_to_value;
+
 type_to_value!(bool, Bool, Boolean);
-type_to_value!(i8, TinyInt, TinyInteger);
-type_to_value!(i16, SmallInt, SmallInteger);
-type_to_value!(i32, Int, Integer);
-type_to_value!(i64, BigInt, BigInteger);
-type_to_value!(u8, TinyUnsigned, TinyUnsigned);
-type_to_value!(u16, SmallUnsigned, SmallUnsigned);
-type_to_value!(u32, Unsigned, Unsigned);
-type_to_value!(u64, BigUnsigned, BigUnsigned);
+int_type_to_value!(i8, TinyInt, TinyInteger);
+int_type_to_value!(i16, SmallInt, SmallInteger);
+int_type_to_value!(i32, Int, Integer);
+int_type_to_value!(i64, BigInt, BigInteger);
+int_type_to_value!(u8, TinyUnsigned, TinyUnsigned);
+int_type_to_value!(u16, SmallUnsigned, SmallUnsigned);
+int_type_to_value!(u32, Unsigned, Unsigned);
+int_type_to_value!(u64, BigUnsigned, BigUnsigned);
 type_to_value!(f32, Float, Float);
 type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
