@@ -2068,7 +2068,7 @@ impl SelectStatement {
     /// ```
     pub fn clear_group_by(&mut self) -> &mut Self {
         self.groups = Vec::new();
-        self;
+        self
     }
 
     /// Add group by expressions from vector of [`SelectExpr`].
@@ -2165,7 +2165,7 @@ impl SelectStatement {
     /// ```
     pub fn clear_having(&mut self) -> &mut Self {
         self.having = ConditionHolder::new();
-        self;
+        self
     }
 
     pub fn cond_having<C>(&mut self, condition: C) -> &mut Self
