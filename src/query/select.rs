@@ -2135,6 +2135,14 @@ impl SelectStatement {
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
     /// );
     /// ```
+    pub fn cond_having<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition,
+    {
+        self.having.add_condition(condition.into_condition());
+        self
+    }
+
     /// Clear the having condition.
     ///
     /// # Examples
@@ -2165,14 +2173,6 @@ impl SelectStatement {
     /// ```
     pub fn clear_having(&mut self) -> &mut Self {
         self.having = ConditionHolder::new();
-        self
-    }
-
-    pub fn cond_having<C>(&mut self, condition: C) -> &mut Self
-    where
-        C: IntoCondition,
-    {
-        self.having.add_condition(condition.into_condition());
         self
     }
 
