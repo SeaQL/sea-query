@@ -2039,6 +2039,38 @@ impl SelectStatement {
         self.group_by_columns([col])
     }
 
+    /// Clear the group by expressions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .column(Char::Character)
+    ///     .add_group_by([Expr::col(Char::SizeW).into()])
+    ///     .clear_group_by()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character""#
+    /// );
+    /// ```
+    pub fn clear_group_by(&mut self) -> &mut Self {
+        self.groups = Vec::new();
+        self
+    }
+
     /// Add group by expressions from vector of [`SelectExpr`].
     ///
     /// # Examples
@@ -2108,6 +2140,39 @@ impl SelectStatement {
         C: IntoCondition,
     {
         self.having.add_condition(condition.into_condition());
+        self
+    }
+
+    /// Clear the having condition.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Glyph::Table)
+    ///     .column(Glyph::Aspect)
+    ///     .group_by_columns([Glyph::Aspect])
+    ///     .cond_having(Expr::col(Glyph::Aspect).gt(2))
+    ///     .clear_having()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect` FROM `glyph` GROUP BY `aspect`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" GROUP BY "aspect""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" GROUP BY "aspect""#
+    /// );
+    /// ```
+    pub fn clear_having(&mut self) -> &mut Self {
+        self.having = ConditionHolder::new();
         self
     }
 
