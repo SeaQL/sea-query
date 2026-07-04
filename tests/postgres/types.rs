@@ -212,6 +212,28 @@ fn alter_6() {
 }
 
 #[test]
+fn alter_7() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .add_attribute(Font::Variant, ColumnType::Text)
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" ADD ATTRIBUTE "variant" text"#
+    )
+}
+
+#[test]
+fn alter_8() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .drop_attribute(Font::Variant)
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" DROP ATTRIBUTE "variant""#
+    );
+}
+
+#[test]
 fn unsigned_types() {
     let query_builder = PostgresQueryBuilder {};
 
