@@ -1,3 +1,4 @@
+use crate::ColumnType;
 use crate::{QueryBuilder, QuotedBuilder, prepare::*, types::*};
 
 /// Helper for constructing any type statement
@@ -10,17 +11,24 @@ pub use crate::TypeRef;
 // This trait used to be defined here. Let's keep exporting it for compatibility.
 pub use crate::IntoTypeRef;
 
+#[derive(Debug, Clone)]
+pub struct CompositeFieldType {
+    pub(crate) name: DynIden,
+    pub(crate) col_type: ColumnType,
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
     pub(crate) name: Option<TypeRef>,
     pub(crate) as_type: Option<TypeAs>,
     pub(crate) values: Vec<DynIden>,
+    pub(crate) fields: Vec<CompositeFieldType>,
 }
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum TypeAs {
-    // Composite,
+    Composite,
     Enum,
     /* Range,
      * Base,
@@ -125,9 +133,7 @@ impl TypeCreateStatement {
     where
         T: IntoTypeRef,
     {
-        self.name = Some(name.into_type_ref());
-        self.as_type = Some(TypeAs::Enum);
-        self
+        self.as_type(name, TypeAs::Enum)
     }
 
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
@@ -138,6 +144,63 @@ impl TypeCreateStatement {
         for v in values.into_iter() {
             self.values.push(v.into_iden());
         }
+        self
+    }
+
+    /// Create composite as custom type
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::Type, *};
+    ///
+    /// #[derive(Iden)]
+    /// enum FontFamily {
+    ///     #[iden = "font_family"]
+    ///     Type,
+    ///     Serif,
+    ///     Sans,
+    ///     Monospace,
+    /// }
+    ///
+    /// assert_eq!(
+    ///     Type::create()
+    ///         .as_composite(FontFamily::Type)
+    ///         .fields([
+    ///             (FontFamily::Serif, ColumnType::Text),
+    ///             (FontFamily::Sans, ColumnType::Text),
+    ///             (FontFamily::Monospace, ColumnType::Text),
+    ///         ])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TYPE "font_family" AS ("serif" text, "sans" text, "monospace" text)"#,
+    /// );
+    /// ```
+    pub fn as_composite<T>(&mut self, name: T) -> &mut Self
+    where
+        T: IntoTypeRef,
+    {
+        self.as_type(name, TypeAs::Composite)
+
+    }
+   
+    pub fn fields<N, I>(&mut self, fields: I) -> &mut Self
+    where
+        N: IntoIden,
+        I: IntoIterator<Item = (N, ColumnType)>,
+    {
+        for (name, col_type) in fields {
+            self.fields.push(CompositeFieldType {
+                name: name.into_iden(),
+                col_type,
+            });
+        }
+        self
+    }
+
+    fn as_type<T>(&mut self, name: T, as_type: TypeAs) -> &mut Self
+    where
+        T: IntoTypeRef,
+    {
+        self.name = Some(name.into_type_ref());
+        self.as_type = Some(as_type);
         self
     }
 }
