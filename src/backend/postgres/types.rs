@@ -151,6 +151,16 @@ impl PostgresQueryBuilder {
                 sql.write_str(" TO ").unwrap();
                 self.prepare_value(new_name.to_string().into(), sql);
             }
+            TypeAlterOpt::AddAttribute(field) => {
+                sql.write_str(" ADD ATTRIBUTE ").unwrap();
+                self.prepare_iden(&field.name, sql);
+                sql.write_str(" ").unwrap();
+                self.prepare_column_type(&field.col_type, sql);
+            }
+            TypeAlterOpt::DropAttribute(field) => {
+                sql.write_str(" DROP ATTRIBUTE ").unwrap();
+                self.prepare_iden(&field.name, sql);
+            }
         }
     }
 }
