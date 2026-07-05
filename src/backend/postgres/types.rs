@@ -16,7 +16,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         let Some(as_type) = &create.as_type else {
             return;
         };
-        
+
         sql.write_str(" AS ").unwrap();
         self.prepare_create_as_type(as_type, sql);
 
