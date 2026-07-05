@@ -180,9 +180,8 @@ impl TypeCreateStatement {
         T: IntoTypeRef,
     {
         self.as_type(name, TypeAs::Composite)
-
     }
-   
+
     pub fn fields<N, I>(&mut self, fields: I) -> &mut Self
     where
         N: IntoIden,
@@ -462,9 +461,9 @@ impl TypeAlterStatement {
         T: IntoIden,
     {
         self.alter_option(TypeAlterOpt::AddAttribute(CompositeFieldType {
-                name: name.into_iden(),
-                col_type,
-            }))
+            name: name.into_iden(),
+            col_type,
+        }))
     }
 
     /// Drop an attribute from a composite type

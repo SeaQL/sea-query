@@ -92,9 +92,7 @@ fn create_6() {
     assert_eq!(
         Type::create()
             .as_composite("outer_type")
-            .fields([
-                ("inner", ColumnType::custom("inner_type")),
-            ])
+            .fields([("inner", ColumnType::custom("inner_type"))])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "outer_type" AS ("inner" inner_type)"#,
     );
