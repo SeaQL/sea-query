@@ -275,6 +275,54 @@ impl TableBuilder for PostgresQueryBuilder {
             }
         }
     }
+
+    fn append_table_create_comments(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        let Some(table_ref) = &create.table else {
+            return;
+        };
+        self.append_comments(
+            table_ref,
+            create.comment.as_deref(),
+            create
+                .columns
+                .iter()
+                .filter_map(|c| c.spec.comment.as_deref().map(|cm| (&c.name, cm))),
+            sql,
+        );
+    }
+
+    fn append_alter_table_comments(&self, alter: &TableAlterStatement, sql: &mut impl SqlWriter) {
+        let Some(table_ref) = &alter.table else {
+            return;
+        };
+
+        let column_comments: Vec<_> = alter
+            .options
+            .iter()
+            .filter_map(|opt| match opt {
+                TableAlterOption::AddColumn(AddColumnOption { column, .. })
+                | TableAlterOption::ModifyColumn(column) => {
+                    column.spec.comment.as_deref().map(|cm| (&column.name, cm))
+                }
+                _ => None,
+            })
+            .collect();
+
+        if alter.comment.is_none() && column_comments.is_empty() {
+            return;
+        }
+
+        self.append_comments(
+            table_ref,
+            alter.comment.as_deref(),
+            column_comments.into_iter(),
+            sql,
+        );
+    }
 }
 
 impl PostgresQueryBuilder {
@@ -297,6 +345,29 @@ impl PostgresQueryBuilder {
             }
             self.prepare_expr(expr, sql);
             first = false;
+        }
+    }
+
+    fn append_comments<'a>(
+        &self,
+        table_ref: &TableRef,
+        table_comment: Option<&str>,
+        columns: impl Iterator<Item = (&'a DynIden, &'a str)>,
+        sql: &mut impl SqlWriter,
+    ) {
+        if let Some(comment) = table_comment {
+            sql.write_str("; COMMENT ON TABLE ").unwrap();
+            self.prepare_table_ref_table_stmt(table_ref, sql);
+            sql.write_str(" IS ").unwrap();
+            self.write_string_quoted(comment, sql);
+        }
+        for (name, comment) in columns {
+            sql.write_str("; COMMENT ON COLUMN ").unwrap();
+            self.prepare_table_ref_table_stmt(table_ref, sql);
+            sql.write_str(".").unwrap();
+            self.prepare_iden(name, sql);
+            sql.write_str(" IS ").unwrap();
+            self.write_string_quoted(comment, sql);
         }
     }
 }
