@@ -52,6 +52,53 @@ fn create_3() {
 }
 
 #[test]
+fn create_4() {
+    #[derive(Iden)]
+    enum FontFamily {
+        #[iden = "font_family"]
+        Type,
+        Serif,
+        Sans,
+        Monospace,
+    }
+    assert_eq!(
+        Type::create()
+            .as_composite(FontFamily::Type)
+            .fields([
+                (FontFamily::Serif, ColumnType::Text),
+                (FontFamily::Sans, ColumnType::Text),
+                (FontFamily::Monospace, ColumnType::Text),
+            ])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "font_family" AS ("serif" text, "sans" text, "monospace" text)"#,
+    );
+}
+#[test]
+fn create_5() {
+    assert_eq!(
+        Type::create()
+            .as_composite(("schema", Font::Table))
+            .fields([
+                ("serif", ColumnType::Text),
+                ("sans", ColumnType::Text),
+                ("monospace", ColumnType::Text),
+            ])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "schema"."font" AS ("serif" text, "sans" text, "monospace" text)"#,
+    );
+}
+#[test]
+fn create_6() {
+    assert_eq!(
+        Type::create()
+            .as_composite("outer_type")
+            .fields([("inner", ColumnType::custom("inner_type"))])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "outer_type" AS ("inner" inner_type)"#,
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Type::drop()
@@ -160,6 +207,28 @@ fn alter_6() {
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "schema"."font" RENAME TO "typeface""#
     )
+}
+
+#[test]
+fn alter_7() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .add_attribute(Font::Variant, ColumnType::Text)
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" ADD ATTRIBUTE "variant" text"#
+    )
+}
+
+#[test]
+fn alter_8() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .drop_attribute(Font::Variant)
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" DROP ATTRIBUTE "variant""#
+    );
 }
 
 #[test]
