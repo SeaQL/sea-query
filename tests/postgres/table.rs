@@ -871,3 +871,50 @@ fn create_partition_values_less_than_panics() {
         .values_less_than([10])
         .to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn create_with_comments() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .if_not_exists()
+            .comment("table's comment")
+            .col(
+                ColumnDef::new(Char::FontSize)
+                    .integer()
+                    .not_null()
+                    .comment("font's size"),
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+            r#""font_size" integer NOT NULL"#,
+            r#");"#,
+            r#"COMMENT ON TABLE "character" IS E'table\'s comment';"#,
+            r#"COMMENT ON COLUMN "character"."font_size" IS E'font\'s size'"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn alter_add_column_with_comment() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .comment("This is a font table")
+            .add_column(
+                ColumnDef::new("new_col")
+                    .integer()
+                    .not_null()
+                    .comment("new column"),
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL;"#,
+            r#"COMMENT ON TABLE "font" IS 'This is a font table';"#,
+            r#"COMMENT ON COLUMN "font"."new_col" IS 'new column'"#,
+        ]
+        .join(" ")
+    );
+}

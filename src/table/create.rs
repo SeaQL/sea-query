@@ -59,7 +59,9 @@ use crate::{
 ///             r#"CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
 ///                 r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
 ///                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///         r#")"#,
+///         r#");"#,
+///         r#"COMMENT ON TABLE "character" IS E'table\'s comment';"#,
+///         r#"COMMENT ON COLUMN "character"."font_size" IS E'font\'s size'"#,
 ///     ].join(" ")
 /// );
 /// assert_eq!(
@@ -709,6 +711,7 @@ impl SchemaStatementBuilder for TableCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
+        schema_builder.append_table_create_comments(self, &mut sql);
         sql
     }
 }
