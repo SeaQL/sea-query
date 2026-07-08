@@ -175,18 +175,14 @@ impl TypeCreateStatement {
     ///     r#"CREATE TYPE "font_family" AS ("serif" text, "sans" text, "monospace" text)"#,
     /// );
     /// ```
-    pub fn as_composite<T>(&mut self, name: T) -> &mut Self
-    where
-        T: IntoTypeRef,
-    {
-        self.as_type(name, TypeAs::Composite)
+    pub fn as_composite(&mut self, name: impl IntoTypeRef) -> &mut Self {
+        self.as_type(name.into_type_ref(), TypeAs::Composite)
     }
 
-    pub fn fields<N, I>(&mut self, fields: I) -> &mut Self
-    where
-        N: IntoIden,
-        I: IntoIterator<Item = (N, ColumnType)>,
-    {
+    pub fn fields(
+        &mut self,
+        fields: impl IntoIterator<Item = (impl IntoIden, ColumnType)>,
+    ) -> &mut Self {
         for (name, col_type) in fields {
             self.fields.push(CompositeFieldType {
                 name: name.into_iden(),
@@ -196,10 +192,7 @@ impl TypeCreateStatement {
         self
     }
 
-    fn as_type<T>(&mut self, name: T, as_type: TypeAs) -> &mut Self
-    where
-        T: IntoTypeRef,
-    {
+    fn as_type(&mut self, name: impl IntoTypeRef, as_type: TypeAs) -> &mut Self {
         self.name = Some(name.into_type_ref());
         self.as_type = Some(as_type);
         self
@@ -456,10 +449,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" ADD ATTRIBUTE "variant" text"#
     /// )
     /// ```
-    pub fn add_attribute<T>(self, name: T, col_type: ColumnType) -> Self
-    where
-        T: IntoIden,
-    {
+    pub fn add_attribute(self, name: impl IntoIden, col_type: ColumnType) -> Self {
         self.alter_option(TypeAlterOpt::AddAttribute(CompositeFieldType {
             name: name.into_iden(),
             col_type,
@@ -479,10 +469,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" DROP ATTRIBUTE "variant""#
     /// )
     /// ```
-    pub fn drop_attribute<T>(self, name: T) -> Self
-    where
-        T: IntoIden,
-    {
+    pub fn drop_attribute(self, name: impl IntoIden) -> Self {
         self.alter_option(TypeAlterOpt::DropAttribute(CompositeFieldType {
             name: name.into_iden(),
             col_type: ColumnType::Text,
