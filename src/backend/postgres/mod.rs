@@ -160,9 +160,8 @@ impl FunctionBuilder for PostgresQueryBuilder {
             sql.write_str(" AS ").unwrap();
             self.write_string_quoted(definition, sql);
         } else if let Some(sql_body) = &create.sql_body {
-            sql.write_str(" AS $$ ").unwrap();
+            sql.write_str(" ").unwrap();
             sql.write_str(sql_body).unwrap();
-            sql.write_str(" $$").unwrap();
         }
     }
 
@@ -703,10 +702,10 @@ mod tests {
             .behavior(FunctionBehavior::Immutable)
             .behavior(FunctionBehavior::Strict)
             .behavior(FunctionBehavior::SecurityDefiner)
-            .sql_body("SELECT x, 'hello';");
+            .sql_body("BEGIN ATOMIC SELECT x, 'hello'; END");
         assert_eq!(
             replace_function_stmt.to_string(PostgresQueryBuilder),
-            r#"CREATE OR REPLACE FUNCTION "complex_func" (IN "x" integer DEFAULT 0, OUT "y" text) RETURNS TABLE ("id" integer, "val" text) LANGUAGE "sql" IMMUTABLE STRICT SECURITY DEFINER AS $$ SELECT x, 'hello'; $$"#
+            r#"CREATE OR REPLACE FUNCTION "complex_func" (IN "x" integer DEFAULT 0, OUT "y" text) RETURNS TABLE ("id" integer, "val" text) LANGUAGE "sql" IMMUTABLE STRICT SECURITY DEFINER BEGIN ATOMIC SELECT x, 'hello'; END"#
         );
     }
 
