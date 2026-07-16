@@ -429,7 +429,7 @@ impl TriggerBuilder for PostgresQueryBuilder {
                 if i > 0 {
                     sql.write_str(", ").unwrap();
                 }
-                self.prepare_expr(arg, sql);
+                self.write_string_quoted(arg, sql);
             }
             sql.write_str(")").unwrap();
         }
@@ -833,11 +833,11 @@ mod tests {
             .for_each_statement()
             .r#when(Expr::col(Alias::new("col1")).gt(10))
             .function(Alias::new("my_proc"))
-            .function_arg(Expr::val("arg1"))
-            .function_arg(Expr::val(42));
+            .function_arg("arg1")
+            .function_arg("42");
         assert_eq!(
             update_col_trigger.to_string(PostgresQueryBuilder),
-            r#"CREATE TRIGGER "complex_trigger" BEFORE UPDATE OF "col1", "col2" ON "my_table" REFERENCING OLD TABLE AS "old_t" NEW TABLE AS "new_t" FOR EACH STATEMENT WHEN ("col1" > 10) EXECUTE FUNCTION "my_proc"('arg1', 42)"#
+            r#"CREATE TRIGGER "complex_trigger" BEFORE UPDATE OF "col1", "col2" ON "my_table" REFERENCING OLD TABLE AS "old_t" NEW TABLE AS "new_t" FOR EACH STATEMENT WHEN ("col1" > 10) EXECUTE FUNCTION "my_proc"('arg1', '42')"#
         );
     }
 

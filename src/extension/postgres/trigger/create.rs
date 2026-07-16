@@ -54,7 +54,7 @@ pub struct TriggerCreateStatement {
     pub(crate) each: Option<TriggerEach>,
     pub(crate) r#when: Option<Expr>,
     pub(crate) function: Option<DynIden>,
-    pub(crate) function_args: Vec<Expr>,
+    pub(crate) function_args: Vec<String>,
 }
 
 impl TriggerCreateStatement {
@@ -192,14 +192,18 @@ impl TriggerCreateStatement {
     }
 
     /// Add a trigger execution argument
-    pub fn function_arg(&mut self, arg: impl Into<Expr>) -> &mut Self {
+    pub fn function_arg(&mut self, arg: impl Into<String>) -> &mut Self {
         self.function_args.push(arg.into());
         self
     }
 
     /// Add multiple trigger execution arguments
-    pub fn function_args(&mut self, args: impl IntoIterator<Item = Expr>) -> &mut Self {
-        self.function_args.extend(args);
+    pub fn function_args<I, S>(&mut self, args: I) -> &mut Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.function_args.extend(args.into_iter().map(|s| s.into()));
         self
     }
 }
