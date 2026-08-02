@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -40,6 +42,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -87,6 +91,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -104,6 +110,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -131,6 +139,8 @@ jobs:
         example: [rusqlite, sqlx_sqlite]
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -173,6 +183,8 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -215,6 +227,8 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -256,6 +270,8 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - uses: actions-rs/toolchain@v1
         with:
