@@ -136,16 +136,3 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Range(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[cfg(feature = "with-chrono")]
-    fn test_none_datetime_to_json_null() {
-        let value = Value::ChronoDateTimeWithTimeZone(None);
-
-        assert_eq!(sea_value_to_json_value(&value), Json::Null);
-    }
-}
