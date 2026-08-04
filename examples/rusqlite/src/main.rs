@@ -211,7 +211,6 @@ fn main() -> Result<()> {
 
     // Array
 
-    // The whole list is passed as a single parameter via the `rarray` virtual table.
     let (sql, values) = Query::select()
         .column(Alias::new("value"))
         .from_function(

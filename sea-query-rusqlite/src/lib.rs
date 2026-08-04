@@ -161,9 +161,6 @@ impl ToSql for RusqliteValue {
     }
 }
 
-/// Convert a single [`sea_query::Value`] element to a [`rusqlite::types::Value`],
-/// reusing the existing [`ToSql`] conversion so all feature-gated value types
-/// (chrono, time, uuid, json, ...) are handled consistently.
 #[cfg(feature = "postgres-array")]
 fn rusqlite_value(value: &sea_query::Value) -> Result<rusqlite::types::Value> {
     match RusqliteValue(value.clone()).to_sql()? {
@@ -172,9 +169,7 @@ fn rusqlite_value(value: &sea_query::Value) -> Result<rusqlite::types::Value> {
         ToSqlOutput::Array(_) => Err(rusqlite::Error::ToSqlConversionFailure(
             "Nested arrays are not supported by the rusqlite rarray".into(),
         )),
-        // `ToSqlOutput` is `#[non_exhaustive]`, and the `blob`/`functions` features of
-        // rusqlite are not enabled by this crate.
-        _ => unreachable!("unexpected ToSqlOutput variant"),
+        _ => unreachable!(),
     }
 }
 
