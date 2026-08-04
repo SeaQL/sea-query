@@ -2,6 +2,9 @@
 
 pub use rusqlite;
 
+#[cfg(feature = "postgres-array")]
+use std::rc::Rc;
+
 use rusqlite::{
     Result, ToSql,
     types::{Null, ToSqlOutput},
@@ -140,13 +143,101 @@ impl ToSql for RusqliteValue {
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, _) => {
-                panic!("Rusqlite doesn't support Array arguments");
-            }
+            Value::Array(_, values) => match values {
+                Some(values) => {
+                    let values = values
+                        .iter()
+                        .map(rusqlite_value)
+                        .collect::<Result<Vec<_>>>()?;
+                    Ok(ToSqlOutput::Array(Rc::new(values)))
+                }
+                None => Null.to_sql(),
+            },
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => {
                 panic!("Rusqlite doesn't support Vector arguments");
             }
         }
+    }
+}
+
+/// Convert a single [`sea_query::Value`] element to a [`rusqlite::types::Value`],
+/// reusing the existing [`ToSql`] conversion so all feature-gated value types
+/// (chrono, time, uuid, json, ...) are handled consistently.
+#[cfg(feature = "postgres-array")]
+fn rusqlite_value(value: &sea_query::Value) -> Result<rusqlite::types::Value> {
+    match RusqliteValue(value.clone()).to_sql()? {
+        ToSqlOutput::Borrowed(value_ref) => Ok(value_ref.into()),
+        ToSqlOutput::Owned(value) => Ok(value),
+        ToSqlOutput::Array(_) => Err(rusqlite::Error::ToSqlConversionFailure(
+            "Nested arrays are not supported by the rusqlite rarray".into(),
+        )),
+        // `ToSqlOutput` is `#[non_exhaustive]`, and the `blob`/`functions` features of
+        // rusqlite are not enabled by this crate.
+        _ => unreachable!("unexpected ToSqlOutput variant"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sea_query::{Alias, ArrayType, Expr, Func, Query, SqliteQueryBuilder};
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_array_to_sql() {
+        let value = RusqliteValue(Value::Array(
+            ArrayType::BigInt,
+            Some(Box::new(vec![
+                Value::BigInt(Some(1)),
+                Value::BigInt(None),
+                Value::BigInt(Some(3)),
+            ])),
+        ));
+        match value.to_sql().unwrap() {
+            ToSqlOutput::Array(array) => {
+                assert_eq!(
+                    array.as_ref(),
+                    &[
+                        rusqlite::types::Value::Integer(1),
+                        rusqlite::types::Value::Null,
+                        rusqlite::types::Value::Integer(3),
+                    ]
+                );
+            }
+            _ => panic!("expected ToSqlOutput::Array"),
+        }
+    }
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_null_array_to_sql() {
+        let value = RusqliteValue(Value::Array(ArrayType::BigInt, None));
+        assert!(matches!(
+            value.to_sql().unwrap(),
+            ToSqlOutput::Owned(rusqlite::types::Value::Null)
+        ));
+    }
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_rarray_query() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        rusqlite::vtab::array::load_module(&conn).unwrap();
+
+        let (sql, values) = Query::select()
+            .column(Alias::new("value"))
+            .from_function(Func::cust("rarray").arg(Expr::val(vec![1i64, 2, 3])), "t")
+            .build_rusqlite(SqliteQueryBuilder);
+
+        assert_eq!(sql, r#"SELECT "value" FROM rarray(?) AS "t""#);
+
+        let mut stmt = conn.prepare_cached(&sql).unwrap();
+        let mut rows = stmt.query(&*values.as_params()).unwrap();
+        let mut collected = Vec::new();
+        while let Some(row) = rows.next().unwrap() {
+            collected.push(row.get_unwrap::<_, i64>(0));
+        }
+        assert_eq!(collected, vec![1, 2, 3]);
     }
 }

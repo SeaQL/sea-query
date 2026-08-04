@@ -1,6 +1,8 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
-use sea_query::{ColumnDef, Expr, ExprTrait, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{
+    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, Order, Query, SqliteQueryBuilder, Table,
+};
 use sea_query_rusqlite::{RusqliteBinder, rusqlite};
 use serde_json::{Value as Json, json};
 use time::{
@@ -11,6 +13,10 @@ use uuid::Uuid;
 
 fn main() -> Result<()> {
     let conn = Connection::open_in_memory()?;
+
+    // Register the `rarray` virtual table module.
+    // This only needs to be done once per connection.
+    rusqlite::vtab::array::load_module(&conn)?;
 
     // Schema
 
@@ -202,6 +208,27 @@ fn main() -> Result<()> {
     let mut stmt = conn.prepare_cached(sql.as_str())?;
     let result = stmt.execute(&*values.as_params());
     println!("Delete character: {result:?}");
+
+    // Array
+
+    // The whole list is passed as a single parameter via the `rarray` virtual table.
+    let (sql, values) = Query::select()
+        .column(Alias::new("value"))
+        .from_function(
+            Func::cust("rarray").arg(Expr::val(vec![1i64, 2, 3, 4, 5])),
+            "t",
+        )
+        .build_rusqlite(SqliteQueryBuilder);
+
+    println!("Select from rarray array parameter:");
+    println!("{sql}");
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
+    let mut rows = stmt.query(&*values.as_params())?;
+    while let Some(row) = rows.next()? {
+        let value: i64 = row.get_unwrap("value");
+        println!("{value}");
+    }
+    println!();
 
     Ok(())
 }

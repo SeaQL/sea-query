@@ -20,6 +20,11 @@ rust-version = "1.88.0"
 sea-query = { version = "1.0.0", path = "..", default-features = false }
 rusqlite = { version = "0.38", features = ["fallible_uint"] }
 
+[dev-dependencies]
+# `backend-sqlite` is needed by the tests (they build queries with `SqliteQueryBuilder`);
+# the crate itself compiles sea-query with `default-features = false`.
+sea-query = { path = "..", default-features = false, features = ["backend-sqlite"] }
+
 [features]
 with-chrono = ["rusqlite/chrono", "sea-query/with-chrono"]
 with-json = ["rusqlite/serde_json", "sea-query/with-json"]
@@ -30,6 +35,6 @@ with-time = ["rusqlite/time", "sea-query/with-time"]
 with-jiff = ["rusqlite/jiff", "sea-query/with-jiff"]
 with-ipnetwork = ["sea-query/with-ipnetwork"]
 with-mac_address = ["sea-query/with-mac_address"]
-postgres-array = ["sea-query/postgres-array"]
+postgres-array = ["sea-query/postgres-array", "rusqlite/array"]
 postgres-vector = ["sea-query/postgres-vector"]
 sea-orm = []

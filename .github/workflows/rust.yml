@@ -184,7 +184,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-time
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-ipnetwork
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-mac_address
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-array
+      - run: cargo test --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-array
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-vector
 
   postgres-build:
