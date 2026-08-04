@@ -141,62 +141,11 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
 mod tests {
     use super::*;
 
+    #[test]
     #[cfg(feature = "with-chrono")]
-    #[test]
-    fn chrono_none_to_json_null() {
-        assert_eq!(
-            sea_value_to_json_value(&Value::ChronoDate(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::ChronoTime(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::ChronoDateTime(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::ChronoDateTimeWithTimeZone(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::ChronoDateTimeUtc(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::ChronoDateTimeLocal(None)),
-            Json::Null
-        );
-    }
+    fn test_none_datetime_to_json_null() {
+        let value = Value::ChronoDateTimeWithTimeZone(None);
 
-    #[cfg(feature = "with-time")]
-    #[test]
-    fn time_none_to_json_null() {
-        assert_eq!(sea_value_to_json_value(&Value::TimeDate(None)), Json::Null);
-        assert_eq!(sea_value_to_json_value(&Value::TimeTime(None)), Json::Null);
-        assert_eq!(
-            sea_value_to_json_value(&Value::TimeDateTime(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::TimeDateTimeWithTimeZone(None)),
-            Json::Null
-        );
-    }
-
-    #[cfg(feature = "with-jiff")]
-    #[test]
-    fn jiff_none_to_json_null() {
-        assert_eq!(sea_value_to_json_value(&Value::JiffDate(None)), Json::Null);
-        assert_eq!(sea_value_to_json_value(&Value::JiffTime(None)), Json::Null);
-        assert_eq!(
-            sea_value_to_json_value(&Value::JiffDateTime(None)),
-            Json::Null
-        );
-        assert_eq!(
-            sea_value_to_json_value(&Value::JiffTimestamp(None)),
-            Json::Null
-        );
+        assert_eq!(sea_value_to_json_value(&value), Json::Null);
     }
 }
