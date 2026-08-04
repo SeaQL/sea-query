@@ -51,6 +51,23 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::MacAddress(None) => Json::Null,
         #[cfg(feature = "postgres-range")]
         Value::Range(None) => Json::Null,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDate(None)
+        | Value::ChronoTime(None)
+        | Value::ChronoDateTime(None)
+        | Value::ChronoDateTimeWithTimeZone(None)
+        | Value::ChronoDateTimeUtc(None)
+        | Value::ChronoDateTimeLocal(None) => Json::Null,
+        #[cfg(feature = "with-time")]
+        Value::TimeDate(None)
+        | Value::TimeTime(None)
+        | Value::TimeDateTime(None)
+        | Value::TimeDateTimeWithTimeZone(None) => Json::Null,
+        #[cfg(feature = "with-jiff")]
+        Value::JiffDate(None)
+        | Value::JiffTime(None)
+        | Value::JiffDateTime(None)
+        | Value::JiffTimestamp(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -117,5 +134,69 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "postgres-range")]
         Value::Range(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(feature = "with-chrono")]
+    #[test]
+    fn chrono_none_to_json_null() {
+        assert_eq!(
+            sea_value_to_json_value(&Value::ChronoDate(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::ChronoTime(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::ChronoDateTime(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::ChronoDateTimeWithTimeZone(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::ChronoDateTimeUtc(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::ChronoDateTimeLocal(None)),
+            Json::Null
+        );
+    }
+
+    #[cfg(feature = "with-time")]
+    #[test]
+    fn time_none_to_json_null() {
+        assert_eq!(sea_value_to_json_value(&Value::TimeDate(None)), Json::Null);
+        assert_eq!(sea_value_to_json_value(&Value::TimeTime(None)), Json::Null);
+        assert_eq!(
+            sea_value_to_json_value(&Value::TimeDateTime(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::TimeDateTimeWithTimeZone(None)),
+            Json::Null
+        );
+    }
+
+    #[cfg(feature = "with-jiff")]
+    #[test]
+    fn jiff_none_to_json_null() {
+        assert_eq!(sea_value_to_json_value(&Value::JiffDate(None)), Json::Null);
+        assert_eq!(sea_value_to_json_value(&Value::JiffTime(None)), Json::Null);
+        assert_eq!(
+            sea_value_to_json_value(&Value::JiffDateTime(None)),
+            Json::Null
+        );
+        assert_eq!(
+            sea_value_to_json_value(&Value::JiffTimestamp(None)),
+            Json::Null
+        );
     }
 }
