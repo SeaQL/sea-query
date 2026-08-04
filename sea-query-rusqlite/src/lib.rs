@@ -178,12 +178,11 @@ fn rusqlite_value(value: &sea_query::Value) -> Result<rusqlite::types::Value> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "postgres-array"))]
 mod tests {
     use super::*;
     use sea_query::{Alias, ArrayType, Expr, Func, Query, SqliteQueryBuilder};
 
-    #[cfg(feature = "postgres-array")]
     #[test]
     fn test_array_to_sql() {
         let value = RusqliteValue(Value::Array(
@@ -209,7 +208,6 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "postgres-array")]
     #[test]
     fn test_null_array_to_sql() {
         let value = RusqliteValue(Value::Array(ArrayType::BigInt, None));
@@ -219,7 +217,6 @@ mod tests {
         ));
     }
 
-    #[cfg(feature = "postgres-array")]
     #[test]
     fn test_rarray_query() {
         let conn = rusqlite::Connection::open_in_memory().unwrap();
