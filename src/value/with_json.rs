@@ -51,23 +51,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::MacAddress(None) => Json::Null,
         #[cfg(feature = "postgres-range")]
         Value::Range(None) => Json::Null,
-        #[cfg(feature = "with-chrono")]
-        Value::ChronoDate(None)
-        | Value::ChronoTime(None)
-        | Value::ChronoDateTime(None)
-        | Value::ChronoDateTimeWithTimeZone(None)
-        | Value::ChronoDateTimeUtc(None)
-        | Value::ChronoDateTimeLocal(None) => Json::Null,
-        #[cfg(feature = "with-time")]
-        Value::TimeDate(None)
-        | Value::TimeTime(None)
-        | Value::TimeDateTime(None)
-        | Value::TimeDateTimeWithTimeZone(None) => Json::Null,
-        #[cfg(feature = "with-jiff")]
-        Value::JiffDate(None)
-        | Value::JiffTime(None)
-        | Value::JiffDateTime(None)
-        | Value::JiffTimestamp(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -85,33 +68,43 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Bytes(Some(s)) => Json::String(std::str::from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
-        Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDate(Some(_))
+        | Value::ChronoTime(Some(_))
+        | Value::ChronoDateTime(Some(_))
+        | Value::ChronoDateTimeWithTimeZone(Some(_))
+        | Value::ChronoDateTimeUtc(Some(_))
+        | Value::ChronoDateTimeLocal(Some(_)) => {
+            CommonSqlQueryBuilder.value_to_string(value).into()
+        }
         #[cfg(feature = "with-chrono")]
-        Value::ChronoTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-chrono")]
-        Value::ChronoDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-chrono")]
-        Value::ChronoDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-chrono")]
-        Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-chrono")]
-        Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDate(None)
+        | Value::ChronoTime(None)
+        | Value::ChronoDateTime(None)
+        | Value::ChronoDateTimeWithTimeZone(None)
+        | Value::ChronoDateTimeUtc(None)
+        | Value::ChronoDateTimeLocal(None) => Json::Null,
         #[cfg(feature = "with-time")]
-        Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::TimeDate(Some(_))
+        | Value::TimeTime(Some(_))
+        | Value::TimeDateTime(Some(_))
+        | Value::TimeDateTimeWithTimeZone(Some(_)) => {
+            CommonSqlQueryBuilder.value_to_string(value).into()
+        }
         #[cfg(feature = "with-time")]
-        Value::TimeTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-time")]
-        Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-time")]
-        Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::TimeDate(None)
+        | Value::TimeTime(None)
+        | Value::TimeDateTime(None)
+        | Value::TimeDateTimeWithTimeZone(None) => Json::Null,
         #[cfg(feature = "with-jiff")]
-        Value::JiffDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::JiffDate(Some(_))
+        | Value::JiffTime(Some(_))
+        | Value::JiffDateTime(Some(_))
+        | Value::JiffTimestamp(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-jiff")]
-        Value::JiffTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-jiff")]
-        Value::JiffDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-jiff")]
-        Value::JiffTimestamp(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::JiffDate(None)
+        | Value::JiffTime(None)
+        | Value::JiffDateTime(None)
+        | Value::JiffTimestamp(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
