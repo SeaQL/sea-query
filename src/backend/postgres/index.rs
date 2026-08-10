@@ -1,7 +1,7 @@
 use super::*;
 
 impl IndexBuilder for PostgresQueryBuilder {
-    // Overriden due to different "NULLS NOT UNIQUE" position in table index expression
+    // Overridden due to different "NULLS NOT UNIQUE" position in table index expression
     // (as opposed to the regular index expression)
     fn prepare_table_index_expression(
         &self,
