@@ -19,6 +19,7 @@ sea-query-rusqlite = { path = "../../sea-query-rusqlite", features = [
     "with-json",
     "with-uuid",
     "with-time",
+    "postgres-array",
 ] }
 
 # NOTE: if you are copying this example into your own project, use the following line instead:
