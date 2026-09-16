@@ -409,6 +409,7 @@ impl PostgresQueryBuilder {
         }
         if let Some(check) = &column_def.spec.check {
             write_comma_if_not_first!();
+            write!(sql, "ADD ").unwrap();
             self.prepare_check_constraint(check, sql);
         }
 

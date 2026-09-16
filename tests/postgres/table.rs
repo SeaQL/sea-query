@@ -499,6 +499,20 @@ fn alter_9() {
 }
 
 #[test]
+fn alter_modify_column_with_check() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .check(("positive_aspect", Expr::col(Glyph::Aspect).gt(0))),
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "glyph" ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#
+    );
+}
+
+#[test]
 fn alter_10() {
     // https://dbfiddle.uk/BeiZPvBe
     assert_eq!(
