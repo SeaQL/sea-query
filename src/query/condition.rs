@@ -142,6 +142,35 @@ impl Condition {
         }
     }
 
+    /// Add conditions to the set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Id)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(Cond::all().extend([
+    ///         Expr::col(Glyph::Aspect).is_not_null(),
+    ///         Expr::col(Glyph::Image).like("A%"),
+    ///     ]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NOT NULL AND `image` LIKE 'A%'"#
+    /// );
+    /// ```
+    pub fn extend(mut self, conds: impl IntoIterator<Item = impl Into<Condition>>) -> Self {
+        self.conditions.extend(conds.into_iter().map(|cond| {
+            let cond = Cond::from(cond.into());
+            cond.into()
+        }));
+        self
+    }
+
     /// Create a condition that is true if any of the conditions is true.
     ///
     /// # Examples
