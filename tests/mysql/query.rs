@@ -1218,7 +1218,7 @@ fn insert_7() {
             .or_default_values()
             .returning_col(Glyph::Id)
             .to_string(MysqlQueryBuilder),
-        "INSERT INTO `glyph` VALUES ()"
+        "INSERT INTO `glyph` VALUES () RETURNING `id`"
     );
 }
 
