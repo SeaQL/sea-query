@@ -1623,3 +1623,50 @@ fn sub_query_with_fn() {
         "SELECT ARRAY((SELECT * FROM `character`))"
     );
 }
+
+#[test]
+fn get_json_field_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).binary(MysqlBinOper::GetJsonField, Expr::val("$.test"))
+            )
+            .build(MysqlQueryBuilder),
+        (
+            r#"SELECT `character` FROM `character` WHERE `character` -> ?"#.to_owned(),
+            Values(vec!["$.test".into()])
+        )
+    );
+}
+
+#[test]
+fn cast_json_field_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).binary(MysqlBinOper::CastJsonField, Expr::val("$.test"))
+            )
+            .build(MysqlQueryBuilder),
+        (
+            r#"SELECT `character` FROM `character` WHERE `character` ->> ?"#.to_owned(),
+            Values(vec!["$.test".into()])
+        )
+    );
+}
+
+#[test]
+fn json_field_expr_methods() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).get_json_field("$.a"))
+            .and_where(Expr::col(Char::Character).cast_json_field("$.b"))
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT `character` FROM `character` WHERE (`character` -> '$.a') AND (`character` ->> '$.b')"#
+    );
+}
