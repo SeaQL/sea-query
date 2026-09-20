@@ -1032,7 +1032,7 @@ pub trait QueryBuilder:
     fn prepare_join_on(&self, join_on: &JoinOn, sql: &mut impl SqlWriter) {
         match join_on {
             JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql),
-            JoinOn::Columns(_c) => unimplemented!(),
+            JoinOn::Columns(c) => self.prepare_using(c, sql),
         }
     }
 
@@ -1659,6 +1659,22 @@ pub trait QueryBuilder:
                 self.prepare_condition_where(c, sql);
             }
         }
+    }
+
+    fn prepare_using(&self, using: &[Expr], sql: &mut impl SqlWriter) {
+        sql.write_str(" USING (").unwrap();
+        let mut using_iter = using.iter();
+        join_io!(
+            using_iter,
+            expr,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_expr(expr, sql);
+            }
+        );
+        sql.write_str(")").unwrap();
     }
 
     #[doc(hidden)]
