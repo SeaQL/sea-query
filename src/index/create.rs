@@ -225,6 +225,8 @@ pub struct IndexCreateStatement {
 pub enum IndexType {
     BTree,
     FullText,
+    Gin,
+    Gist,
     Hash,
     Custom(DynIden),
 }
@@ -308,6 +310,16 @@ impl IndexCreateStatement {
     /// On PgSQL, this is `GIN`.
     pub fn full_text(&mut self) -> &mut Self {
         self.index_type(IndexType::FullText)
+    }
+
+    /// Set index type as `GIN`. Only available on Postgres.
+    pub fn gin(&mut self) -> &mut Self {
+        self.index_type(IndexType::Gin)
+    }
+
+    /// Set index type as `GIST`. Only available on Postgres.
+    pub fn gist(&mut self) -> &mut Self {
+        self.index_type(IndexType::Gist)
     }
 
     /// Set index type. Not available on Sqlite.

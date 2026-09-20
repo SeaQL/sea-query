@@ -225,3 +225,29 @@ fn drop_5() {
         .table(("database", "schema", Glyph::Table))
         .to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn create_gin() {
+    assert_eq!(
+        Index::create()
+            .gin()
+            .name("idx-glyph-image-gin")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX "idx-glyph-image-gin" ON "glyph" USING GIN ("image")"#
+    );
+}
+
+#[test]
+fn create_gist() {
+    assert_eq!(
+        Index::create()
+            .gist()
+            .name("idx-glyph-image-gist")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX "idx-glyph-image-gist" ON "glyph" USING GIST ("image")"#
+    );
+}
