@@ -1426,6 +1426,14 @@ pub trait QueryBuilder:
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
+            #[cfg(feature = "postgres-postgis")]
+            Value::Geometry(Some(v)) => {
+                buf.write_str("ST_GeomFromText('")?;
+                buf.write_str(&crate::value::postgres_postgis::geo_to_wkt(v))?;
+                buf.write_str("')")?;
+            }
+            #[cfg(feature = "postgres-postgis")]
+            Value::Geometry(None) => buf.write_str("NULL")?,
         };
 
         Ok(())

@@ -34,6 +34,7 @@ serde = { version = "1", default-features = false, optional = true, features = [
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4.40", default-features = false, optional = true, features = ["clock"] }
 pgvector = { version = "0.4", default-features = false, optional = true }
+geo-types = { version = "0.7", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.4", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
@@ -61,6 +62,7 @@ attr = ["sea-query-derive"]
 hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
+postgres-postgis = ["geo-types"]
 postgres-interval = []
 postgres-range = ["sea-query-postgres-types/range"]
 serde = [
@@ -106,6 +108,7 @@ all-types = [
     "postgres-array",
     "postgres-interval",
     "postgres-vector",
+    "postgres-postgis",
     "postgres-range",
     "with-chrono",
     "with-json",
