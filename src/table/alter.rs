@@ -31,6 +31,7 @@ use crate::{
 #[derive(Default, Debug, Clone)]
 pub struct TableAlterStatement {
     pub(crate) table: Option<TableRef>,
+    pub(crate) comment: Option<String>,
     pub(crate) options: Vec<TableAlterOption>,
 }
 
@@ -74,6 +75,15 @@ impl TableAlterStatement {
         T: IntoTableRef,
     {
         self.table = Some(table.into_table_ref());
+        self
+    }
+
+    /// alter table comment
+    pub fn comment<T>(&mut self, comment: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.comment = Some(comment.into());
         self
     }
 
@@ -430,6 +440,7 @@ impl TableAlterStatement {
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
+            comment: self.comment.take(),
             options: std::mem::take(&mut self.options),
         }
     }
@@ -439,6 +450,7 @@ impl SchemaStatementBuilder for TableAlterStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_alter_statement(self, &mut sql);
+        schema_builder.append_alter_table_comments(self, &mut sql);
         sql
     }
 }
