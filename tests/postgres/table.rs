@@ -885,3 +885,21 @@ fn create_partition_values_less_than_panics() {
         .values_less_than([10])
         .to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn test_alter_column_using_with_not_null() {
+    let statement = Table::alter()
+        .table(Char::Table)
+        .modify_column(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .using(Expr::col(Char::Id).cast_as("integer")),
+        )
+        .to_string(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"ALTER TABLE "character" ALTER COLUMN "id" TYPE integer USING CAST("id" AS integer), ALTER COLUMN "id" SET NOT NULL"#
+    );
+}
