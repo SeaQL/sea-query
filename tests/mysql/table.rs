@@ -582,3 +582,14 @@ fn create_partition_values_with_panics() {
         .values_with(4, 0)
         .to_string(MysqlQueryBuilder);
 }
+
+#[test]
+fn alter_add_primary_key() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_primary_key([Glyph::Id, Glyph::Image])
+            .to_string(MysqlQueryBuilder),
+        "ALTER TABLE `glyph` ADD PRIMARY KEY (`id`, `image`)"
+    );
+}

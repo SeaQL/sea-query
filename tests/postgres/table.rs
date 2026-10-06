@@ -885,3 +885,37 @@ fn create_partition_values_less_than_panics() {
         .values_less_than([10])
         .to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn alter_add_primary_key() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_primary_key([Glyph::Id])
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "glyph" ADD PRIMARY KEY ("id")"#
+    );
+}
+
+#[test]
+fn alter_add_primary_key_over_several_columns() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_primary_key([Glyph::Id, Glyph::Image])
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "glyph" ADD PRIMARY KEY ("id", "image")"#
+    );
+}
+
+#[test]
+fn alter_add_primary_key_is_one_option_among_others() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_column(ColumnDef::new(Glyph::Aspect).integer())
+            .add_primary_key([Glyph::Id])
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer, ADD PRIMARY KEY ("id")"#
+    );
+}

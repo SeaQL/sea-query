@@ -60,6 +60,7 @@ pub enum TableAlterOption {
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
     DropConstraint(DynIden),
+    AddPrimaryKey(Vec<ColumnRef>),
 }
 
 impl TableAlterStatement {
@@ -420,6 +421,51 @@ impl TableAlterStatement {
         T: IntoIden,
     {
         self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
+    }
+
+    /// Add a primary key to an existing table, over the columns given.
+    ///
+    /// The columns are rendered unqualified, the way `ADD PRIMARY KEY` expects them: the
+    /// statement already names the table.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `columns` is empty, which would build invalid SQL.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .add_primary_key([Font::Id, Font::Language])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     r#"ALTER TABLE `font` ADD PRIMARY KEY (`id`, `language`)"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" ADD PRIMARY KEY ("id", "language")"#
+    /// );
+    /// // Sqlite does not support adding a primary key to an existing table
+    /// ```
+    pub fn add_primary_key<I, C>(&mut self, columns: I) -> &mut Self
+    where
+        I: IntoIterator<Item = C>,
+        C: IntoColumnRef,
+    {
+        let columns = columns
+            .into_iter()
+            .map(IntoColumnRef::into_column_ref)
+            .collect::<Vec<ColumnRef>>();
+        assert!(
+            !columns.is_empty(),
+            "add_primary_key requires at least one column"
+        );
+        self.add_alter_option(TableAlterOption::AddPrimaryKey(columns))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {

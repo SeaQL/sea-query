@@ -209,6 +209,16 @@ impl TableBuilder for PostgresQueryBuilder {
                         sql.write_str("DROP CONSTRAINT ").unwrap();
                         self.prepare_iden(name, sql);
                     }
+                    TableAlterOption::AddPrimaryKey(columns) => {
+                        sql.write_str("ADD PRIMARY KEY (").unwrap();
+                        for (i, column) in columns.iter().enumerate() {
+                            if i > 0 {
+                                sql.write_str(", ").unwrap();
+                            }
+                            self.prepare_column_ref(column, sql);
+                        }
+                        sql.write_str(")").unwrap();
+                    }
                 }
             }
         );

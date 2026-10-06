@@ -746,3 +746,12 @@ fn alter_with_named_check_constraint() {
         r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer NOT NULL DEFAULT 101 CONSTRAINT "positive_aspect" CHECK ("aspect" > 100)"#,
     );
 }
+
+#[test]
+#[should_panic(expected = "Sqlite does not support adding a primary key to an existing table")]
+fn alter_add_primary_key_panics() {
+    Table::alter()
+        .table(Font::Table)
+        .add_primary_key([Font::Id])
+        .to_string(SqliteQueryBuilder);
+}
