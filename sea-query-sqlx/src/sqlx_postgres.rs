@@ -117,20 +117,20 @@ impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
                     let _ = args.add(t);
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDate(_) => {
-                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
+                Value::JiffDate(j) => {
+                    let _ = args.add(j.map(jiff_sqlx::Date::from));
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTime(_) => {
-                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
+                Value::JiffTime(j) => {
+                    let _ = args.add(j.map(jiff_sqlx::Time::from));
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDateTime(_) => {
-                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
+                Value::JiffDateTime(j) => {
+                    let _ = args.add(j.map(|j| jiff_sqlx::DateTime::from(*j)));
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTimestamp(_) => {
-                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
+                Value::JiffTimestamp(j) => {
+                    let _ = args.add(j.map(|j| jiff_sqlx::Timestamp::from(*j)));
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
@@ -322,19 +322,35 @@ impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffDate => {
-                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
+                        let value: Option<Vec<jiff::civil::Date>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::JiffDate");
+                        let value: Option<Vec<jiff_sqlx::Date>> =
+                            value.map(|vec| vec.into_iter().map(Into::into).collect());
+                        let _ = args.add(value);
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffTime => {
-                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
+                        let value: Option<Vec<jiff::civil::Time>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::JiffTime");
+                        let value: Option<Vec<jiff_sqlx::Time>> =
+                            value.map(|vec| vec.into_iter().map(Into::into).collect());
+                        let _ = args.add(value);
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffDateTime => {
-                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
+                        let value: Option<Vec<jiff::civil::DateTime>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::JiffDateTime");
+                        let value: Option<Vec<jiff_sqlx::DateTime>> =
+                            value.map(|vec| vec.into_iter().map(Into::into).collect());
+                        let _ = args.add(value);
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffTimestamp => {
-                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
+                        let value: Option<Vec<jiff::Timestamp>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::JiffTimestamp");
+                        let value: Option<Vec<jiff_sqlx::Timestamp>> =
+                            value.map(|vec| vec.into_iter().map(Into::into).collect());
+                        let _ = args.add(value);
                     }
                     #[cfg(feature = "with-uuid")]
                     ArrayType::Uuid => {

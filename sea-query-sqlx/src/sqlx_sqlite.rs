@@ -99,19 +99,19 @@ impl sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDate(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    let _ = args.add(j.map(jiff_sqlx::Date::from));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTime(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    let _ = args.add(j.map(jiff_sqlx::Time::from));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDateTime(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    let _ = args.add(j.map(|j| jiff_sqlx::DateTime::from(*j)));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTimestamp(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    let _ = args.add(j.map(|j| jiff_sqlx::Timestamp::from(*j)));
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {

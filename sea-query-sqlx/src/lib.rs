@@ -10,16 +10,12 @@
 //! [1]: ../sqlx/fn.query_with.html
 
 #[cfg(all(
-    any(
-        feature = "sqlx-mysql",
-        feature = "sqlx-postgres",
-        feature = "sqlx-any"
-    ),
+    any(feature = "sqlx-mysql", feature = "sqlx-any"),
     feature = "with-jiff",
     not(feature = "unimplemented-jiff-sqlx")
 ))]
 const _: () = panic!(
-    "sea-query-sqlx does not support with-jiff together with sqlx-mysql/sqlx-postgres/sqlx-any yet; \
+    "sea-query-sqlx does not support with-jiff together with sqlx-mysql/sqlx-any yet; \
 enable the `unimplemented-jiff-sqlx` feature to acknowledge the limitation and keep the \
 current runtime panic behavior"
 );
