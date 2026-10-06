@@ -79,6 +79,9 @@ impl TableBuilder for SqliteQueryBuilder {
             TableAlterOption::DropConstraint(_) => {
                 panic!("Sqlite does not support dropping constraints from existing tables");
             }
+            TableAlterOption::AddConstraint(_) => {
+                panic!("Sqlite does not support modification of constraints to existing tables");
+            }
         }
     }
 
