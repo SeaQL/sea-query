@@ -1123,6 +1123,26 @@ fn md5_fn() {
 }
 
 #[test]
+fn window_functions() {
+    assert_eq!(
+        Query::select()
+            .from(Char::Table)
+            .expr(Func::row_number().over(WindowStatement::partition_by(Char::FontSize)))
+            .expr(
+                Func::lag(Expr::col(Char::SizeH))
+                    .over(WindowStatement::partition_by(Char::FontSize))
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT ROW_NUMBER() OVER ( PARTITION BY `font_size` ),"#,
+            r#"LAG(`size_h`) OVER ( PARTITION BY `font_size` )"#,
+            r#"FROM `character`"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
