@@ -152,7 +152,7 @@ impl<'a> Tokenizer<'a> {
         let mut uses_backslash_escape = false;
         while !self.end() {
             let c = self.get();
-            if first && Self::is_string_delimiter_start(c) {
+            if first && self.is_string_delimiter_start(c) {
                 b = self.p_c(c);
                 first = false;
                 start = c;
@@ -195,7 +195,7 @@ impl<'a> Tokenizer<'a> {
         let mut uses_backslash_escape = false;
         while !self.end() {
             let c = self.get();
-            if first && Self::is_string_delimiter_start(c) {
+            if first && self.is_string_delimiter_start(c) {
                 first = false;
                 start = c;
                 uses_backslash_escape = self.uses_backslash_escape_for(start);
@@ -286,8 +286,12 @@ impl<'a> Tokenizer<'a> {
         c.is_alphabetic() || c.is_ascii_digit()
     }
 
-    fn is_string_delimiter_start(c: char) -> bool {
-        matches!(c, '`' | '[' | '\'' | '"')
+    fn is_string_delimiter_start(&self, c: char) -> bool {
+        match c {
+            '`' | '\'' | '"' => true,
+            '[' => self.backend != TokenizerBackend::Postgres,
+            _ => false,
+        }
     }
 
     fn is_string_escape_for(start: char, c: char) -> bool {
@@ -566,6 +570,41 @@ mod tests {
             string,
             tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
+    }
+
+    #[test]
+    fn test_9_postgres_does_not_treat_brackets_as_quoted() {
+        let string = r"ARRAY[$1, $2]";
+        let tokenizer = Tokenizer::new(string).for_backend(TokenizerBackend::Postgres);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("ARRAY"),
+                Token::Punctuation("["),
+                Token::Punctuation("$"),
+                Token::Unquoted("1"),
+                Token::Punctuation(","),
+                Token::Space(" "),
+                Token::Punctuation("$"),
+                Token::Unquoted("2"),
+                Token::Punctuation("]"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_9_mysql_and_sqlite_keep_bracketed_quoting() {
+        for backend in [TokenizerBackend::Mysql, TokenizerBackend::Sqlite] {
+            let string = r"[ab]";
+            let tokenizer = Tokenizer::new(string).for_backend(backend);
+            let tokens: Vec<Token> = tokenizer.iter().collect();
+            assert_eq!(tokens, vec![Token::Quoted("[ab]")], "backend={:?}", backend);
+        }
     }
 
     #[test]
