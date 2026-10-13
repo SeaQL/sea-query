@@ -370,6 +370,12 @@ impl PostgresQueryBuilder {
             self.prepare_iden(&column_def.name, sql);
             write!(sql, " TYPE ").unwrap();
             self.prepare_column_type(column_type, sql);
+
+            if let Some(expr) = &column_def.spec.using {
+                write!(sql, " USING ").unwrap();
+                QueryBuilder::prepare_expr(self, expr, sql);
+            }
+
             is_first = false;
         }
 
@@ -419,11 +425,6 @@ impl PostgresQueryBuilder {
 
         if let Some(x) = &column_def.spec.comment {
             let _ = x;
-        }
-
-        if let Some(expr) = &column_def.spec.using {
-            write!(sql, " USING ").unwrap();
-            QueryBuilder::prepare_expr(self, expr, sql);
         }
 
         if let Some(extra) = &column_def.spec.extra {
