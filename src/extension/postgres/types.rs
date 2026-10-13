@@ -292,6 +292,30 @@ impl TypeAlterStatement {
         })
     }
 
+    /// Add an enum value if it does not already exist
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::Type, tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Type::alter()
+    ///         .name(Font::Table)
+    ///         .add_value_if_not_exists("weight")
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TYPE "font" ADD VALUE IF NOT EXISTS 'weight'"#
+    /// );
+    /// ```
+    pub fn add_value_if_not_exists<T>(self, value: T) -> Self
+    where
+        T: IntoIden,
+    {
+        self.alter_option(TypeAlterOpt::Add {
+            value: value.into_iden(),
+            placement: None,
+            if_not_exists: true,
+        })
+    }
+
     /// Add a enum value before an existing value
     ///
     /// ```
