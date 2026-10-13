@@ -878,7 +878,8 @@ impl ColumnDef {
         self
     }
 
-    /// Some extra options in custom string
+    /// Set the `USING` expression for PostgreSQL `ALTER COLUMN ... TYPE`.
+    ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     /// let table = Table::alter()

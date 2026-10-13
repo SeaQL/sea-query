@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Fixes
+
+- Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
+
 ## 1.0.2 - 2026-08-12
 
 - [1.0.2](changelog/1.0.2.md) - `clear_group_by()` / `clear_having()`, fix null date/time JSON conversion

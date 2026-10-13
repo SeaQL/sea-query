@@ -473,26 +473,109 @@ fn alter_8() {
 }
 
 #[test]
-fn alter_9() {
+fn modify_column() {
     // https://dbfiddle.uk/98Vd8pmn
+    let column = ColumnDef::new(Glyph::Aspect)
+        .default(1)
+        .unique_key()
+        .primary_key()
+        .check(("positive_aspect", Expr::col(Glyph::Aspect).gt(0)))
+        .using(Expr::col(Glyph::Aspect).cast_as("integer"))
+        .to_owned();
+
     assert_eq!(
         Table::alter()
             .table(Glyph::Table)
-            .modify_column(
-                ColumnDef::new(Glyph::Aspect)
-                    .integer()
-                    .auto_increment()
-                    .not_null()
-                    .unique_key()
-                    .primary_key()
-            )
+            .modify_column(column.clone().integer().auto_increment())
             .to_string(PostgresQueryBuilder),
         [
             r#"ALTER TABLE "glyph""#,
-            r#"ALTER COLUMN "aspect" TYPE integer,"#,
-            r#"ALTER COLUMN "aspect" SET NOT NULL,"#,
+            r#"ALTER COLUMN "aspect" TYPE integer USING CAST("aspect" AS integer),"#,
+            r#"ALTER COLUMN "aspect" SET DEFAULT 1,"#,
             r#"ADD UNIQUE ("aspect"),"#,
-            r#"ADD PRIMARY KEY ("aspect")"#,
+            r#"ADD PRIMARY KEY ("aspect"),"#,
+            r#"ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#,
+        ]
+        .join(" ")
+    );
+
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(column.clone().integer().auto_increment().null())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" TYPE integer USING CAST("aspect" AS integer),"#,
+            r#"ALTER COLUMN "aspect" DROP NOT NULL,"#,
+            r#"ALTER COLUMN "aspect" SET DEFAULT 1,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect"),"#,
+            r#"ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#,
+        ]
+        .join(" ")
+    );
+
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(column.clone().integer().auto_increment().not_null())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" TYPE integer USING CAST("aspect" AS integer),"#,
+            r#"ALTER COLUMN "aspect" SET NOT NULL,"#,
+            r#"ALTER COLUMN "aspect" SET DEFAULT 1,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect"),"#,
+            r#"ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#,
+        ]
+        .join(" ")
+    );
+
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(column.clone())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" SET DEFAULT 1,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect"),"#,
+            r#"ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#,
+        ]
+        .join(" ")
+    );
+
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(column.clone().null())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" DROP NOT NULL,"#,
+            r#"ALTER COLUMN "aspect" SET DEFAULT 1,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect"),"#,
+            r#"ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#,
+        ]
+        .join(" ")
+    );
+
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(column.clone().not_null())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" SET NOT NULL,"#,
+            r#"ALTER COLUMN "aspect" SET DEFAULT 1,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect"),"#,
+            r#"ADD CONSTRAINT "positive_aspect" CHECK ("aspect" > 0)"#,
         ]
         .join(" ")
     );
