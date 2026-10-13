@@ -123,7 +123,8 @@ impl IndexBuilder for PostgresQueryBuilder {
             sql.write_str(" USING ").unwrap();
             match index_type {
                 IndexType::BTree => sql.write_str("BTREE"),
-                IndexType::FullText => sql.write_str("GIN"),
+                IndexType::FullText | IndexType::Gin => sql.write_str("GIN"),
+                IndexType::Gist => sql.write_str("GIST"),
                 IndexType::Hash => sql.write_str("HASH"),
                 IndexType::Custom(custom) => sql.write_str(&custom.0),
             }
