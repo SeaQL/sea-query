@@ -20,6 +20,18 @@ impl QueryBuilder for MysqlQueryBuilder {
         // different).
     }
 
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
+        match bin_oper {
+            BinOper::MysqlOperator(bin_oper) => sql
+                .write_str(match bin_oper {
+                    MysqlBinOper::GetJsonField => "->",
+                    MysqlBinOper::CastJsonField => "->>",
+                })
+                .unwrap(),
+            _ => self.prepare_bin_oper_common(bin_oper, sql),
+        }
+    }
+
     fn prepare_index_hints(
         &self,
         table_ref: &TableRef,

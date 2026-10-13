@@ -3,6 +3,8 @@
 use crate::{Values, expr::*, query::*};
 use std::fmt::Debug;
 
+#[cfg(feature = "backend-mysql")]
+use crate::extension::mysql::MysqlBinOper;
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
@@ -98,6 +100,8 @@ pub enum BinOper {
     As,
     Escape,
     Custom(&'static str),
+    #[cfg(feature = "backend-mysql")]
+    MysqlOperator(MysqlBinOper),
     #[cfg(feature = "backend-postgres")]
     PgOperator(PgBinOper),
     #[cfg(feature = "backend-sqlite")]
