@@ -135,6 +135,13 @@ pub enum ColumnRef {
     Column(ColumnName),
     /// An `*` expression, potentially qualified as `(database.)(schema.)(table.)*`.
     Asterisk(Option<TableName>),
+    /// NEW.<column_name>
+    New(DynIden),
+    /// OLD.<column_name>
+    Old(DynIden),
+    #[cfg(feature = "backend-postgres")]
+    /// excluded.<column_name>
+    Excluded(DynIden),
 }
 
 impl ColumnRef {
@@ -144,6 +151,10 @@ impl ColumnRef {
         match self {
             ColumnRef::Column(ColumnName(_table_ref, column_itself)) => Some(column_itself),
             ColumnRef::Asterisk(..) => None,
+            ColumnRef::New(column_itself) => Some(column_itself),
+            ColumnRef::Old(column_itself) => Some(column_itself),
+            #[cfg(feature = "backend-postgres")]
+            ColumnRef::Excluded(column_itself) => Some(column_itself),
         }
     }
 }
