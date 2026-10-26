@@ -231,6 +231,10 @@ impl QueryBuilder for MysqlQueryBuilder {
         sql.push_param(value, self as _);
     }
 
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        sql.push_param_ref(value, self as _);
+    }
+
     fn prepare_on_conflict_target(&self, _: &OnConflictTarget, _: &mut impl SqlWriter) {
         // MySQL doesn't support declaring ON CONFLICT target.
     }

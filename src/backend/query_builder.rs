@@ -1073,16 +1073,10 @@ pub trait QueryBuilder:
     /// Write [`Value`] into SQL statement as parameter.
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter);
 
-    #[doc(hidden)]
-    /// [`Self::prepare_value`] for a borrowed value, cloning only when the writer or
-    /// the backend (enum type hints) needs an owned one.
+    /// [`Self::prepare_value`] for a borrowed value. The default clones it, so a custom
+    /// `prepare_value` sees every value; the built-in backends skip the clone.
     fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
-        match value {
-            Value::Enum(_) => self.prepare_value(value.clone(), sql),
-            #[cfg(feature = "postgres-array")]
-            Value::Array(ArrayType::Enum(_), _) => self.prepare_value(value.clone(), sql),
-            _ => sql.push_param_ref(value, self),
-        }
+        self.prepare_value(value.clone(), sql);
     }
 
     /// Write [`Value`] inline.
@@ -1939,6 +1933,10 @@ impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
         sql.push_param(value, self as _);
     }
+
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        sql.push_param_ref(value, self as _);
+    }
 }
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
@@ -2108,6 +2106,53 @@ mod tests {
             assert_eq!(buf, expect);
             buf.clear();
         }
+    }
+
+    #[test]
+    fn custom_prepare_value_sees_every_value() {
+        use crate::*;
+
+        struct Redacting;
+        impl OperLeftAssocDecider for Redacting {
+            fn well_known_left_associative(&self, op: &BinOper) -> bool {
+                common_well_known_left_associative(op)
+            }
+        }
+        impl PrecedenceDecider for Redacting {
+            fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, op: &Oper) -> bool {
+                common_inner_expr_well_known_greater_precedence(inner, op)
+            }
+        }
+        impl QuotedBuilder for Redacting {
+            fn quote(&self) -> Quote {
+                Quote(b'"', b'"')
+            }
+        }
+        impl EscapeBuilder for Redacting {}
+        impl TableRefBuilder for Redacting {}
+        impl QueryBuilder for Redacting {
+            fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
+                query.prepare_statement(self, sql);
+            }
+            fn prepare_select_into(&self, _: &SelectInto, _: &mut impl SqlWriter) {}
+            fn prepare_explain_statement(&self, _: &ExplainStatement, _: &mut impl SqlWriter) {}
+            fn prepare_value(&self, _: Value, sql: &mut impl SqlWriter) {
+                sql.write_str("<redacted>").unwrap();
+            }
+        }
+
+        let query = Query::select()
+            .expr(Expr::val("secret"))
+            .and_where(Expr::col("a").is_in([1, 2]))
+            .limit(3)
+            .to_owned();
+        let expected =
+            r#"SELECT <redacted> WHERE "a" IN (<redacted>, <redacted>) LIMIT <redacted>"#;
+        assert_eq!(query.to_string(Redacting), expected);
+        assert_eq!(
+            query.build(Redacting),
+            (expected.to_owned(), Values(vec![]))
+        );
     }
 
     #[test]

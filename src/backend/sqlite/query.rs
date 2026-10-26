@@ -82,6 +82,10 @@ impl QueryBuilder for SqliteQueryBuilder {
         sql.push_param(value, self as _);
     }
 
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        sql.push_param_ref(value, self as _);
+    }
+
     fn greatest_function(&self) -> &str {
         "MAX"
     }
