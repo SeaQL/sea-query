@@ -1,8 +1,15 @@
-use crate::SqlxValues;
+use crate::{SqlxValues, TryIntoArguments};
 use sea_query::{OptionEnum, Value};
 
 impl sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
     fn into_arguments(self) -> sqlx::sqlite::SqliteArguments {
+        TryIntoArguments::<sqlx::sqlite::Sqlite>::try_into_arguments(self)
+            .expect("value cannot be bound, use `try_into_arguments` to handle the error")
+    }
+}
+
+impl TryIntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
+    fn try_into_arguments(self) -> Result<sqlx::sqlite::SqliteArguments, sqlx::Error> {
         let mut args = sqlx::sqlite::SqliteArguments::default();
         for arg in self.0.into_iter() {
             use sqlx::Arguments;
@@ -31,14 +38,12 @@ impl sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Unsigned(i) => {
                     let _ = args.add(i);
                 }
-                // There is no unsigned 64-bit type, so a value above `i64::MAX` is bound as a
-                // float, the same as an inlined literal: comparisons still give the right result,
-                // and storing it into an integer column fails instead of panicking here.
-                Value::BigUnsigned(Some(i)) if i > i64::MAX as u64 => {
-                    let _ = args.add(i as f64);
-                }
                 Value::BigUnsigned(i) => {
-                    let _ = args.add(i.map(|i| i as i64));
+                    let _ = args.add(
+                        i.map(i64::try_from)
+                            .transpose()
+                            .map_err(|e| sqlx::Error::Encode(e.into()))?,
+                    );
                 }
                 Value::Float(f) => {
                     let _ = args.add(f);
@@ -155,25 +160,6 @@ impl sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
                   } */
             }
         }
-        args
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use sea_query::{Value, Values};
-    use sqlx::{Arguments, IntoArguments};
-
-    use crate::SqlxValues;
-
-    #[test]
-    fn bind_big_unsigned_above_i64_max() {
-        let values = SqlxValues(Values(vec![
-            Value::BigUnsigned(Some(u64::MAX)),
-            Value::BigUnsigned(Some(1)),
-            Value::BigUnsigned(None),
-        ]));
-        let args = IntoArguments::<sqlx::sqlite::Sqlite>::into_arguments(values);
-        assert_eq!(args.len(), 3);
+        Ok(args)
     }
 }

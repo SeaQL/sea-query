@@ -49,4 +49,4 @@ mod sqlx;
     feature = "sqlx-sqlite",
     feature = "sqlx-any"
 ))]
-pub use crate::sqlx::SqlxBinder;
+pub use crate::sqlx::{SqlxBinder, TryIntoArguments};

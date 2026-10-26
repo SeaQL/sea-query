@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### New Features
+
+- Add `sea_query_sqlx::TryIntoArguments`, a fallible counterpart of `sqlx::IntoArguments` that returns an error instead of panicking on a `u64` above `i64::MAX` (PostgreSQL, SQLite, Any) (#1116).
+
 ### Fixes
 
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
-- Fix `sea-query-sqlx` panicking when binding a `u64` above `i64::MAX` on PostgreSQL and SQLite.
 
 ## 1.0.2 - 2026-08-12
 

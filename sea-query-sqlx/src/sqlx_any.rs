@@ -1,8 +1,15 @@
-use crate::SqlxValues;
+use crate::{SqlxValues, TryIntoArguments};
 use sea_query::{OptionEnum, Value};
 
 impl sqlx::IntoArguments<sqlx::any::Any> for SqlxValues {
     fn into_arguments(self) -> sqlx::any::AnyArguments {
+        TryIntoArguments::<sqlx::any::Any>::try_into_arguments(self)
+            .expect("value cannot be bound, use `try_into_arguments` to handle the error")
+    }
+}
+
+impl TryIntoArguments<sqlx::any::Any> for SqlxValues {
+    fn try_into_arguments(self) -> Result<sqlx::any::AnyArguments, sqlx::Error> {
         let mut args = sqlx::any::AnyArguments::default();
         for arg in self.0.into_iter() {
             use sqlx::Arguments;
@@ -31,14 +38,12 @@ impl sqlx::IntoArguments<sqlx::any::Any> for SqlxValues {
                 Value::Unsigned(i) => {
                     let _ = args.add(i.map(Into::<i64>::into));
                 }
-                // There is no unsigned 64-bit type, so a value above `i64::MAX` is bound as a
-                // float, the same as an inlined literal: comparisons still give the right result,
-                // and storing it into an integer column fails instead of panicking here.
-                Value::BigUnsigned(Some(i)) if i > i64::MAX as u64 => {
-                    let _ = args.add(i as f64);
-                }
                 Value::BigUnsigned(i) => {
-                    let _ = args.add(i.map(|i| i as i64));
+                    let _ = args.add(
+                        i.map(i64::try_from)
+                            .transpose()
+                            .map_err(|e| sqlx::Error::Encode(e.into()))?,
+                    );
                 }
                 Value::Float(f) => {
                     let _ = args.add(f);
@@ -157,6 +162,6 @@ impl sqlx::IntoArguments<sqlx::any::Any> for SqlxValues {
                   } */
             }
         }
-        args
+        Ok(args)
     }
 }
