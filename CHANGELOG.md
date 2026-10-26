@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixes
 
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
+- Fix `sea-query-sqlx` panicking when binding a `u64` above `i64::MAX` on PostgreSQL and SQLite.
 
 ## 1.0.2 - 2026-08-12
 

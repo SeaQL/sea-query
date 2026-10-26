@@ -51,8 +51,14 @@ impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
                 Value::Unsigned(i) => {
                     let _ = args.add(i.map(|i| i as i64));
                 }
+                // There is no unsigned 64-bit type, so a value above `i64::MAX` is bound as a
+                // float, the same as an inlined literal: comparisons still give the right result,
+                // and storing it into an integer column fails instead of panicking here.
+                Value::BigUnsigned(Some(i)) if i > i64::MAX as u64 => {
+                    let _ = args.add(i as f64);
+                }
                 Value::BigUnsigned(i) => {
-                    let _ = args.add(i.map(|i| <i64 as TryFrom<u64>>::try_from(i).unwrap()));
+                    let _ = args.add(i.map(|i| i as i64));
                 }
                 Value::Float(f) => {
                     let _ = args.add(f);
@@ -207,12 +213,18 @@ impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
                     ArrayType::BigUnsigned => {
                         let value: Option<Vec<u64>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::BigUnsigned");
-                        let value: Option<Vec<i64>> = value.map(|vec| {
-                            vec.into_iter()
-                                .map(|i| <i64 as TryFrom<u64>>::try_from(i).unwrap())
-                                .collect()
-                        });
-                        let _ = args.add(value);
+                        let fits = |vec: &Vec<u64>| vec.iter().all(|&i| i <= i64::MAX as u64);
+                        if value.as_ref().is_none_or(fits) {
+                            let value: Option<Vec<i64>> =
+                                value.map(|vec| vec.into_iter().map(|i| i as i64).collect());
+                            let _ = args.add(value);
+                        } else {
+                            // A float array would round the values that do fit, so bind it as
+                            // text and let Postgres reject it.
+                            let value: Option<Vec<String>> =
+                                value.map(|vec| vec.iter().map(u64::to_string).collect());
+                            let _ = args.add(value);
+                        }
                     }
                     ArrayType::Float => {
                         let value: Option<Vec<f32>> = Value::Array(ty, v)
@@ -383,5 +395,24 @@ impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
             }
         }
         args
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_query::{Value, Values};
+    use sqlx::{Arguments, IntoArguments};
+
+    use crate::SqlxValues;
+
+    #[test]
+    fn bind_big_unsigned_above_i64_max() {
+        let values = SqlxValues(Values(vec![
+            Value::BigUnsigned(Some(u64::MAX)),
+            Value::BigUnsigned(Some(1)),
+            Value::BigUnsigned(None),
+        ]));
+        let args = IntoArguments::<sqlx::postgres::Postgres>::into_arguments(values);
+        assert_eq!(args.len(), 3);
     }
 }
