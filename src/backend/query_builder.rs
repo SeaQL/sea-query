@@ -233,12 +233,12 @@ pub trait QueryBuilder:
     fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut impl SqlWriter) {
         if let Some(limit) = &select.limit {
             sql.write_str(" LIMIT ").unwrap();
-            self.prepare_value(limit.clone(), sql);
+            self.prepare_value_ref(limit, sql);
         }
 
         if let Some(offset) = &select.offset {
             sql.write_str(" OFFSET ").unwrap();
-            self.prepare_value(offset.clone(), sql);
+            self.prepare_value_ref(offset, sql);
         }
     }
 
@@ -348,7 +348,7 @@ pub trait QueryBuilder:
     fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut impl SqlWriter) {
         if let Some(limit) = &update.limit {
             sql.write_str(" LIMIT ").unwrap();
-            self.prepare_value(limit.clone(), sql);
+            self.prepare_value_ref(limit, sql);
         }
     }
 
@@ -398,7 +398,7 @@ pub trait QueryBuilder:
     fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut impl SqlWriter) {
         if let Some(limit) = &delete.limit {
             sql.write_str(" LIMIT ").unwrap();
-            self.prepare_value(limit.clone(), sql);
+            self.prepare_value_ref(limit, sql);
         }
     }
 
@@ -450,7 +450,7 @@ pub trait QueryBuilder:
                 sql.write_str(")").unwrap();
             }
             Expr::Value(val) => {
-                self.prepare_value(val.clone(), sql);
+                self.prepare_value_ref(val, sql);
             }
             Expr::Values(list) => {
                 sql.write_str("(").unwrap();
@@ -462,7 +462,7 @@ pub trait QueryBuilder:
                         sql.write_str(", ").unwrap();
                     },
                     do {
-                        self.prepare_value(val.clone(), sql);
+                        self.prepare_value_ref(val, sql);
                     }
                 );
                 sql.write_str(")").unwrap();
@@ -1072,6 +1072,18 @@ pub trait QueryBuilder:
 
     /// Write [`Value`] into SQL statement as parameter.
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter);
+
+    #[doc(hidden)]
+    /// [`Self::prepare_value`] for a borrowed value, cloning only when the writer or
+    /// the backend (enum type hints) needs an owned one.
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        match value {
+            Value::Enum(_) => self.prepare_value(value.clone(), sql),
+            #[cfg(feature = "postgres-array")]
+            Value::Array(ArrayType::Enum(_), _) => self.prepare_value(value.clone(), sql),
+            _ => sql.push_param_ref(value, self),
+        }
+    }
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut impl SqlWriter) {
