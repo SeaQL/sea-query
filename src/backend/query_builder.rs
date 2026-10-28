@@ -233,12 +233,12 @@ pub trait QueryBuilder:
     fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut impl SqlWriter) {
         if let Some(limit) = &select.limit {
             sql.write_str(" LIMIT ").unwrap();
-            self.prepare_value(limit.clone(), sql);
+            self.prepare_value_ref(limit, sql);
         }
 
         if let Some(offset) = &select.offset {
             sql.write_str(" OFFSET ").unwrap();
-            self.prepare_value(offset.clone(), sql);
+            self.prepare_value_ref(offset, sql);
         }
     }
 
@@ -348,7 +348,7 @@ pub trait QueryBuilder:
     fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut impl SqlWriter) {
         if let Some(limit) = &update.limit {
             sql.write_str(" LIMIT ").unwrap();
-            self.prepare_value(limit.clone(), sql);
+            self.prepare_value_ref(limit, sql);
         }
     }
 
@@ -398,7 +398,7 @@ pub trait QueryBuilder:
     fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut impl SqlWriter) {
         if let Some(limit) = &delete.limit {
             sql.write_str(" LIMIT ").unwrap();
-            self.prepare_value(limit.clone(), sql);
+            self.prepare_value_ref(limit, sql);
         }
     }
 
@@ -450,7 +450,7 @@ pub trait QueryBuilder:
                 sql.write_str(")").unwrap();
             }
             Expr::Value(val) => {
-                self.prepare_value(val.clone(), sql);
+                self.prepare_value_ref(val, sql);
             }
             Expr::Values(list) => {
                 sql.write_str("(").unwrap();
@@ -462,7 +462,7 @@ pub trait QueryBuilder:
                         sql.write_str(", ").unwrap();
                     },
                     do {
-                        self.prepare_value(val.clone(), sql);
+                        self.prepare_value_ref(val, sql);
                     }
                 );
                 sql.write_str(")").unwrap();
@@ -1072,6 +1072,12 @@ pub trait QueryBuilder:
 
     /// Write [`Value`] into SQL statement as parameter.
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter);
+
+    /// [`Self::prepare_value`] for a borrowed value. The default clones it, so a custom
+    /// `prepare_value` sees every value; the built-in backends skip the clone.
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        self.prepare_value(value.clone(), sql);
+    }
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut impl SqlWriter) {
@@ -1927,6 +1933,10 @@ impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
         sql.push_param(value, self as _);
     }
+
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        sql.push_param_ref(value, self as _);
+    }
 }
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
@@ -2096,6 +2106,53 @@ mod tests {
             assert_eq!(buf, expect);
             buf.clear();
         }
+    }
+
+    #[test]
+    fn custom_prepare_value_sees_every_value() {
+        use crate::*;
+
+        struct Redacting;
+        impl OperLeftAssocDecider for Redacting {
+            fn well_known_left_associative(&self, op: &BinOper) -> bool {
+                common_well_known_left_associative(op)
+            }
+        }
+        impl PrecedenceDecider for Redacting {
+            fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, op: &Oper) -> bool {
+                common_inner_expr_well_known_greater_precedence(inner, op)
+            }
+        }
+        impl QuotedBuilder for Redacting {
+            fn quote(&self) -> Quote {
+                Quote(b'"', b'"')
+            }
+        }
+        impl EscapeBuilder for Redacting {}
+        impl TableRefBuilder for Redacting {}
+        impl QueryBuilder for Redacting {
+            fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
+                query.prepare_statement(self, sql);
+            }
+            fn prepare_select_into(&self, _: &SelectInto, _: &mut impl SqlWriter) {}
+            fn prepare_explain_statement(&self, _: &ExplainStatement, _: &mut impl SqlWriter) {}
+            fn prepare_value(&self, _: Value, sql: &mut impl SqlWriter) {
+                sql.write_str("<redacted>").unwrap();
+            }
+        }
+
+        let query = Query::select()
+            .expr(Expr::val("secret"))
+            .and_where(Expr::col("a").is_in([1, 2]))
+            .limit(3)
+            .to_owned();
+        let expected =
+            r#"SELECT <redacted> WHERE "a" IN (<redacted>, <redacted>) LIMIT <redacted>"#;
+        assert_eq!(query.to_string(Redacting), expected);
+        assert_eq!(
+            query.build(Redacting),
+            (expected.to_owned(), Values(vec![]))
+        );
     }
 
     #[test]

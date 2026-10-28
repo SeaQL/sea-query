@@ -8,9 +8,19 @@ pub trait SqlWriter: Write + Sized + ToString {
 
     /// Upcast this into parent trait. Still needed in 1.85
     fn as_writer(&mut self) -> &mut dyn Write;
+
+    /// Like [`SqlWriter::push_param`], for a borrowed value. Writers that keep the value
+    /// must clone it; a plain string writer only renders it and skips the clone.
+    fn push_param_ref<T: QueryBuilder>(&mut self, value: &Value, query_builder: &T) {
+        self.push_param(value.clone(), query_builder)
+    }
 }
 
 impl SqlWriter for String {
+    fn push_param_ref<T: QueryBuilder>(&mut self, value: &Value, query_builder: &T) {
+        query_builder.write_value(self, value).unwrap();
+    }
+
     fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T) {
         query_builder.write_value(self, &value).unwrap();
     }

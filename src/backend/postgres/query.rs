@@ -368,6 +368,16 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
+    fn prepare_value_ref(&self, value: &Value, sql: &mut impl SqlWriter) {
+        match value {
+            // Enums are rewritten to strings with a type hint, which needs an owned value.
+            Value::Enum(_) => self.prepare_value(value.clone(), sql),
+            #[cfg(feature = "postgres-array")]
+            Value::Array(ArrayType::Enum(_), _) => self.prepare_value(value.clone(), sql),
+            _ => sql.push_param_ref(value, self as _),
+        }
+    }
+
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
         match value {
             Value::Enum(value) => match value {

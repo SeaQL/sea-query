@@ -164,3 +164,7 @@ harness = false
 [[bench]]
 name = "value"
 harness = false
+
+[[bench]]
+name = "realistic"
+harness = false
