@@ -27,9 +27,9 @@ impl_sqlx_binder!(InsertStatement);
 impl_sqlx_binder!(DeleteStatement);
 impl_sqlx_binder!(WithQuery);
 
-/// Fallible counterpart of [`sqlx::IntoArguments`]: returns an error for a value
-/// the database cannot represent (e.g. a `u64` above `i64::MAX` on Postgres or SQLite)
-/// where `into_arguments` panics.
+/// Fallible counterpart of [`sqlx::IntoArguments`]: returns [`sqlx::Error::Encode`] for a value
+/// that cannot be bound (e.g. a `u64` above `i64::MAX` on Postgres or SQLite, or a value
+/// sqlx fails to encode) where `into_arguments` panics.
 pub trait TryIntoArguments<DB: ::sqlx::Database> {
     fn try_into_arguments(self) -> Result<DB::Arguments, ::sqlx::Error>;
 }

@@ -15,115 +15,134 @@ impl TryIntoArguments<sqlx::any::Any> for SqlxValues {
             use sqlx::Arguments;
             match arg {
                 Value::Bool(b) => {
-                    let _ = args.add(b);
+                    args.add(b).map_err(sqlx::Error::Encode)?;
                 }
                 Value::TinyInt(i) => {
-                    let _ = args.add(i.map(Into::<i32>::into));
+                    args.add(i.map(Into::<i32>::into))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 Value::SmallInt(i) => {
-                    let _ = args.add(i.map(Into::<i32>::into));
+                    args.add(i.map(Into::<i32>::into))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 Value::Int(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(sqlx::Error::Encode)?;
                 }
                 Value::BigInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(sqlx::Error::Encode)?;
                 }
                 Value::TinyUnsigned(i) => {
-                    let _ = args.add(i.map(Into::<i32>::into));
+                    args.add(i.map(Into::<i32>::into))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 Value::SmallUnsigned(i) => {
-                    let _ = args.add(i.map(Into::<i32>::into));
+                    args.add(i.map(Into::<i32>::into))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 Value::Unsigned(i) => {
-                    let _ = args.add(i.map(Into::<i64>::into));
+                    args.add(i.map(Into::<i64>::into))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 Value::BigUnsigned(i) => {
-                    let _ = args.add(
+                    args.add(
                         i.map(i64::try_from)
                             .transpose()
                             .map_err(|e| sqlx::Error::Encode(e.into()))?,
-                    );
+                    )
+                    .map_err(sqlx::Error::Encode)?;
                 }
                 Value::Float(f) => {
-                    let _ = args.add(f);
+                    args.add(f).map_err(sqlx::Error::Encode)?;
                 }
                 Value::Double(d) => {
-                    let _ = args.add(d);
+                    args.add(d).map_err(sqlx::Error::Encode)?;
                 }
                 Value::String(s) => {
-                    let _ = args.add(s);
+                    args.add(s).map_err(sqlx::Error::Encode)?;
                 }
                 Value::Enum(e) => {
                     let value = match e {
                         OptionEnum::Some(v) => Some(v.value.into_owned()),
                         OptionEnum::None(_) => None,
                     };
-                    let _ = args.add(value);
+                    args.add(value).map_err(sqlx::Error::Encode)?;
                 }
                 Value::Char(c) => {
-                    let _ = args.add(c.map(|c| c.to_string()));
+                    args.add(c.map(|c| c.to_string()))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 Value::Bytes(b) => {
-                    let _ = args.add(b);
+                    args.add(b).map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(t) => {
-                    let _ = args.add(Value::ChronoDate(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoDate(t).chrono_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    let _ = args.add(Value::ChronoTime(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoTime(t).chrono_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    let _ = args.add(Value::ChronoDateTime(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoDateTime(t).chrono_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    let _ = args.add(Value::ChronoDateTimeUtc(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoDateTimeUtc(t).chrono_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    let _ = args.add(Value::ChronoDateTimeLocal(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoDateTimeLocal(t).chrono_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args
-                        .add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    let _ = args.add(Value::TimeDate(t).time_as_naive_utc_in_string());
+                    args.add(Value::TimeDate(t).time_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    let _ = args.add(Value::TimeTime(t).time_as_naive_utc_in_string());
+                    args.add(Value::TimeTime(t).time_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    let _ = args.add(Value::TimeDateTime(t).time_as_naive_utc_in_string());
+                    args.add(Value::TimeDateTime(t).time_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ =
-                        args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
+                    args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string())
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDate(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTime(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDateTime(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTimestamp(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(sqlx::Error::Encode)?;
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(_) => {

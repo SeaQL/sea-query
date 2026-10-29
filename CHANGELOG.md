@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-- Add `sea_query_sqlx::TryIntoArguments`, a fallible counterpart of `sqlx::IntoArguments` that returns an error instead of panicking on a `u64` above `i64::MAX` (PostgreSQL, SQLite, Any) (#1116).
+- Add `sea_query_sqlx::TryIntoArguments`, a fallible counterpart of `sqlx::IntoArguments` that returns an error instead of panicking on a `u64` above `i64::MAX` or ignoring an encode error from `Arguments::add` (MySQL, PostgreSQL, SQLite, Any). `IntoArguments` now panics on such an encode error instead of dropping the argument (#1116).
 
 ### Fixes
 

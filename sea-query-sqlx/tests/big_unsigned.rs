@@ -71,3 +71,19 @@ async fn sqlite_big_unsigned() {
     let err = TryIntoArguments::<Sqlite>::try_into_arguments(big_unsigned(u64::MAX));
     assert!(matches!(err, Err(sqlx::Error::Encode(_))));
 }
+
+#[cfg(feature = "sqlx-mysql")]
+#[tokio::test]
+async fn mysql_big_unsigned() {
+    use sqlx::mysql::MySql;
+
+    let url = std::env::var("DATABASE_URL").expect("DATABASE_URL");
+    let pool = sqlx::MySqlPool::connect(&url).await.unwrap();
+
+    let args = TryIntoArguments::<MySql>::try_into_arguments(big_unsigned(u64::MAX));
+    let n: u64 = sqlx::query_scalar_with("SELECT CAST(? AS UNSIGNED)", args.unwrap())
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(n, u64::MAX);
+}
