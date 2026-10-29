@@ -31,6 +31,13 @@ pub enum Func {
     Random,
     Round,
     Md5,
+    RowNumber,
+    Rank,
+    DenseRank,
+    Lead,
+    Lag,
+    FirstValue,
+    LastValue,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunc),
 }
@@ -820,6 +827,229 @@ impl Func {
         T: Into<Expr>,
     {
         FunctionCall::new(Func::Md5).arg(expr)
+    }
+
+    /// Call `ROW_NUMBER` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::row_number().over(WindowStatement::partition_by(Char::FontSize)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT ROW_NUMBER() OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT ROW_NUMBER() OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT ROW_NUMBER() OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn row_number() -> FunctionCall {
+        FunctionCall::new(Func::RowNumber)
+    }
+
+    /// Call `RANK` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::rank().over(WindowStatement::partition_by(Char::FontSize)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT RANK() OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT RANK() OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT RANK() OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn rank() -> FunctionCall {
+        FunctionCall::new(Func::Rank)
+    }
+
+    /// Call `DENSE_RANK` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::dense_rank().over(WindowStatement::partition_by(Char::FontSize)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT DENSE_RANK() OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DENSE_RANK() OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT DENSE_RANK() OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn dense_rank() -> FunctionCall {
+        FunctionCall::new(Func::DenseRank)
+    }
+
+    /// Call `LEAD` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(
+    ///         Func::lead(Expr::col(Char::SizeH)).over(WindowStatement::partition_by(Char::FontSize)),
+    ///     )
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LEAD(`size_h`) OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LEAD("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT LEAD("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn lead<T>(expr: T) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        FunctionCall::new(Func::Lead).arg(expr)
+    }
+
+    /// Call `LAG` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::lag(Expr::col(Char::SizeH)).over(WindowStatement::partition_by(Char::FontSize)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LAG(`size_h`) OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LAG("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT LAG("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn lag<T>(expr: T) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        FunctionCall::new(Func::Lag).arg(expr)
+    }
+
+    /// Call `FIRST_VALUE` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(
+    ///         Func::first_value(Expr::col(Char::SizeH))
+    ///             .over(WindowStatement::partition_by(Char::FontSize)),
+    ///     )
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT FIRST_VALUE(`size_h`) OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT FIRST_VALUE("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT FIRST_VALUE("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn first_value<T>(expr: T) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        FunctionCall::new(Func::FirstValue).arg(expr)
+    }
+
+    /// Call `LAST_VALUE` window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(
+    ///         Func::last_value(Expr::col(Char::SizeH))
+    ///             .over(WindowStatement::partition_by(Char::FontSize)),
+    ///     )
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LAST_VALUE(`size_h`) OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LAST_VALUE("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT LAST_VALUE("size_h") OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn last_value<T>(expr: T) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        FunctionCall::new(Func::LastValue).arg(expr)
     }
 }
 

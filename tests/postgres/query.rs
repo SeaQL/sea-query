@@ -2391,6 +2391,26 @@ fn md5_fn() {
 }
 
 #[test]
+fn window_functions() {
+    assert_eq!(
+        Query::select()
+            .from(Char::Table)
+            .expr(Func::row_number().over(WindowStatement::partition_by(Char::FontSize)))
+            .expr(
+                Func::lag(Expr::col(Char::SizeH))
+                    .over(WindowStatement::partition_by(Char::FontSize))
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT ROW_NUMBER() OVER ( PARTITION BY "font_size" ),"#,
+            r#"LAG("size_h") OVER ( PARTITION BY "font_size" )"#,
+            r#"FROM "character""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn select_array_contains_bin_oper() {
     assert_eq!(
         Query::select()
