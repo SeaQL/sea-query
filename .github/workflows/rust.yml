@@ -260,7 +260,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,runtime-tokio
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
 
   mysql:
     name: MySQL
@@ -301,7 +301,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,runtime-tokio
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
         env:
           DATABASE_URL: mysql://sea:sea@127.0.0.1/query
 
@@ -344,7 +344,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,runtime-tokio
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
         env:
           DATABASE_URL: mysql://sea:sea@127.0.0.1/query
 
@@ -425,6 +425,6 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,postgres-array,with-bigdecimal,runtime-tokio
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,runtime-tokio
         env:
           DATABASE_URL: postgres://sea:sea@127.0.0.1/query
