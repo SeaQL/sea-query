@@ -16,7 +16,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_select_into(&self, _: &SelectInto, _: &mut impl SqlWriter) {
-        // MySQL doesn't support SELECT INOT table clause (only into variable but that is
+        // MySQL doesn't support SELECT INTO table clause (only into variable but that is
         // different).
     }
 

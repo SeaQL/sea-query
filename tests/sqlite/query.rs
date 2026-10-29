@@ -1896,3 +1896,15 @@ fn recursive_with_multiple_ctes() {
         r#"WITH RECURSIVE "sub1" ("a") AS (SELECT * FROM "character") , "sub2" ("b") AS (SELECT * FROM "character") SELECT * FROM "sub1" UNION ALL SELECT * FROM "sub2""#
     );
 }
+
+#[test]
+#[should_panic(expected = "SQLite does not support the 'ANY' operator")]
+fn select_any_sub_query_unsupported() {
+    Query::select()
+        .column(Char::Id)
+        .from(Char::Table)
+        .and_where(Expr::col(Char::Id).eq(Expr::any(
+            Query::select().column(Char::Id).from(Char::Table).take(),
+        )))
+        .to_string(SqliteQueryBuilder);
+}

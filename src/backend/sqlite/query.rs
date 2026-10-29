@@ -7,15 +7,15 @@ impl QueryBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_select_into(&self, _: &SelectInto, _: &mut impl SqlWriter) {
-        // SQLite doesn't support SELECT INOT table clause
+        // SQLite doesn't support SELECT INTO table clause
     }
 
     fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut impl SqlWriter) {
         sql.write_str(match oper {
             SubQueryOper::Exists => "EXISTS",
-            SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
-            SubQueryOper::Some => panic!("Operator 'SOME' doesnot support"),
-            SubQueryOper::All => panic!("Operator 'ALL' doesnot support"),
+            SubQueryOper::Any => panic!("SQLite does not support the 'ANY' operator"),
+            SubQueryOper::Some => panic!("SQLite does not support the 'SOME' operator"),
+            SubQueryOper::All => panic!("SQLite does not support the 'ALL' operator"),
         })
         .unwrap();
     }

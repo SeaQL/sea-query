@@ -22,6 +22,6 @@ pub enum ErrorMsg {
     WrongAttributeFormat,
     #[error("{0} is not a supported keyword")]
     UnsupportedKeyword(Ident),
-    #[error("Must have a single field is supported for flattenning")]
+    #[error("Only a single field is supported for flattening")]
     UnsupportedFlattenTarget,
 }

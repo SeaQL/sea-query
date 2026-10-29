@@ -107,7 +107,7 @@ pub trait TableBuilder:
     /// Translate [`TableRef`] into SQL statement.
     fn prepare_table_ref_table_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
         match table_ref {
-            // Support only unaliased (but potentialy qualified) table names.
+            // Support only unaliased (but potentially qualified) table names.
             TableRef::Table(.., None) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }

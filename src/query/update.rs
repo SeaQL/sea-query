@@ -82,7 +82,7 @@ impl UpdateStatement {
     ///
     /// # MySQL Notes
     ///
-    /// MySQL doesn't support the UPDATE FROM syntax. And the current implementation attempt to tranform it to the UPDATE JOIN syntax,
+    /// MySQL doesn't support the UPDATE FROM syntax. And the current implementation attempts to transform it to the UPDATE JOIN syntax,
     /// which only works for one join target.
     ///
     /// # Examples

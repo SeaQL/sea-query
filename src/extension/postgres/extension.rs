@@ -59,7 +59,7 @@ pub struct ExtensionCreateStatement {
     pub(crate) schema: Option<String>,
     pub(crate) version: Option<String>,
 
-    /// Conditional to execute query based on existance of the extension.
+    /// Conditional to execute query based on existence of the extension.
     pub(crate) if_not_exists: bool,
 
     /// Determines the presence of the `RESTRICT` statement
@@ -138,7 +138,7 @@ pub struct ExtensionDropStatement {
     pub(crate) schema: Option<String>,
     pub(crate) version: Option<String>,
 
-    /// Conditional to execute query based on existance of the extension.
+    /// Conditional to execute query based on existence of the extension.
     pub(crate) if_exists: bool,
 
     /// Determines the presence of the `RESTRICT` statement.
