@@ -123,12 +123,15 @@ impl SqliteQueryBuilder {
                 _ => sql.write_str("varchar"),
             },
             ColumnType::Text => sql.write_str("text"),
-            ColumnType::TinyInteger | ColumnType::TinyUnsigned => sql.write_str(integer("tinyint")),
-            ColumnType::SmallInteger | ColumnType::SmallUnsigned => {
-                sql.write_str(integer("smallint"))
+            ColumnType::TinyInteger => sql.write_str(integer("tinyint")),
+            ColumnType::SmallInteger => sql.write_str(integer("smallint")),
+            ColumnType::Integer | ColumnType::BigInteger => sql.write_str("integer"),
+            ColumnType::TinyUnsigned => unimplemented!("TinyUnsigned is not available in Sqlite."),
+            ColumnType::SmallUnsigned => {
+                unimplemented!("SmallUnsigned is not available in Sqlite.")
             }
-            ColumnType::Integer | ColumnType::Unsigned => sql.write_str("integer"),
-            ColumnType::BigInteger | ColumnType::BigUnsigned => sql.write_str("integer"),
+            ColumnType::Unsigned => unimplemented!("Unsigned is not available in Sqlite."),
+            ColumnType::BigUnsigned => unimplemented!("BigUnsigned is not available in Sqlite."),
             ColumnType::Float => sql.write_str("float"),
             ColumnType::Double => sql.write_str("double"),
             ColumnType::Decimal(precision) => match precision {
