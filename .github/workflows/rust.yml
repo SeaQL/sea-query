@@ -260,7 +260,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,runtime-tokio --test big_unsigned
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,runtime-tokio
 
   mysql:
     name: MySQL
@@ -419,6 +419,6 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,postgres-array,runtime-tokio --test big_unsigned
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,postgres-array,runtime-tokio
         env:
           DATABASE_URL: postgres://sea:sea@127.0.0.1/query
