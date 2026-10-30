@@ -115,6 +115,17 @@ fn create_4() {
 }
 
 #[test]
+fn enum_type_names_are_quoted() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Image).enumeration("TeaKind", ["EverydayTea"]))
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "image" "TeaKind" )"#
+    );
+}
+
+#[test]
 fn create_5() {
     assert_eq!(
         Table::create()

@@ -109,7 +109,10 @@ impl TableBuilder for PostgresQueryBuilder {
                 None => sql.write_str("vector"),
             },
             ColumnType::Custom(iden) => sql.write_str(&iden.0),
-            ColumnType::Enum { name, .. } => sql.write_str(&name.0),
+            ColumnType::Enum { name, .. } => {
+                self.prepare_iden(name, sql);
+                Ok(())
+            }
             ColumnType::Cidr => sql.write_str("cidr"),
             ColumnType::Inet => sql.write_str("inet"),
             ColumnType::MacAddr => sql.write_str("macaddr"),
