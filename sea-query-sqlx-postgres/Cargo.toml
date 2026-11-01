@@ -1,0 +1,65 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-query-sqlx-postgres"
+version = "0.1.0"
+authors = ["SeaQL Contributors"]
+edition = "2024"
+description = "PostgreSQL-only SQLx bindings for SeaQuery"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = ["database"]
+keywords = ["database", "sql", "postgres", "sqlx"]
+rust-version = "1.88.0"
+
+[lib]
+
+[dependencies]
+sea-query = { version = "1.0.0-rc.33", path = "..", default-features = false, features = [
+    "backend-postgres",
+    "thread-safe",
+] }
+sqlx-core = { version = "0.8", default-features = false }
+sqlx-postgres = { version = "0.8", default-features = false }
+
+[features]
+with-chrono = ["sea-query/with-chrono", "sqlx-core/chrono", "sqlx-postgres/chrono"]
+with-json = ["sea-query/with-json", "sqlx-core/json", "sqlx-postgres/json"]
+with-rust_decimal = [
+    "sea-query/with-rust_decimal",
+    "sqlx-core/rust_decimal",
+    "sqlx-postgres/rust_decimal",
+]
+with-bigdecimal = [
+    "sea-query/with-bigdecimal",
+    "sqlx-core/bigdecimal",
+    "sqlx-postgres/bigdecimal",
+]
+with-uuid = ["sea-query/with-uuid", "sqlx-core/uuid", "sqlx-postgres/uuid"]
+with-time = ["sea-query/with-time", "sqlx-core/time", "sqlx-postgres/time"]
+with-ipnetwork = [
+    "sea-query/with-ipnetwork",
+    "sqlx-core/ipnetwork",
+    "sqlx-postgres/ipnetwork",
+]
+with-mac_address = [
+    "sea-query/with-mac_address",
+    "sqlx-core/mac_address",
+    "sqlx-postgres/mac_address",
+]
+postgres-array = ["sea-query/postgres-array"]
+postgres-vector = ["sea-query/postgres-vector"]
+runtime-async-std = ["sqlx-core/_rt-async-std"]
+runtime-async-std-native-tls = ["runtime-async-std", "sqlx-core/_tls-native-tls"]
+runtime-async-std-rustls = ["runtime-async-std", "sqlx-core/_tls-rustls-ring-webpki"]
+runtime-actix = ["runtime-tokio"]
+runtime-actix-native-tls = ["runtime-tokio-native-tls"]
+runtime-actix-rustls = ["runtime-tokio-rustls"]
+runtime-tokio = ["sqlx-core/_rt-tokio"]
+runtime-tokio-native-tls = ["runtime-tokio", "sqlx-core/_tls-native-tls"]
+runtime-tokio-rustls = ["runtime-tokio", "sqlx-core/_tls-rustls-ring-webpki"]
+
+[package.metadata.docs.rs]
+all-features = true
