@@ -260,7 +260,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,sqlx-any,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
 
   mysql:
     name: MySQL

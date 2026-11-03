@@ -391,6 +391,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                                 Value::Enum(OptionEnum::Some(value)) => {
                                     Value::String(Some(value.value.into_owned()))
                                 }
+                                Value::Enum(OptionEnum::None(_)) => Value::String(None),
                                 _ => {
                                     panic!(
                                         "Value::Array(ArrayType::Enum) should contain Value::Enum"

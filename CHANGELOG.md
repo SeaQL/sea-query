@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-- Add `sea_query_sqlx::TryIntoArguments`, a fallible counterpart of `sqlx::IntoArguments` that returns an error instead of panicking on a `u64` above `i64::MAX` or ignoring an encode error from `Arguments::add` (MySQL, PostgreSQL, SQLite, Any). `IntoArguments` now panics on such an encode error instead of dropping the argument (#1116).
+- sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
 ### Fixes
 
+- Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
+- Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
 
 ## 1.0.2 - 2026-08-12
