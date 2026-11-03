@@ -2,7 +2,10 @@ use core::f64;
 
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{audit::AuditTrait, extension::postgres::PgBinOper};
+use sea_query::{
+    audit::AuditTrait,
+    extension::postgres::{PgBinOper, PgExpr},
+};
 
 #[test]
 fn select_1() {
@@ -1172,6 +1175,45 @@ fn select_61() {
                 .to_owned(),
             Values(vec!["A".into()])
         )
+    );
+}
+
+#[test]
+fn select_ilike_escape() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).ilike(LikeExpr::new("A").escape('\\')))
+            .and_where(Expr::col(Char::Character).not_ilike(LikeExpr::new("B").escape('\\')))
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" ILIKE $1 ESCAPE E'\\' AND "character" NOT ILIKE $2 ESCAPE E'\\'"#
+                .to_owned(),
+            Values(vec!["A".into(), "B".into()])
+        )
+    );
+}
+
+#[test]
+fn select_ilike_same_parentheses_as_like() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .cond_where(
+                Cond::all()
+                    .add(
+                        Cond::any().add(Expr::col(Char::Character).ilike("C")).add(
+                            Expr::col(Char::Character)
+                                .ilike("D")
+                                .and(Expr::col(Char::Character).not_ilike("E")),
+                        ),
+                    )
+                    .add(Expr::col(Char::SizeW).add(1).ilike("F")),
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE ("character" ILIKE 'C' OR ("character" ILIKE 'D' AND "character" NOT ILIKE 'E')) AND "size_w" + 1 ILIKE 'F'"#
     );
 }
 

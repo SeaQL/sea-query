@@ -173,10 +173,15 @@ impl Oper {
     }
 
     pub(crate) fn is_like(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::Like) | Oper::BinOper(BinOper::NotLike)
-        )
+        match self {
+            Oper::BinOper(BinOper::Like | BinOper::NotLike) => true,
+            #[cfg(feature = "backend-postgres")]
+            Oper::BinOper(BinOper::PgOperator(
+                crate::extension::postgres::PgBinOper::ILike
+                | crate::extension::postgres::PgBinOper::NotILike,
+            )) => true,
+            _ => false,
+        }
     }
 
     pub(crate) fn is_in(&self) -> bool {
