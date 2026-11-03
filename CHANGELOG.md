@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixes
 
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
+- Fix PostgreSQL `ILIKE` and `NOT ILIKE` parentheses, which also broke `ESCAPE` (#776).
 
 ## 1.0.2 - 2026-08-12
 
