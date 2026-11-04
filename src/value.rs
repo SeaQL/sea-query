@@ -76,6 +76,10 @@ mod postgres_vector;
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
 mod postgres_range;
 
+#[cfg(feature = "postgres-postgis")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-postgis")))]
+pub mod postgres_postgis;
+
 #[cfg(all(test, feature = "serde", feature = "with-json"))]
 mod serde_tests;
 
@@ -348,6 +352,10 @@ pub enum Value {
     #[cfg(feature = "postgres-range")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
     Range(Option<Box<RangeType>>),
+
+    #[cfg(feature = "postgres-postgis")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-postgis")))]
+    Geometry(Option<Box<geo_types::Geometry<f64>>>),
 }
 
 /// This test is to check if the size of [`Value`] exceeds the limit.
@@ -511,6 +519,10 @@ impl Value {
             #[cfg(feature = "postgres-range")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
             Self::Range(_) => Self::Range(None),
+
+            #[cfg(feature = "postgres-postgis")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-postgis")))]
+            Self::Geometry(_) => Self::Geometry(None),
         }
     }
 
@@ -631,6 +643,10 @@ impl Value {
             #[cfg(feature = "postgres-range")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
             Self::Range(v) => v.is_some(),
+
+            #[cfg(feature = "postgres-postgis")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-postgis")))]
+            Self::Geometry(v) => v.is_some(),
         }
     }
 
@@ -767,6 +783,12 @@ impl Value {
             #[cfg(feature = "postgres-range")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
             Self::Range(_) => Self::Range(Some(Default::default())),
+
+            #[cfg(feature = "postgres-postgis")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-postgis")))]
+            Self::Geometry(_) => Self::Geometry(Some(Box::new(geo_types::Geometry::Point(
+                geo_types::Point::new(0.0, 0.0),
+            )))),
         }
     }
 
@@ -898,6 +920,10 @@ impl Value {
             #[cfg(feature = "postgres-range")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
             Self::Range(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
+
+            #[cfg(feature = "postgres-postgis")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-postgis")))]
+            Self::Geometry(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
         }
     }
 }

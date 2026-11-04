@@ -331,6 +331,26 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunc::AdvisoryXactLockShared => "PG_ADVISORY_XACT_LOCK_SHARED",
                     PgFunc::TryAdvisoryXactLock => "PG_TRY_ADVISORY_XACT_LOCK",
                     PgFunc::TryAdvisoryXactLockShared => "PG_TRY_ADVISORY_XACT_LOCK_SHARED",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StDwithin => "ST_DWITHIN",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StCovers => "ST_COVERS",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StIntersects => "ST_INTERSECTS",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StDistance => "ST_DISTANCE",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StContains => "ST_CONTAINS",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StAsGeojson => "ST_ASGEOJSON",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StGeomFromGeojson => "ST_GEOMFROMGEOJSON",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StMakePoint => "ST_MAKEPOINT",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StMakeLine => "ST_MAKELINE",
+                    #[cfg(feature = "postgres-postgis")]
+                    PgFunc::StSetSrid => "ST_SETSRID",
                 })
                 .unwrap(),
             _ => self.prepare_function_name_common(function, sql),
