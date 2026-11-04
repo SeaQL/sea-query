@@ -186,7 +186,11 @@ fn value_to_postgres_type(value: &Value) -> Type {
         Value::String(_) => Type::TEXT,
         Value::Enum(_) => Type::TEXT,
         #[cfg(feature = "postgres-range")]
-        Value::Range(_) => Type::INT8_RANGE,
+        Value::Range(v) => match v.as_deref() {
+            Some(sea_query::prelude::RangeType::Int4Range(..)) => Type::INT4_RANGE,
+            Some(sea_query::prelude::RangeType::NumRange(..)) => Type::NUM_RANGE,
+            Some(sea_query::prelude::RangeType::Int8Range(..)) | None => Type::INT8_RANGE,
+        },
         Value::Char(_) => Type::CHAR,
         Value::Bytes(_) => Type::BYTEA,
         #[cfg(feature = "with-json")]
@@ -295,5 +299,31 @@ fn array_type_to_pg_type(ty: &ArrayType) -> Type {
         ArrayType::Enum(_) => Type::TEXT_ARRAY,
         #[cfg(feature = "postgres-range")]
         ArrayType::Range => Type::INT8_RANGE_ARRAY,
+    }
+}
+
+#[cfg(all(test, feature = "postgres-range"))]
+mod tests {
+    use super::*;
+    use sea_query::prelude::{RangeBound, RangeType};
+
+    #[test]
+    fn range_types_match_range_variant() {
+        let values = PostgresValues(vec![
+            PostgresValue(
+                RangeType::Int4Range(RangeBound::Inclusive(1), RangeBound::Exclusive(2)).into(),
+            ),
+            PostgresValue(
+                RangeType::Int8Range(RangeBound::Inclusive(1), RangeBound::Exclusive(2)).into(),
+            ),
+            PostgresValue(
+                RangeType::NumRange(RangeBound::Inclusive(1.0), RangeBound::Unbounded).into(),
+            ),
+        ]);
+
+        assert_eq!(
+            values.as_types(),
+            vec![Type::INT4_RANGE, Type::INT8_RANGE, Type::NUM_RANGE]
+        );
     }
 }

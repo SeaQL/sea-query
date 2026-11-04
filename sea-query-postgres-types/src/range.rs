@@ -53,11 +53,12 @@ fn display_range<T: Clone + Display>(
     b: &RangeBound<T>,
     f: &mut std::fmt::Formatter<'_>,
 ) -> std::fmt::Result {
+    // `[` / `]` mark inclusive bounds, `(` / `)` exclusive or unbounded ones
     match a {
-        RangeBound::Exclusive(v) => {
+        RangeBound::Inclusive(v) => {
             f.write_fmt(format_args!("[{v},"))?;
         }
-        RangeBound::Inclusive(v) => {
+        RangeBound::Exclusive(v) => {
             f.write_fmt(format_args!("({v},"))?;
         }
         RangeBound::Unbounded => {
@@ -66,10 +67,10 @@ fn display_range<T: Clone + Display>(
     }
 
     match b {
-        RangeBound::Exclusive(v) => {
+        RangeBound::Inclusive(v) => {
             f.write_fmt(format_args!("{v}]"))?;
         }
-        RangeBound::Inclusive(v) => {
+        RangeBound::Exclusive(v) => {
             f.write_fmt(format_args!("{v})"))?;
         }
         RangeBound::Unbounded => {
@@ -107,5 +108,30 @@ fn hash_range_bound<H: Hasher>(rb: &RangeBound<f64>, state: &mut H) {
         RangeBound::Exclusive(v) => ordered_float::OrderedFloat(*v).hash(state),
         RangeBound::Inclusive(v) => ordered_float::OrderedFloat(*v).hash(state),
         RangeBound::Unbounded => (),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display_uses_postgres_bound_syntax() {
+        assert_eq!(
+            RangeType::Int4Range(RangeBound::Inclusive(1), RangeBound::Exclusive(10)).to_string(),
+            "[1,10)"
+        );
+        assert_eq!(
+            RangeType::Int8Range(RangeBound::Exclusive(1), RangeBound::Inclusive(10)).to_string(),
+            "(1,10]"
+        );
+        assert_eq!(
+            RangeType::NumRange(RangeBound::Inclusive(0.5), RangeBound::Unbounded).to_string(),
+            "[0.5,)"
+        );
+        assert_eq!(
+            RangeType::Int4Range(RangeBound::Unbounded, RangeBound::Inclusive(3)).to_string(),
+            "(,3]"
+        );
     }
 }
