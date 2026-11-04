@@ -1,155 +1,183 @@
-use crate::SqlxValues;
+use crate::{IntoArgumentsError, SqlxValues};
 use sea_query::{OptionEnum, Value};
 
 impl sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
     fn into_arguments(self) -> sqlx::sqlite::SqliteArguments {
+        sqlx::sqlite::SqliteArguments::try_from(self).unwrap_or_else(|err| panic!("{err}"))
+    }
+}
+
+impl TryFrom<SqlxValues> for sqlx::sqlite::SqliteArguments {
+    type Error = IntoArgumentsError;
+
+    fn try_from(values: SqlxValues) -> Result<Self, Self::Error> {
         let mut args = sqlx::sqlite::SqliteArguments::default();
-        for arg in self.0.into_iter() {
+        for arg in values.0.into_iter() {
             use sqlx::Arguments;
             match arg {
                 Value::Bool(b) => {
-                    let _ = args.add(b);
+                    args.add(b).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::TinyInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::SmallInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Int(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::BigInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::TinyUnsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::SmallUnsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Unsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::BigUnsigned(i) => {
-                    let _ = args
-                        .add(i.map(|i| <i64 as std::convert::TryFrom<u64>>::try_from(i).unwrap()));
+                    args.add(
+                        i.map(i64::try_from)
+                            .transpose()
+                            .map_err(|e| IntoArgumentsError::Encode(e.into()))?,
+                    )
+                    .map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Float(f) => {
-                    let _ = args.add(f);
+                    args.add(f).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Double(d) => {
-                    let _ = args.add(d);
+                    args.add(d).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::String(s) => {
-                    let _ = args.add(s);
+                    args.add(s).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Enum(e) => {
                     let value = match e {
                         OptionEnum::Some(v) => Some(v.value.into_owned()),
                         OptionEnum::None(_) => None,
                     };
-                    let _ = args.add(value);
+                    args.add(value).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Char(c) => {
-                    let _ = args.add(c.map(|c| c.to_string()));
+                    args.add(c.map(|c| c.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Bytes(b) => {
-                    let _ = args.add(b);
+                    args.add(b).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
-                    let _ = args.add(d);
+                    args.add(d).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDate(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTime(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDateTime(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTimestamp(j) => {
-                    let _ = args.add(j.map(|j| j.to_string()));
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
-                    let _ = args.add(uuid);
+                    args.add(uuid).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(decimal) => {
-                    let _ = args.add(decimal.map(|d| d.to_string()));
+                    args.add(decimal.map(|d| d.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => {
-                    let _ = args.add(big_decimal.map(|d| d.to_string()));
+                    args.add(big_decimal.map(|d| d.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j.map(|j| *j));
+                    args.add(j.map(|j| *j))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {
-                    panic!("Sqlite doesn't support IpNetwork arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Sqlite doesn't support IpNetwork arguments",
+                    ));
                 }
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(_) => {
-                    panic!("Sqlite doesn't support MacAddress arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Sqlite doesn't support MacAddress arguments",
+                    ));
                 }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_, _) => {
-                    panic!("Sqlite doesn't support array arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Sqlite doesn't support array arguments",
+                    ));
                 }
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(_) => {
-                    panic!("Sqlite doesn't support vector arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Sqlite doesn't support vector arguments",
+                    ));
                 } /* #[cfg(feature = "postgres-range")]
                   Value::Range(_) => {
                   panic!("Sqlite doesn't support PgRange arguments");
                   } */
             }
         }
-        args
+        Ok(args)
     }
 }

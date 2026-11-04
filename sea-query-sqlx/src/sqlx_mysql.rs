@@ -1,155 +1,180 @@
-use crate::SqlxValues;
+use crate::{IntoArgumentsError, SqlxValues};
 use sea_query::{OptionEnum, Value};
 
 impl sqlx::IntoArguments<sqlx::mysql::MySql> for SqlxValues {
     fn into_arguments(self) -> sqlx::mysql::MySqlArguments {
+        sqlx::mysql::MySqlArguments::try_from(self).unwrap_or_else(|err| panic!("{err}"))
+    }
+}
+
+impl TryFrom<SqlxValues> for sqlx::mysql::MySqlArguments {
+    type Error = IntoArgumentsError;
+
+    fn try_from(values: SqlxValues) -> Result<Self, Self::Error> {
         let mut args = sqlx::mysql::MySqlArguments::default();
-        for arg in self.0.into_iter() {
+        for arg in values.0.into_iter() {
             use sqlx::Arguments;
             match arg {
                 Value::Bool(b) => {
-                    let _ = args.add(b);
+                    args.add(b).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::TinyInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::SmallInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Int(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::BigInt(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::TinyUnsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::SmallUnsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Unsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::BigUnsigned(i) => {
-                    let _ = args.add(i);
+                    args.add(i).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Float(f) => {
-                    let _ = args.add(f);
+                    args.add(f).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Double(d) => {
-                    let _ = args.add(d);
+                    args.add(d).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::String(s) => {
-                    let _ = args.add(s.as_deref());
+                    args.add(s.as_deref()).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Enum(e) => {
                     let value = match e {
                         OptionEnum::Some(v) => Some(v.value.into_owned()),
                         OptionEnum::None(_) => None,
                     };
-                    let _ = args.add(value);
+                    args.add(value).map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Char(c) => {
-                    let _ = args.add(c.map(|c| c.to_string()));
+                    args.add(c.map(|c| c.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 Value::Bytes(b) => {
-                    let _ = args.add(b.as_deref());
+                    args.add(b.as_deref()).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
-                    let _ = args.add(d);
+                    args.add(d).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args
-                        .add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string());
+                    args.add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string())
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t);
+                    args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDate(_) => {
-                    panic!("Mysql doesn't support JiffDate arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support JiffDate arguments",
+                    ));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTime(_) => {
-                    panic!("Mysql doesn't support JiffTime arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support JiffTime arguments",
+                    ));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDateTime(_) => {
-                    panic!("Mysql doesn't support JiffDateTime arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support JiffDateTime arguments",
+                    ));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTimestamp(_) => {
-                    panic!("Mysql doesn't support JiffTimestamp arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support JiffTimestamp arguments",
+                    ));
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
-                    let _ = args.add(uuid);
+                    args.add(uuid).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(d) => {
-                    let _ = args.add(d);
+                    args.add(d).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(d) => {
-                    let _ = args.add(d.as_deref());
+                    args.add(d.as_deref()).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j.as_deref());
+                    args.add(j.as_deref()).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_, _) => {
-                    panic!("Mysql doesn't support array arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support array arguments",
+                    ));
                 }
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(_) => {
-                    panic!("Mysql doesn't support vector arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support vector arguments",
+                    ));
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {
-                    panic!("Mysql doesn't support IpNetwork arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support IpNetwork arguments",
+                    ));
                 }
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(_) => {
-                    panic!("Mysql doesn't support MacAddress arguments");
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support MacAddress arguments",
+                    ));
                 } /* #[cfg(feature = "postgres-range")]
                   Value::Range(_) => {
                   panic!("Mysql doesn't support PgRange arguments");
                   } */
             }
         }
-        args
+        Ok(args)
     }
 }

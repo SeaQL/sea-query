@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### New Features
+
+- sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
+
 ### Fixes
 
+- Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
+- Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
 
 ## 1.0.2 - 2026-08-12
