@@ -116,8 +116,10 @@ pub enum LogicalChainOper {
 pub enum JoinType {
     Join,
     CrossJoin,
+    CrossJoinLateral,
     InnerJoin,
     LeftJoin,
+    LeftJoinLateral,
     RightJoin,
     FullOuterJoin,
     StraightJoin,

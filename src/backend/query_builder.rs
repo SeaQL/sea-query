@@ -1011,8 +1011,10 @@ pub trait QueryBuilder:
         sql.write_str(match join_type {
             JoinType::Join => "JOIN",
             JoinType::CrossJoin => "CROSS JOIN",
+            JoinType::CrossJoinLateral => "CROSS JOIN LATERAL",
             JoinType::InnerJoin => "INNER JOIN",
             JoinType::LeftJoin => "LEFT JOIN",
+            JoinType::LeftJoinLateral => "LEFT JOIN LATERAL",
             JoinType::RightJoin => "RIGHT JOIN",
             JoinType::FullOuterJoin => "FULL OUTER JOIN",
             JoinType::StraightJoin => "STRAIGHT_JOIN",
