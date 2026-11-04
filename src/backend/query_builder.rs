@@ -790,6 +790,13 @@ pub trait QueryBuilder:
                 Func::Random => self.random_function(),
                 Func::Round => "ROUND",
                 Func::Md5 => "MD5",
+                Func::RowNumber => "ROW_NUMBER",
+                Func::Rank => "RANK",
+                Func::DenseRank => "DENSE_RANK",
+                Func::Lead => "LEAD",
+                Func::Lag => "LAG",
+                Func::FirstValue => "FIRST_VALUE",
+                Func::LastValue => "LAST_VALUE",
                 #[cfg(feature = "backend-postgres")]
                 Func::PgFunction(_) => unimplemented!(),
             })

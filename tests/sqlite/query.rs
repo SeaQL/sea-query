@@ -1896,3 +1896,23 @@ fn recursive_with_multiple_ctes() {
         r#"WITH RECURSIVE "sub1" ("a") AS (SELECT * FROM "character") , "sub2" ("b") AS (SELECT * FROM "character") SELECT * FROM "sub1" UNION ALL SELECT * FROM "sub2""#
     );
 }
+
+#[test]
+fn window_functions() {
+    assert_eq!(
+        Query::select()
+            .from(Char::Table)
+            .expr(Func::row_number().over(WindowStatement::partition_by(Char::FontSize)))
+            .expr(
+                Func::lag(Expr::col(Char::SizeH))
+                    .over(WindowStatement::partition_by(Char::FontSize))
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT ROW_NUMBER() OVER ( PARTITION BY "font_size" ),"#,
+            r#"LAG("size_h") OVER ( PARTITION BY "font_size" )"#,
+            r#"FROM "character""#,
+        ]
+        .join(" ")
+    );
+}
