@@ -70,8 +70,8 @@ fn create_3() {
             )
             .col(ColumnDef::new(Char::FontSize).big_integer().not_null())
             .col(ColumnDef::new(Char::Character).string().not_null())
-            .col(ColumnDef::new(Char::SizeW).unsigned().not_null())
-            .col(ColumnDef::new(Char::SizeH).unsigned().not_null())
+            .col(ColumnDef::new(Char::SizeW).integer().not_null())
+            .col(ColumnDef::new(Char::SizeH).integer().not_null())
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
@@ -744,5 +744,63 @@ fn alter_with_named_check_constraint() {
             )
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer NOT NULL DEFAULT 101 CONSTRAINT "positive_aspect" CHECK ("aspect" > 100)"#,
+    );
+}
+
+#[test]
+#[should_panic(expected = "not implemented")]
+fn create_tiny_unsigned_panics() {
+    Table::create()
+        .table(Char::Table)
+        .col(ColumnDef::new(Char::SizeW).tiny_unsigned())
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "not implemented")]
+fn create_small_unsigned_panics() {
+    Table::create()
+        .table(Char::Table)
+        .col(ColumnDef::new(Char::SizeW).small_unsigned())
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "not implemented")]
+fn create_unsigned_panics() {
+    Table::create()
+        .table(Char::Table)
+        .col(ColumnDef::new(Char::SizeW).unsigned())
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "not implemented")]
+fn create_big_unsigned_panics() {
+    Table::create()
+        .table(Char::Table)
+        .col(ColumnDef::new(Char::SizeW).big_unsigned())
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "not implemented")]
+fn alter_add_unsigned_column_panics() {
+    Table::alter()
+        .table(Font::Table)
+        .add_column(ColumnDef::new("new_col").unsigned())
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[cfg(not(feature = "option-sqlite-exact-column-type"))]
+fn create_signed_integers() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::SizeW).tiny_integer())
+            .col(ColumnDef::new(Char::SizeH).small_integer())
+            .to_string(SqliteQueryBuilder),
+        r#"CREATE TABLE "character" ( "size_w" tinyint, "size_h" smallint )"#,
     );
 }
