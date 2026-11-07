@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-- Add `Func::group_concat`, rendered as `GROUP_CONCAT` in MySQL and SQLite and `STRING_AGG` in PostgreSQL, and `FunctionCall::order_by` for ordering within an aggregate.
+- Add `Func::group_concat`, rendered as `GROUP_CONCAT` in MySQL and SQLite and `STRING_AGG` in PostgreSQL, and `FunctionCall::order_by` for ordering within an aggregate (#1126).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
 ### Fixes
