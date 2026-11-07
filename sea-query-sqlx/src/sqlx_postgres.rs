@@ -507,21 +507,19 @@ mod range {
     }
 
     #[cfg(any(feature = "with-bigdecimal", feature = "with-rust_decimal"))]
-    fn add_num_range(
-        args: &mut PgArguments,
+    fn to_num_range(
         start: RangeBound<f64>,
         end: RangeBound<f64>,
-    ) -> Result<(), IntoArgumentsError> {
-        args.add(to_range(start, end, to_numeric)?)
-            .map_err(IntoArgumentsError::Encode)
+    ) -> Result<PgRange<Numeric>, IntoArgumentsError> {
+        to_range(start, end, to_numeric)
     }
 
+    // always fails, the `i64` is only there to give the result a type
     #[cfg(not(any(feature = "with-bigdecimal", feature = "with-rust_decimal")))]
-    fn add_num_range(
-        _args: &mut PgArguments,
+    fn to_num_range(
         _start: RangeBound<f64>,
         _end: RangeBound<f64>,
-    ) -> Result<(), IntoArgumentsError> {
+    ) -> Result<PgRange<i64>, IntoArgumentsError> {
         Err(IntoArgumentsError::Unsupported(
             "numrange arguments require the with-bigdecimal or with-rust_decimal feature",
         ))
@@ -539,10 +537,39 @@ mod range {
             Some(RangeType::Int8Range(start, end)) => args
                 .add(to_range(start, end, Ok)?)
                 .map_err(IntoArgumentsError::Encode),
-            Some(RangeType::NumRange(start, end)) => add_num_range(args, start, end),
+            Some(RangeType::NumRange(start, end)) => args
+                .add(to_num_range(start, end)?)
+                .map_err(IntoArgumentsError::Encode),
         }
     }
 
+    /// Collects the ranges of an array, which must all be of the variant matched by `convert`.
+    #[cfg(feature = "postgres-array")]
+    fn range_array<U>(
+        values: Vec<Option<RangeType>>,
+        convert: impl Fn(RangeType) -> Option<Result<PgRange<U>, IntoArgumentsError>>,
+    ) -> Result<Vec<Option<PgRange<U>>>, IntoArgumentsError> {
+        values
+            .into_iter()
+            .map(|v| match v {
+                Some(range) => {
+                    convert(range)
+                        .transpose()?
+                        .map(Some)
+                        .ok_or(IntoArgumentsError::Unsupported(
+                            "Value::Array of ranges must contain ranges of a single type",
+                        ))
+                }
+                None => Ok(None),
+            })
+            .collect()
+    }
+
+    /// `ArrayType::Range` doesn't say which range type the array holds, so it is taken from the
+    /// first non-NULL element, the same way `sea-query-postgres` does. Mixing range types in one
+    /// array is an error. A NULL array is sent untyped, like a NULL range. An empty or all-NULL
+    /// array has no range type, and unlike `sea-query-postgres` SQLx can't leave it for
+    /// PostgreSQL to infer, because the binary array format has to name the element type.
     #[cfg(feature = "postgres-array")]
     pub(super) fn add_range_array(
         args: &mut PgArguments,
@@ -552,43 +579,31 @@ mod range {
             return args.add(UntypedNull).map_err(IntoArgumentsError::Encode);
         };
 
-        let mismatch = || {
-            IntoArgumentsError::Unsupported(
-                "Value::Array of ranges must contain ranges of a single type",
-            )
-        };
-
-        // the element type is taken from the first non-null range
         match values.iter().flatten().next() {
+            Some(RangeType::Int4Range(..)) => {
+                let value = range_array(values, |v| match v {
+                    RangeType::Int4Range(start, end) => Some(to_range(start, end, Ok)),
+                    _ => None,
+                })?;
+                args.add(value).map_err(IntoArgumentsError::Encode)
+            }
             Some(RangeType::Int8Range(..)) => {
-                let value = values
-                    .into_iter()
-                    .map(|v| match v {
-                        Some(RangeType::Int8Range(start, end)) => {
-                            to_range(start, end, Ok).map(Some)
-                        }
-                        Some(_) => Err(mismatch()),
-                        None => Ok(None),
-                    })
-                    .collect::<Result<Vec<_>, _>>()?;
+                let value = range_array(values, |v| match v {
+                    RangeType::Int8Range(start, end) => Some(to_range(start, end, Ok)),
+                    _ => None,
+                })?;
                 args.add(value).map_err(IntoArgumentsError::Encode)
             }
-            Some(RangeType::NumRange(..)) => Err(IntoArgumentsError::Unsupported(
-                "Value::Array of numrange is not supported",
+            Some(RangeType::NumRange(..)) => {
+                let value = range_array(values, |v| match v {
+                    RangeType::NumRange(start, end) => Some(to_num_range(start, end)),
+                    _ => None,
+                })?;
+                args.add(value).map_err(IntoArgumentsError::Encode)
+            }
+            None => Err(IntoArgumentsError::Unsupported(
+                "cannot infer the range type of an empty or all-NULL Value::Array of ranges",
             )),
-            _ => {
-                let value = values
-                    .into_iter()
-                    .map(|v| match v {
-                        Some(RangeType::Int4Range(start, end)) => {
-                            to_range(start, end, Ok).map(Some)
-                        }
-                        Some(_) => Err(mismatch()),
-                        None => Ok(None),
-                    })
-                    .collect::<Result<Vec<_>, _>>()?;
-                args.add(value).map_err(IntoArgumentsError::Encode)
-            }
         }
     }
 }

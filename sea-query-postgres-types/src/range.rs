@@ -22,14 +22,51 @@ pub enum RangeType {
 }
 
 impl RangeType {
+    /// Returns `true` if PostgreSQL stores this range as `empty`.
+    ///
+    /// This follows PostgreSQL's rules: `(,)` (both bounds unbounded) is the range of all
+    /// values, not an empty range, while e.g. `[1,1)`, or `(1,2)` on an integer range, is empty.
+    /// Ranges whose lower bound is greater than their upper bound are rejected by PostgreSQL
+    /// and are not considered empty.
     pub fn empty(&self) -> bool {
-        matches!(
-            self,
-            &RangeType::Int4Range(RangeBound::Unbounded, RangeBound::Unbounded)
-                | &RangeType::Int8Range(RangeBound::Unbounded, RangeBound::Unbounded)
-                | &RangeType::NumRange(RangeBound::Unbounded, RangeBound::Unbounded)
-        )
+        match self {
+            RangeType::Int4Range(a, b) => discrete_range_is_empty(a, b),
+            RangeType::Int8Range(a, b) => discrete_range_is_empty(a, b),
+            RangeType::NumRange(a, b) => match (bound_value(a), bound_value(b)) {
+                (Some((lower, lower_inc)), Some((upper, upper_inc))) => {
+                    lower == upper && !(lower_inc && upper_inc)
+                }
+                _ => false,
+            },
+        }
     }
+}
+
+fn bound_value<T: Clone + Display>(bound: &RangeBound<T>) -> Option<(&T, bool)> {
+    match bound {
+        RangeBound::Inclusive(v) => Some((v, true)),
+        RangeBound::Exclusive(v) => Some((v, false)),
+        RangeBound::Unbounded => None,
+    }
+}
+
+fn discrete_range_is_empty<T: Clone + Copy + Display + Into<i64>>(
+    lower: &RangeBound<T>,
+    upper: &RangeBound<T>,
+) -> bool {
+    let (Some((&lower, lower_inc)), Some((&upper, upper_inc))) =
+        (bound_value(lower), bound_value(upper))
+    else {
+        return false;
+    };
+    let (lower, upper) = (i128::from(lower.into()), i128::from(upper.into()));
+    if lower > upper {
+        return false;
+    }
+    // canonical `[lower, upper)` form, as PostgreSQL does for discrete ranges
+    let lower = if lower_inc { lower } else { lower + 1 };
+    let upper = if upper_inc { upper + 1 } else { upper };
+    lower >= upper
 }
 
 impl Default for RangeType {
@@ -133,5 +170,35 @@ mod tests {
             RangeType::Int4Range(RangeBound::Unbounded, RangeBound::Inclusive(3)).to_string(),
             "(,3]"
         );
+        assert_eq!(
+            RangeType::Int8Range(RangeBound::Unbounded, RangeBound::Unbounded).to_string(),
+            "(,)"
+        );
+    }
+
+    #[test]
+    fn empty_follows_postgres_semantics() {
+        use RangeBound::*;
+
+        // `(,)` is the range of all values
+        assert!(!RangeType::Int4Range(Unbounded, Unbounded).empty());
+        assert!(!RangeType::Int8Range(Unbounded, Unbounded).empty());
+        assert!(!RangeType::NumRange(Unbounded, Unbounded).empty());
+        assert!(!RangeType::default().empty());
+
+        assert!(!RangeType::Int4Range(Inclusive(1), Inclusive(1)).empty());
+        assert!(!RangeType::Int4Range(Inclusive(1), Exclusive(2)).empty());
+        assert!(!RangeType::Int4Range(Unbounded, Exclusive(1)).empty());
+        assert!(RangeType::Int4Range(Inclusive(1), Exclusive(1)).empty());
+        assert!(RangeType::Int4Range(Exclusive(1), Exclusive(2)).empty());
+        assert!(RangeType::Int8Range(Exclusive(1), Inclusive(1)).empty());
+        assert!(!RangeType::Int8Range(Exclusive(i64::MAX - 1), Inclusive(i64::MAX)).empty());
+
+        assert!(!RangeType::NumRange(Inclusive(0.5), Inclusive(0.5)).empty());
+        assert!(!RangeType::NumRange(Exclusive(0.5), Exclusive(0.6)).empty());
+        assert!(RangeType::NumRange(Inclusive(0.5), Exclusive(0.5)).empty());
+
+        // lower > upper is an error in PostgreSQL, not an empty range
+        assert!(!RangeType::Int4Range(Inclusive(5), Exclusive(1)).empty());
     }
 }
