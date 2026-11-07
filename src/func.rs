@@ -31,7 +31,8 @@ pub enum Func {
     Random,
     Round,
     Md5,
-    GroupConcat,
+    /// `GROUP_CONCAT` with its separator, `STRING_AGG` in Postgres
+    GroupConcat(String),
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunc),
 }
@@ -825,8 +826,12 @@ impl Func {
 
     /// Call `GROUP_CONCAT` function, `STRING_AGG` in Postgres.
     ///
-    /// The separator is written as a literal, because MySQL does not accept a parameter there.
-    /// Ordering within the group with [`FunctionCall::order_by`] needs SQLite 3.44 or later.
+    /// The separator is kept apart from the arguments and written as a literal, because MySQL
+    /// takes it after `SEPARATOR` and does not accept a parameter there.
+    ///
+    /// SQLite supports [`FunctionCall::order_by`] within an aggregate since 3.44, so it is
+    /// rendered for SQLite only with the `option-sqlite-aggregate-order-by` feature and left out
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -850,10 +855,6 @@ impl Func {
     ///     r#"SELECT STRING_AGG("character", ', ' ORDER BY "id" DESC) FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT GROUP_CONCAT("character", ', ' ORDER BY "id" DESC) FROM "character""#
-    /// );
-    /// assert_eq!(
     ///     query.build(MysqlQueryBuilder),
     ///     (
     ///         r#"SELECT GROUP_CONCAT(`character` ORDER BY `id` DESC SEPARATOR ', ') FROM `character`"#
@@ -866,9 +867,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::GroupConcat)
-            .arg(expr)
-            .arg(Expr::Constant(separator.into()))
+        FunctionCall::new(Func::GroupConcat(separator.to_owned())).arg(expr)
     }
 }
 

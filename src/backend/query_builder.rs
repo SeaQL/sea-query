@@ -790,7 +790,7 @@ pub trait QueryBuilder:
                 Func::Random => self.random_function(),
                 Func::Round => "ROUND",
                 Func::Md5 => "MD5",
-                Func::GroupConcat => "GROUP_CONCAT",
+                Func::GroupConcat(_) => "GROUP_CONCAT",
                 #[cfg(feature = "backend-postgres")]
                 Func::PgFunction(_) => unimplemented!(),
             })
@@ -800,13 +800,24 @@ pub trait QueryBuilder:
 
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
-        let mut args = func.args.iter().zip(func.mods.iter());
-        // MySQL takes the separator after ORDER BY: `GROUP_CONCAT(x ORDER BY y SEPARATOR ',')`
-        let separator = if func.func == Func::GroupConcat && self.group_concat_separator_keyword() {
-            args.next_back().map(|(arg, _)| arg)
+        if let Func::GroupConcat(separator) = &func.func {
+            self.prepare_group_concat_arguments(func, separator, sql);
         } else {
-            None
-        };
+            self.prepare_function_argument_list(func, sql);
+            self.prepare_function_order_by(func, sql);
+        }
+        sql.write_str(")").unwrap();
+
+        if let Some(filter) = &func.filter {
+            sql.write_str(" FILTER (WHERE ").unwrap();
+            self.prepare_condition_where(filter, sql);
+            sql.write_str(")").unwrap();
+        }
+    }
+
+    /// Translate the arguments of a [`FunctionCall`], without parentheses.
+    fn prepare_function_argument_list(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
+        let mut args = func.args.iter().zip(func.mods.iter());
 
         if let Some((arg, modifier)) = args.next() {
             if modifier.distinct {
@@ -822,7 +833,10 @@ pub trait QueryBuilder:
             }
             self.prepare_expr(arg, sql);
         }
+    }
 
+    /// Translate the `ORDER BY` within the parentheses of a [`FunctionCall`].
+    fn prepare_function_order_by(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         let mut orders = func.order_by.iter();
         join_io!(
             orders,
@@ -837,19 +851,20 @@ pub trait QueryBuilder:
                 self.prepare_order_expr(expr, sql);
             }
         );
+    }
 
-        if let Some(separator) = separator {
-            sql.write_str(" SEPARATOR ").unwrap();
-            self.prepare_expr(separator, sql);
-        }
-
-        sql.write_str(")").unwrap();
-
-        if let Some(filter) = &func.filter {
-            sql.write_str(" FILTER (WHERE ").unwrap();
-            self.prepare_condition_where(filter, sql);
-            sql.write_str(")").unwrap();
-        }
+    /// Translate the arguments of [`Func::GroupConcat`], without parentheses:
+    /// `x, ',' ORDER BY y`.
+    fn prepare_group_concat_arguments(
+        &self,
+        func: &FunctionCall,
+        separator: &str,
+        sql: &mut impl SqlWriter,
+    ) {
+        self.prepare_function_argument_list(func, sql);
+        sql.write_str(", ").unwrap();
+        self.prepare_constant(&separator.into(), sql);
+        self.prepare_function_order_by(func, sql);
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
@@ -1862,12 +1877,6 @@ pub trait QueryBuilder:
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
-    }
-
-    #[doc(hidden)]
-    /// Whether `GROUP_CONCAT` takes its separator as `SEPARATOR '..'` instead of an argument
-    fn group_concat_separator_keyword(&self) -> bool {
-        false
     }
 
     #[doc(hidden)]

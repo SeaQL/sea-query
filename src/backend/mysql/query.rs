@@ -291,8 +291,16 @@ impl QueryBuilder for MysqlQueryBuilder {
         "RAND"
     }
 
-    fn group_concat_separator_keyword(&self) -> bool {
-        true
+    fn prepare_group_concat_arguments(
+        &self,
+        func: &FunctionCall,
+        separator: &str,
+        sql: &mut impl SqlWriter,
+    ) {
+        self.prepare_function_argument_list(func, sql);
+        self.prepare_function_order_by(func, sql);
+        sql.write_str(" SEPARATOR ").unwrap();
+        self.prepare_constant(&separator.into(), sql);
     }
 
     fn lock_phrase(&self, lock_type: LockType) -> &'static str {

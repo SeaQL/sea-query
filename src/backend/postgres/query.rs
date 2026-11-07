@@ -333,7 +333,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunc::TryAdvisoryXactLockShared => "PG_TRY_ADVISORY_XACT_LOCK_SHARED",
                 })
                 .unwrap(),
-            Func::GroupConcat => sql.write_str("STRING_AGG").unwrap(),
+            Func::GroupConcat(_) => sql.write_str("STRING_AGG").unwrap(),
             _ => self.prepare_function_name_common(function, sql),
         }
     }
