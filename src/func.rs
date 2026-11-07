@@ -31,6 +31,7 @@ pub enum Func {
     Random,
     Round,
     Md5,
+    GroupConcat,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunc),
 }
@@ -821,6 +822,54 @@ impl Func {
     {
         FunctionCall::new(Func::Md5).arg(expr)
     }
+
+    /// Call `GROUP_CONCAT` function, `STRING_AGG` in Postgres.
+    ///
+    /// The separator is written as a literal, because MySQL does not accept a parameter there.
+    /// Ordering within the group with [`FunctionCall::order_by`] needs SQLite 3.44 or later.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(
+    ///         Func::group_concat(Expr::col(Char::Character), ", ")
+    ///             .order_by(Expr::col(Char::Id), Order::Desc),
+    ///     )
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT GROUP_CONCAT(`character` ORDER BY `id` DESC SEPARATOR ', ') FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT STRING_AGG("character", ', ' ORDER BY "id" DESC) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT GROUP_CONCAT("character", ', ' ORDER BY "id" DESC) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.build(MysqlQueryBuilder),
+    ///     (
+    ///         r#"SELECT GROUP_CONCAT(`character` ORDER BY `id` DESC SEPARATOR ', ') FROM `character`"#
+    ///             .to_owned(),
+    ///         Values(vec![])
+    ///     )
+    /// );
+    /// ```
+    pub fn group_concat<T>(expr: T, separator: &str) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        FunctionCall::new(Func::GroupConcat)
+            .arg(expr)
+            .arg(Expr::Constant(separator.into()))
+    }
 }
 
 /// Function call.
@@ -830,6 +879,7 @@ pub struct FunctionCall {
     pub(crate) args: Vec<Expr>,
     pub(crate) mods: Vec<FuncArgMod>,
     pub(crate) filter: Option<Condition>,
+    pub(crate) order_by: Vec<OrderExpr>,
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -844,6 +894,7 @@ impl FunctionCall {
             args: Vec::new(),
             mods: Vec::new(),
             filter: None,
+            order_by: Vec::new(),
         }
     }
 
@@ -923,5 +974,19 @@ impl FunctionCall {
 
     pub fn get_filter(&self) -> Option<&Condition> {
         self.filter.as_ref()
+    }
+
+    /// Order the rows an aggregate function reads, e.g. `STRING_AGG(.. ORDER BY ..)`.
+    /// See [`Func::group_concat`].
+    pub fn order_by<T>(mut self, expr: T, order: Order) -> Self
+    where
+        T: Into<Expr>,
+    {
+        self.order_by.push(OrderExpr {
+            expr: expr.into(),
+            order,
+            nulls: None,
+        });
+        self
     }
 }

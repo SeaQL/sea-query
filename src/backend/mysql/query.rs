@@ -291,6 +291,10 @@ impl QueryBuilder for MysqlQueryBuilder {
         "RAND"
     }
 
+    fn group_concat_separator_keyword(&self) -> bool {
+        true
+    }
+
     fn lock_phrase(&self, lock_type: LockType) -> &'static str {
         match lock_type {
             LockType::Update => "FOR UPDATE",
