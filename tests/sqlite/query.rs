@@ -1896,3 +1896,20 @@ fn recursive_with_multiple_ctes() {
         r#"WITH RECURSIVE "sub1" ("a") AS (SELECT * FROM "character") , "sub2" ("b") AS (SELECT * FROM "character") SELECT * FROM "sub1" UNION ALL SELECT * FROM "sub2""#
     );
 }
+
+#[test]
+#[cfg(not(feature = "option-sqlite-aggregate-order-by"))]
+fn select_group_concat() {
+    let query = Query::select()
+        .expr(
+            Func::group_concat(Expr::col(Char::Character), ", ")
+                .order_by(Expr::col(Char::Id), Order::Desc),
+        )
+        .from(Char::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT GROUP_CONCAT("character", ', ') FROM "character""#
+    );
+}

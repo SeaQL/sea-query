@@ -86,6 +86,10 @@ impl QueryBuilder for SqliteQueryBuilder {
         sql.push_param_ref(value, self as _);
     }
 
+    // `ORDER BY` within an aggregate is a syntax error before SQLite 3.44
+    #[cfg(not(feature = "option-sqlite-aggregate-order-by"))]
+    fn prepare_function_order_by(&self, _: &FunctionCall, _: &mut impl SqlWriter) {}
+
     fn greatest_function(&self) -> &str {
         "MAX"
     }

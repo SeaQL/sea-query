@@ -122,6 +122,8 @@ jobs:
       - run: cargo test --features=all-features
       - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses --no-run
       - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses
+      - run: cargo test --test option-sqlite-aggregate-order-by --features=tests-cfg,option-sqlite-aggregate-order-by --no-run
+      - run: cargo test --test option-sqlite-aggregate-order-by --features=tests-cfg,option-sqlite-aggregate-order-by
       - run: cargo test --package sea-query-derive --no-run
       - run: cargo test --package sea-query-derive
 
