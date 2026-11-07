@@ -29,4 +29,4 @@ pub use std::net::{self, IpAddr};
 pub use mac_address::{self, MacAddress};
 
 #[cfg(feature = "postgres-range")]
-pub use sea_query_postgres_types::range::RangeType;
+pub use sea_query_postgres_types::range::{RangeBound, RangeType};

@@ -10,12 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
+- sea_query_sqlx: Bind PostgreSQL range values (`Value::Range`, and arrays of ranges) with SQLx behind a new `postgres-range` feature. `numrange` bounds require `with-bigdecimal` or `with-rust_decimal`. The range type of an array is taken from its first non-NULL element; empty and all-NULL range arrays can't be bound with SQLx.
+- `Vec<RangeType>` can be converted into `Value::Array`.
+- Export `RangeBound` from the prelude next to `RangeType`.
 
 ### Fixes
 
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
 - Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
+- Fix inverted inclusive / exclusive brackets when rendering `RangeType` literals, e.g. `Inclusive(1)..Exclusive(10)` now renders as `'[1,10)'`.
+- Fix `sea-query-sqlx` failing to compile when the `postgres-range` feature of `sea-query` is enabled.
+- sea_query_postgres: Use `int4range` / `numrange` parameter types for `Int4Range` / `NumRange` values instead of always `int8range`, and infer the type of range arrays from their first non-NULL element (`unknown` for NULL, empty and all-NULL values).
+- sea_query_postgres: Encode `numrange` bounds as `numeric` instead of `float8`, which PostgreSQL rejected.
+- sea_query_postgres: Encode `(,)` ranges (both bounds unbounded) as unbounded instead of `empty`, and reject ranges whose variant doesn't match the parameter type.
+- `RangeType::empty()` follows PostgreSQL: `(,)` is no longer reported as empty, while ranges like `[1,1)` are.
 
 ## 1.0.2 - 2026-08-12
 

@@ -85,7 +85,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.94
         with:
           components: clippy
-      - run: cargo clippy --manifest-path sea-query-sqlx/Cargo.toml --workspace --features runtime-tokio,tls-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector -- -D warnings
+      - run: cargo clippy --manifest-path sea-query-sqlx/Cargo.toml --workspace --features runtime-tokio,tls-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,postgres-range -- -D warnings
 
   build:
     name: Workspace
@@ -146,7 +146,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,postgres-range
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-chrono
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-json
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-rust_decimal
@@ -157,6 +157,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-mac_address
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-array
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-range
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
 
   rusqlite-build:
@@ -203,7 +204,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-postgres/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,postgres-range
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-json
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-rust_decimal
@@ -214,6 +215,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-mac_address
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-range
 
   sqlite:
     name: SQLite
@@ -386,6 +388,9 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo test --manifest-path sea-query-postgres/Cargo.toml --features postgres-array,postgres-range
+        env:
+          DATABASE_URL: postgres://sea:sea@127.0.0.1/query
 
   postgres-sqlx:
     name: PostgreSQL SQLx
@@ -425,6 +430,10 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,runtime-tokio
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,postgres-range,runtime-tokio
+        env:
+          DATABASE_URL: postgres://sea:sea@127.0.0.1/query
+      # `with-bigdecimal` takes precedence for numrange bounds, so also test `with-rust_decimal` on its own
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,with-rust_decimal,postgres-array,postgres-range,runtime-tokio
         env:
           DATABASE_URL: postgres://sea:sea@127.0.0.1/query

@@ -1381,6 +1381,24 @@ fn insert_3() {
 }
 
 #[test]
+#[cfg(feature = "postgres-range")]
+fn insert_range_literal() {
+    use sea_query::prelude::{RangeBound, RangeType};
+
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Image, Glyph::Aspect])
+            .values_panic([
+                RangeType::Int4Range(RangeBound::Inclusive(1), RangeBound::Exclusive(10)).into(),
+                RangeType::Int8Range(RangeBound::Exclusive(1), RangeBound::Unbounded).into(),
+            ])
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('[1,10)', '(1,)')"#
+    );
+}
+
+#[test]
 fn insert_enum_literal_cast() {
     let value = sea_query::Enum {
         type_name: "FontSizeEnum".to_owned().into(),
