@@ -790,6 +790,7 @@ pub trait QueryBuilder:
                 Func::Random => self.random_function(),
                 Func::Round => "ROUND",
                 Func::Md5 => "MD5",
+                Func::GroupConcat => "GROUP_CONCAT",
                 #[cfg(feature = "backend-postgres")]
                 Func::PgFunction(_) => unimplemented!(),
             })
@@ -800,6 +801,12 @@ pub trait QueryBuilder:
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
         let mut args = func.args.iter().zip(func.mods.iter());
+        // MySQL takes the separator after ORDER BY: `GROUP_CONCAT(x ORDER BY y SEPARATOR ',')`
+        let separator = if func.func == Func::GroupConcat && self.group_concat_separator_keyword() {
+            args.next_back().map(|(arg, _)| arg)
+        } else {
+            None
+        };
 
         if let Some((arg, modifier)) = args.next() {
             if modifier.distinct {
@@ -814,6 +821,26 @@ pub trait QueryBuilder:
                 sql.write_str("DISTINCT ").unwrap();
             }
             self.prepare_expr(arg, sql);
+        }
+
+        let mut orders = func.order_by.iter();
+        join_io!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_order_expr(expr, sql);
+            }
+        );
+
+        if let Some(separator) = separator {
+            sql.write_str(" SEPARATOR ").unwrap();
+            self.prepare_expr(separator, sql);
         }
 
         sql.write_str(")").unwrap();
@@ -1835,6 +1862,12 @@ pub trait QueryBuilder:
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
+    }
+
+    #[doc(hidden)]
+    /// Whether `GROUP_CONCAT` takes its separator as `SEPARATOR '..'` instead of an argument
+    fn group_concat_separator_keyword(&self) -> bool {
+        false
     }
 
     #[doc(hidden)]
