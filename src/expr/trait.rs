@@ -1228,7 +1228,224 @@ pub trait ExprTrait: Sized {
     fn not_in_subquery(self, sel: SelectStatement) -> Expr {
         self.binary(BinOper::NotIn, Expr::SubQuery(None, Box::new(sel.into())))
     }
+    /// Express a `=` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().eq_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    fn eq_subquery(self, sel: SelectStatement) -> Expr {
+        self.binary(BinOper::Equal, Expr::SubQuery(None, Box::new(sel.into())))
+    }
 
+    /// Express a `<>` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().ne_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` <> (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" <> (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" <> (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    fn ne_subquery(self, sel: SelectStatement) -> Expr {
+        self.binary(
+            BinOper::NotEqual,
+            Expr::SubQuery(None, Box::new(sel.into())),
+        )
+    }
+
+    /// Express a `>` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().gt_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` > (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" > (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" > (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    fn gt_subquery(self, sel: SelectStatement) -> Expr {
+        self.binary(
+            BinOper::GreaterThan,
+            Expr::SubQuery(None, Box::new(sel.into())),
+        )
+    }
+
+    /// Express a `>=` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().gte_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` >= (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" >= (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" >= (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    fn gte_subquery(self, sel: SelectStatement) -> Expr {
+        self.binary(
+            BinOper::GreaterThanOrEqual,
+            Expr::SubQuery(None, Box::new(sel.into())),
+        )
+    }
+
+    /// Express a `<` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().lt_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    fn lt_subquery(self, sel: SelectStatement) -> Expr {
+        self.binary(
+            BinOper::SmallerThan,
+            Expr::SubQuery(None, Box::new(sel.into())),
+        )
+    }
+
+    /// Express a `<=` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().lte_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` <= (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" <= (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" <= (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    fn lte_subquery(self, sel: SelectStatement) -> Expr {
+        self.binary(
+            BinOper::SmallerThanOrEqual,
+            Expr::SubQuery(None, Box::new(sel.into())),
+        )
+    }
     /// Express a `NOT LIKE` expression.
     ///
     /// # Examples
