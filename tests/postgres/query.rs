@@ -1204,6 +1204,21 @@ fn select_61_custom_values_numbered_placeholders_after_escape_string() {
 }
 
 #[test]
+fn cust_with_values_inside_array_literal_renumbers_placeholders() {
+    let (statement, values) = Query::select()
+        .column(Char::Character)
+        .from(Char::Table)
+        .and_where(Expr::cust_with_values("tags @> ARRAY[$1, $1]", ["needle"]))
+        .build(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "character" FROM "character" WHERE tags @> ARRAY[$1, $2]"#
+    );
+    assert_eq!(values, Values(vec!["needle".into(), "needle".into()]));
+}
+
+#[test]
 fn select_62() {
     let select = SelectStatement::new()
         .column(Asterisk)
