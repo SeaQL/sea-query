@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixes
 
+- Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
 - Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).

@@ -471,33 +471,17 @@ pub trait QueryBuilder:
                 sql.write_str(s).unwrap();
             }
             Expr::CustomWithExpr(expr, values) => {
-                let (placeholder, numbered) = self.placeholder();
-                let mut tokenizer = Tokenizer::new(expr)
-                    .for_query_builder(self)
-                    .iter()
-                    .peekable();
-                let mut count = 0;
-                while let Some(token) = tokenizer.next() {
-                    match token {
-                        Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
-                            Some(Token::Punctuation(next_mark)) if next_mark == &placeholder => {
-                                sql.write_str(next_mark).unwrap();
-                                tokenizer.next();
-                            }
-                            Some(Token::Unquoted(tok)) if numbered => {
-                                if let Ok(num) = tok.parse::<usize>() {
-                                    self.prepare_expr(&values[num - 1], sql);
-                                }
-                                tokenizer.next();
-                            }
-                            _ => {
-                                self.prepare_expr(&values[count], sql);
-                                count += 1;
-                            }
-                        },
-                        _ => sql.write_str(token.as_str()).unwrap(),
-                    };
-                }
+                let mut next_argument = 0;
+                visit_template(expr, self, |command| match command {
+                    Command::Text(span) => sql.write_str(&expr[span]).unwrap(),
+                    Command::NumberedArgument(number) => {
+                        self.prepare_expr(&values[number - 1], sql);
+                    }
+                    Command::SequentialArgument => {
+                        self.prepare_expr(&values[next_argument], sql);
+                        next_argument += 1;
+                    }
+                });
             }
             Expr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql);
