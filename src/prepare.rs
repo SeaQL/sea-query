@@ -108,10 +108,10 @@ pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl std::fmt::Display
 pub fn inject_parameters(sql: &str, params: &[Value], query_builder: &impl QueryBuilder) -> String {
     let mut counter = 0;
     let mut output = String::new();
-    let backend = TokenizerBackend::from_query_builder(query_builder);
+    let backend = TokenizerBackend::infer_from_query_builder(query_builder);
     let (placeholder, numbered) = query_builder.placeholder();
 
-    let mut tokenizer = Tokenizer::new(sql).for_backend(backend).iter().peekable();
+    let mut tokenizer = Tokenizer::new_with_backend(sql, backend).peekable();
 
     while let Some(token) = tokenizer.next() {
         match token {
