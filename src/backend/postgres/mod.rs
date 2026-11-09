@@ -26,29 +26,32 @@ impl QuotedBuilder for PostgresQueryBuilder {
 // https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-BACKSLASH-TABLE
 impl EscapeBuilder for PostgresQueryBuilder {
     fn needs_escape(&self, s: &str) -> bool {
-        s.chars().any(|c| match c {
-            '\x08' | '\x0C' | '\n' | '\r' | '\t' | '\\' | '\'' | '\0' => true,
-            c if c.is_ascii_control() => true,
-            _ => false,
-        })
+        s.bytes().any(must_escape)
     }
 
     fn write_escaped(&self, buffer: &mut impl Write, string: &str) {
-        for c in string.chars() {
-            match c {
-                '\x08' => buffer.write_str(r#"\b"#),
-                '\x0C' => buffer.write_str(r#"\f"#),
-                '\n' => buffer.write_str(r"\n"),
-                '\r' => buffer.write_str(r"\r"),
-                '\t' => buffer.write_str(r"\t"),
-                '\\' => buffer.write_str(r#"\\"#),
-                '\'' => buffer.write_str(r#"\'"#),
-                '\0' => buffer.write_str(r#"\0"#),
-                c if c.is_ascii_control() => write!(buffer, "\\{:03o}", c as u32),
-                _ => buffer.write_char(c),
+        // Every escaped byte is ASCII, so slicing around it stays on char boundaries.
+        let mut start = 0;
+        for (i, b) in string.bytes().enumerate() {
+            if !must_escape(b) {
+                continue;
+            }
+            buffer.write_str(&string[start..i]).unwrap();
+            match b {
+                b'\x08' => buffer.write_str(r"\b"),
+                b'\x0C' => buffer.write_str(r"\f"),
+                b'\n' => buffer.write_str(r"\n"),
+                b'\r' => buffer.write_str(r"\r"),
+                b'\t' => buffer.write_str(r"\t"),
+                b'\\' => buffer.write_str(r"\\"),
+                b'\'' => buffer.write_str(r"\'"),
+                b'\0' => buffer.write_str(r"\0"),
+                _ => write!(buffer, "\\{b:03o}"),
             }
             .unwrap();
+            start = i + 1;
         }
+        buffer.write_str(&string[start..]).unwrap();
     }
 
     fn unescape_string(&self, string: &str) -> String {
@@ -126,6 +129,10 @@ impl EscapeBuilder for PostgresQueryBuilder {
     }
 }
 
+fn must_escape(b: u8) -> bool {
+    b.is_ascii_control() || b == b'\\' || b == b'\''
+}
+
 impl TableRefBuilder for PostgresQueryBuilder {}
 
 #[cfg(test)]
@@ -154,6 +161,21 @@ mod tests {
                 assert!(escaped.contains(&octal));
             }
         }
+    }
+
+    #[test]
+    fn test_write_escaped_keeps_other_chars() {
+        let escaper = PostgresQueryBuilder;
+
+        assert_eq!(escaper.escape_string(""), "");
+        assert_eq!(escaper.escape_string("plain"), "plain");
+        assert_eq!(escaper.escape_string("'"), r"\'");
+        assert_eq!(
+            escaper.escape_string("'你'😀\\é\n\x7F"),
+            r"\'你\'😀\\é\n\177"
+        );
+        assert!(!escaper.needs_escape("你😀é \"plain\""));
+        assert!(escaper.needs_escape("é\x7F"));
     }
 
     #[test]
