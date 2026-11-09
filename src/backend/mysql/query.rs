@@ -291,6 +291,18 @@ impl QueryBuilder for MysqlQueryBuilder {
         "RAND"
     }
 
+    fn prepare_group_concat_arguments(
+        &self,
+        func: &FunctionCall,
+        separator: &str,
+        sql: &mut impl SqlWriter,
+    ) {
+        self.prepare_function_argument_list(func, sql);
+        self.prepare_function_order_by(func, sql);
+        sql.write_str(" SEPARATOR ").unwrap();
+        self.prepare_constant(&separator.into(), sql);
+    }
+
     fn lock_phrase(&self, lock_type: LockType) -> &'static str {
         match lock_type {
             LockType::Update => "FOR UPDATE",

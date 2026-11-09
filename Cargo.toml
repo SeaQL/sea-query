@@ -119,6 +119,7 @@ all-types = [
 ]
 option-more-parentheses = []
 option-sqlite-exact-column-type = []
+option-sqlite-aggregate-order-by = []
 option-postgres-use-serial = []
 itoa = ["dep:itoa"]
 
@@ -151,6 +152,11 @@ required-features = ["tests-cfg", "backend-sqlite", "audit"]
 name = "option-more-parentheses"
 path = "tests/more-parentheses.rs"
 required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
+
+[[test]]
+name = "option-sqlite-aggregate-order-by"
+path = "tests/sqlite-aggregate-order-by.rs"
+required-features = ["tests-cfg", "option-sqlite-aggregate-order-by", "backend-sqlite"]
 
 [[test]]
 name = "test-raw-sql"

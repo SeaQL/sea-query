@@ -1614,3 +1614,20 @@ fn sub_query_with_fn() {
         "SELECT ARRAY((SELECT * FROM `character`))"
     );
 }
+
+#[test]
+fn select_group_concat_args() {
+    let query = Query::select()
+        .expr(
+            Func::group_concat(Expr::col(Char::Character), ", ")
+                .arg(Expr::col(Char::FontSize))
+                .order_by(Expr::col(Char::Id), Order::Desc),
+        )
+        .from(Char::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(MysqlQueryBuilder),
+        r#"SELECT GROUP_CONCAT(`character`, `font_size` ORDER BY `id` DESC SEPARATOR ', ') FROM `character`"#
+    );
+}

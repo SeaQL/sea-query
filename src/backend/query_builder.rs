@@ -774,6 +774,7 @@ pub trait QueryBuilder:
                 Func::Random => self.random_function(),
                 Func::Round => "ROUND",
                 Func::Md5 => "MD5",
+                Func::GroupConcat(_) => "GROUP_CONCAT",
                 #[cfg(feature = "backend-postgres")]
                 Func::PgFunction(_) => unimplemented!(),
             })
@@ -783,6 +784,23 @@ pub trait QueryBuilder:
 
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
+        if let Func::GroupConcat(separator) = &func.func {
+            self.prepare_group_concat_arguments(func, separator, sql);
+        } else {
+            self.prepare_function_argument_list(func, sql);
+            self.prepare_function_order_by(func, sql);
+        }
+        sql.write_str(")").unwrap();
+
+        if let Some(filter) = &func.filter {
+            sql.write_str(" FILTER (WHERE ").unwrap();
+            self.prepare_condition_where(filter, sql);
+            sql.write_str(")").unwrap();
+        }
+    }
+
+    /// Translate the arguments of a [`FunctionCall`], without parentheses.
+    fn prepare_function_argument_list(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         let mut args = func.args.iter().zip(func.mods.iter());
 
         if let Some((arg, modifier)) = args.next() {
@@ -799,14 +817,38 @@ pub trait QueryBuilder:
             }
             self.prepare_expr(arg, sql);
         }
+    }
 
-        sql.write_str(")").unwrap();
+    /// Translate the `ORDER BY` within the parentheses of a [`FunctionCall`].
+    fn prepare_function_order_by(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
+        let mut orders = func.order_by.iter();
+        join_io!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_order_expr(expr, sql);
+            }
+        );
+    }
 
-        if let Some(filter) = &func.filter {
-            sql.write_str(" FILTER (WHERE ").unwrap();
-            self.prepare_condition_where(filter, sql);
-            sql.write_str(")").unwrap();
-        }
+    /// Translate the arguments of [`Func::GroupConcat`], without parentheses:
+    /// `x, ',' ORDER BY y`.
+    fn prepare_group_concat_arguments(
+        &self,
+        func: &FunctionCall,
+        separator: &str,
+        sql: &mut impl SqlWriter,
+    ) {
+        self.prepare_function_argument_list(func, sql);
+        sql.write_str(", ").unwrap();
+        self.prepare_constant(&separator.into(), sql);
+        self.prepare_function_order_by(func, sql);
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
