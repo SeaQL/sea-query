@@ -105,6 +105,20 @@ pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl std::fmt::Display
     write!(w, "{n}").unwrap();
 }
 
+/// Write `bytes` as uppercase hex digits.
+pub(crate) fn write_hex(w: &mut (impl Write + ?Sized), bytes: &[u8]) {
+    const DIGITS: &[u8; 16] = b"0123456789ABCDEF";
+    let mut buf = [0; 128];
+    for chunk in bytes.chunks(buf.len() / 2) {
+        for (i, b) in chunk.iter().enumerate() {
+            buf[2 * i] = DIGITS[usize::from(b >> 4)];
+            buf[2 * i + 1] = DIGITS[usize::from(b & 0xF)];
+        }
+        let hex = std::str::from_utf8(&buf[..chunk.len() * 2]).unwrap();
+        w.write_str(hex).unwrap();
+    }
+}
+
 pub fn inject_parameters(sql: &str, params: &[Value], query_builder: &impl QueryBuilder) -> String {
     let mut counter = 0;
     let mut output = String::new();
@@ -165,6 +179,23 @@ pub fn inject_parameters(sql: &str, params: &[Value], query_builder: &impl Query
     }
 
     output
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_hex_matches_format() {
+        // longer than one chunk, and not a multiple of it
+        for len in [0, 1, 63, 64, 65, 300] {
+            let bytes: Vec<u8> = (0..len).map(|i| (i * 7) as u8).collect();
+            let expected: String = bytes.iter().map(|b| format!("{b:02X}")).collect();
+            let mut hex = String::new();
+            write_hex(&mut hex, &bytes);
+            assert_eq!(hex, expected);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -287,6 +318,18 @@ mod tests_postgres {
                 &PostgresQueryBuilder
             ),
             "WHERE A = 'D' AND C = 'B'"
+        );
+    }
+
+    #[test]
+    fn inject_parameters_8() {
+        assert_eq!(
+            inject_parameters(
+                "$1",
+                &[vec![0x00u8, 0x0F, 0xAB, 0xFF].into()],
+                &PostgresQueryBuilder
+            ),
+            "'\\x000FABFF'"
         );
     }
 
