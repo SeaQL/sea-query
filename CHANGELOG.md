@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
+- Add `IndexColumn::with_nulls` to set `NULLS FIRST` / `NULLS LAST` on index columns (Postgres only; other backends ignore it) (#1128).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
 ### Fixes

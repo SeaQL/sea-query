@@ -21,6 +21,7 @@ pub struct IndexColumnTableColumn {
     pub(crate) prefix: Option<u32>,
     pub(crate) order: Option<IndexOrder>,
     pub(crate) operator_class: Option<DynIden>,
+    pub(crate) nulls: Option<NullOrdering>,
 }
 
 #[derive(Debug, Clone)]
@@ -28,6 +29,7 @@ pub struct IndexColumnExpr {
     pub(crate) expr: Expr,
     pub(crate) order: Option<IndexOrder>,
     pub(crate) operator_class: Option<DynIden>,
+    pub(crate) nulls: Option<NullOrdering>,
 }
 
 impl IndexColumn {
@@ -48,6 +50,13 @@ impl IndexColumn {
         }
     }
 
+    pub(crate) fn nulls(&self) -> Option<NullOrdering> {
+        match self {
+            IndexColumn::TableColumn(IndexColumnTableColumn { nulls, .. }) => *nulls,
+            IndexColumn::Expr(IndexColumnExpr { nulls, .. }) => *nulls,
+        }
+    }
+
     /// Set index operator class. Only available on Postgres.
     pub fn with_operator_class<I: IntoIden>(mut self, operator_class: I) -> Self {
         match self {
@@ -57,6 +66,39 @@ impl IndexColumn {
             IndexColumn::Expr(ref mut index_column_expr) => {
                 index_column_expr.operator_class = Some(operator_class.into_iden())
             }
+        };
+        self
+    }
+
+    /// Set the position of NULLs in the index (`NULLS FIRST` / `NULLS LAST`).
+    /// Only available on Postgres; other backends ignore it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let index = Index::create()
+    ///     .name("idx-glyph-aspect")
+    ///     .table(Glyph::Table)
+    ///     .col(IndexColumn::from((Glyph::Aspect, IndexOrder::Desc)).with_nulls(NullOrdering::Last))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     index.to_string(PostgresQueryBuilder),
+    ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC NULLS LAST)"#
+    /// );
+    /// assert_eq!(
+    ///     index.to_string(SqliteQueryBuilder),
+    ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
+    /// );
+    /// ```
+    pub fn with_nulls(mut self, nulls: NullOrdering) -> Self {
+        match self {
+            IndexColumn::TableColumn(ref mut index_column_table_column) => {
+                index_column_table_column.nulls = Some(nulls);
+            }
+            IndexColumn::Expr(ref mut index_column_expr) => index_column_expr.nulls = Some(nulls),
         };
         self
     }
@@ -92,6 +134,7 @@ where
             prefix: None,
             order: None,
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -106,6 +149,7 @@ where
             prefix: Some(value.1),
             order: None,
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -120,6 +164,7 @@ where
             prefix: None,
             order: Some(value.1),
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -134,6 +179,7 @@ where
             prefix: Some(value.1),
             order: Some(value.2),
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -144,6 +190,7 @@ impl From<FunctionCall> for IndexColumn {
             expr: value.into(),
             order: None,
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -154,6 +201,7 @@ impl From<(FunctionCall, IndexOrder)> for IndexColumn {
             expr: value.0.into(),
             order: Some(value.1),
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -164,6 +212,7 @@ impl From<Expr> for IndexColumn {
             expr: value,
             order: None,
             operator_class: None,
+            nulls: None,
         })
     }
 }
@@ -174,6 +223,7 @@ impl From<(Expr, IndexOrder)> for IndexColumn {
             expr: value.0,
             order: Some(value.1),
             operator_class: None,
+            nulls: None,
         })
     }
 }

@@ -175,6 +175,32 @@ fn create_12() {
 }
 
 #[test]
+fn create_13() {
+    assert_eq!(
+        Index::create()
+            .name("idx-glyph-aspect-image")
+            .table(Glyph::Table)
+            .col(
+                IndexColumn::from((Glyph::Aspect, IndexOrder::Desc)).with_nulls(NullOrdering::Last)
+            )
+            .col(
+                Glyph::Image
+                    .into_index_column()
+                    .with_nulls(NullOrdering::First)
+            )
+            .col(
+                IndexColumn::from((
+                    Expr::col(Glyph::Aspect).mul(Expr::col(Glyph::Id)),
+                    IndexOrder::Asc,
+                ))
+                .with_nulls(NullOrdering::First)
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect" DESC NULLS LAST, "image" NULLS FIRST, ("aspect" * "id") ASC NULLS FIRST)"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

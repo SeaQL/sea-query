@@ -172,6 +172,12 @@ impl IndexBuilder for PostgresQueryBuilder {
                     sql.write_str(" ").unwrap();
                     sql.write_str(&operator_class.0).unwrap();
                 }
+
+                match col.nulls() {
+                    Some(NullOrdering::First) => sql.write_str(" NULLS FIRST").unwrap(),
+                    Some(NullOrdering::Last) => sql.write_str(" NULLS LAST").unwrap(),
+                    None => {}
+                }
             }
         );
 
