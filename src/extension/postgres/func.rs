@@ -26,7 +26,9 @@ pub enum PgFunc {
     StartsWith,
     GenRandomUUID,
     JsonBuildObject,
+    JsonbBuildObject,
     JsonAgg,
+    JsonbAgg,
     ArrayAgg,
     DateTrunc,
     Any,
@@ -422,6 +424,37 @@ impl PgFunc {
         FunctionCall::new(PgFunc::JsonBuildObject).args(args)
     }
 
+    /// Call the `JSONB_BUILD_OBJECT` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::jsonb_build_object(vec![
+    ///         (Expr::val("a"), Expr::val(1)),
+    ///         (Expr::val("b"), Expr::val("2")),
+    ///     ]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT JSONB_BUILD_OBJECT('a', 1, 'b', '2')"#
+    /// );
+    /// ```
+    pub fn jsonb_build_object<T>(pairs: Vec<(T, T)>) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        let mut args = vec![];
+        for (key, value) in pairs {
+            args.push(key.into());
+            args.push(value.into());
+        }
+        FunctionCall::new(PgFunc::JsonbBuildObject).args(args)
+    }
+
     /// Call the `DATE_TRUNC` function. Postgres only.
     ///
     /// # Examples
@@ -482,6 +515,30 @@ impl PgFunc {
         T: Into<Expr>,
     {
         FunctionCall::new(PgFunc::JsonAgg).arg(expr)
+    }
+
+    /// Call the `JSONB_AGG` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr(PgFunc::jsonb_agg(Expr::col(Char::SizeW)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT JSONB_AGG("size_w") FROM "character""#
+    /// );
+    /// ```
+    pub fn jsonb_agg<T>(expr: T) -> FunctionCall
+    where
+        T: Into<Expr>,
+    {
+        FunctionCall::new(PgFunc::JsonbAgg).arg(expr)
     }
 
     /// Call the `ARRAY_AGG` function. Postgres only.
