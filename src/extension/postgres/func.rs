@@ -669,7 +669,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_lock_shared_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::advisory_lock_shared_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -718,7 +721,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_lock_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::try_advisory_lock_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -767,7 +773,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_lock_shared_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::try_advisory_lock_shared_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -816,7 +825,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_unlock_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::advisory_unlock_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -865,7 +877,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_unlock_shared_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::advisory_unlock_shared_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -934,7 +949,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_xact_lock_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::advisory_xact_lock_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -983,7 +1001,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_xact_lock_shared_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::advisory_xact_lock_shared_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1032,7 +1053,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_xact_lock_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::try_advisory_xact_lock_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1081,7 +1105,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_xact_lock_shared_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::try_advisory_xact_lock_shared_with_keys(
+    ///         Expr::val(1),
+    ///         Expr::val(42),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
