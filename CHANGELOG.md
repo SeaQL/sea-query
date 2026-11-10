@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
+- Add two-key forms of the Postgres advisory lock functions, such as `PgFunc::advisory_xact_lock_with_keys` (#1134).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
 ### Performance
