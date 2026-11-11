@@ -68,8 +68,14 @@ pub type PgFunction = PgFunc;
 /// ```
 /// use sea_query::PgAdvisoryLockKey;
 ///
-/// assert_eq!(PgAdvisoryLockKey::from(12345), PgAdvisoryLockKey::BigInt(12345));
-/// assert_eq!(PgAdvisoryLockKey::from((1, 42)), PgAdvisoryLockKey::IntPair(1, 42));
+/// assert_eq!(
+///     PgAdvisoryLockKey::from(12345),
+///     PgAdvisoryLockKey::BigInt(12345)
+/// );
+/// assert_eq!(
+///     PgAdvisoryLockKey::from((1, 42)),
+///     PgAdvisoryLockKey::IntPair(1, 42)
+/// );
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PgAdvisoryLockKey {

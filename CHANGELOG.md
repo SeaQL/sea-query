@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Breaking Changes
 
-- The keyed Postgres advisory lock functions (`PgFunc::advisory_lock`, `PgFunc::try_advisory_xact_lock`, etc.) now take `impl Into<PgAdvisoryLockKey>` instead of `impl Into<Expr>`. Pass plain integers: `PgFunc::advisory_lock(Expr::val(12345_i64))` becomes `PgFunc::advisory_lock(12345)` (#1134).
+- The keyed Postgres advisory lock functions (`PgFunc::advisory_lock`, `PgFunc::try_advisory_xact_lock`, etc.) now take `impl Into<PgAdvisoryLockKey>` instead of `impl Into<Expr>`. Pass plain integers, for example `PgFunc::advisory_lock(Expr::val(12345_i64))` becomes `PgFunc::advisory_lock(12345)` (#1134).
 
 ### Performance
 
