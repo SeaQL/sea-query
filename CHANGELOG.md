@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
+### Performance
+
+- Speed up SQL byte literal rendering (#1131).
+
+  100 rows × 1 KiB of bytes per row:
+
+  | Backend    | Upstream  | This PR   | Changes |
+  | ---------- | --------- | --------- | ------- |
+  | PostgreSQL | 1.0315 ms | 9.3889 µs | ~110x   |
+  | MySQL      | 1.0638 ms | 9.9077 µs | ~107x   |
+
 ### Fixes
 
 - Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).

@@ -1791,9 +1791,7 @@ pub trait QueryBuilder:
     /// Write bytes enclosed with engine specific byte syntax
     fn write_bytes(&self, bytes: &[u8], buffer: &mut impl Write) {
         buffer.write_str("x'").unwrap();
-        for b in bytes {
-            write!(buffer, "{b:02X}").unwrap()
-        }
+        write_hex(buffer, bytes);
         buffer.write_str("'").unwrap();
     }
 
