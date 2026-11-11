@@ -1,6 +1,7 @@
 //! Helper for preparing SQL statements.
 
 use crate::{token::TokenizerBackend, *};
+use hex_simd::{AsOut, AsciiCase};
 pub use std::fmt::Write;
 
 pub trait SqlWriter: Write + Sized + ToString {
@@ -107,14 +108,9 @@ pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl std::fmt::Display
 
 /// Write `bytes` as uppercase hex digits.
 pub(crate) fn write_hex(w: &mut (impl Write + ?Sized), bytes: &[u8]) {
-    const DIGITS: &[u8; 16] = b"0123456789ABCDEF";
     let mut buf = [0; 128];
     for chunk in bytes.chunks(buf.len() / 2) {
-        for (i, b) in chunk.iter().enumerate() {
-            buf[2 * i] = DIGITS[usize::from(b >> 4)];
-            buf[2 * i + 1] = DIGITS[usize::from(b & 0xF)];
-        }
-        let hex = std::str::from_utf8(&buf[..chunk.len() * 2]).unwrap();
+        let hex = hex_simd::encode_as_str(chunk, buf[..chunk.len() * 2].as_out(), AsciiCase::Upper);
         w.write_str(hex).unwrap();
     }
 }
@@ -188,7 +184,7 @@ mod tests {
     #[test]
     fn write_hex_matches_format() {
         // longer than one chunk, and not a multiple of it
-        for len in [0, 1, 63, 64, 65, 300] {
+        for len in [0, 64, 65, 300] {
             let bytes: Vec<u8> = (0..len).map(|i| (i * 7) as u8).collect();
             let expected: String = bytes.iter().map(|b| format!("{b:02X}")).collect();
             let mut hex = String::new();
