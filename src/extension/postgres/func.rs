@@ -58,6 +58,47 @@ impl From<PgFunc> for Func {
 #[deprecated(since = "1.0.0", note = "use `PgFunc` instead")]
 pub type PgFunction = PgFunc;
 
+/// Key for the Postgres advisory lock functions, such as [`PgFunc::advisory_lock`].
+///
+/// Postgres accepts either a single `bigint` key or a pair of `integer` keys.
+/// The two key spaces do not overlap: `BigInt(1)` and `IntPair(0, 1)` are different locks.
+///
+/// # Examples
+///
+/// ```
+/// use sea_query::PgAdvisoryLockKey;
+///
+/// assert_eq!(PgAdvisoryLockKey::from(12345), PgAdvisoryLockKey::BigInt(12345));
+/// assert_eq!(PgAdvisoryLockKey::from((1, 42)), PgAdvisoryLockKey::IntPair(1, 42));
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PgAdvisoryLockKey {
+    BigInt(i64),
+    IntPair(i32, i32),
+}
+
+impl From<i64> for PgAdvisoryLockKey {
+    fn from(key: i64) -> Self {
+        Self::BigInt(key)
+    }
+}
+
+impl From<(i32, i32)> for PgAdvisoryLockKey {
+    fn from((key1, key2): (i32, i32)) -> Self {
+        Self::IntPair(key1, key2)
+    }
+}
+
+impl PgAdvisoryLockKey {
+    fn call(self, func: PgFunc) -> FunctionCall {
+        let call = FunctionCall::new(func);
+        match self {
+            Self::BigInt(key) => call.arg(key),
+            Self::IntPair(key1, key2) => call.arg(key1).arg(key2),
+        }
+    }
+}
+
 impl PgFunc {
     /// Call `TO_TSQUERY` function. Postgres only.
     ///
@@ -599,30 +640,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_lock(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::advisory_lock(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_ADVISORY_LOCK(12345)"#
     /// );
-    /// ```
-    pub fn advisory_lock<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::AdvisoryLock).arg(key)
-    }
-
-    /// Call `PG_ADVISORY_LOCK` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_lock_with_keys(Expr::val(1), Expr::val(42)))
+    ///     .expr(PgFunc::advisory_lock((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -630,12 +657,11 @@ impl PgFunc {
     ///     r#"SELECT PG_ADVISORY_LOCK(1, 42)"#
     /// );
     /// ```
-    pub fn advisory_lock_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn advisory_lock<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::AdvisoryLock).arg(key1).arg(key2)
+        key.into().call(PgFunc::AdvisoryLock)
     }
 
     /// Call `PG_ADVISORY_LOCK_SHARED` function. Postgres only.
@@ -646,33 +672,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_lock_shared(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::advisory_lock_shared(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_ADVISORY_LOCK_SHARED(12345)"#
     /// );
-    /// ```
-    pub fn advisory_lock_shared<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::AdvisoryLockShared).arg(key)
-    }
-
-    /// Call `PG_ADVISORY_LOCK_SHARED` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_lock_shared_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::advisory_lock_shared((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -680,14 +689,11 @@ impl PgFunc {
     ///     r#"SELECT PG_ADVISORY_LOCK_SHARED(1, 42)"#
     /// );
     /// ```
-    pub fn advisory_lock_shared_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn advisory_lock_shared<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::AdvisoryLockShared)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::AdvisoryLockShared)
     }
 
     /// Call `PG_TRY_ADVISORY_LOCK` function. Postgres only.
@@ -698,33 +704,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_lock(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::try_advisory_lock(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_TRY_ADVISORY_LOCK(12345)"#
     /// );
-    /// ```
-    pub fn try_advisory_lock<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::TryAdvisoryLock).arg(key)
-    }
-
-    /// Call `PG_TRY_ADVISORY_LOCK` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_lock_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::try_advisory_lock((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -732,14 +721,11 @@ impl PgFunc {
     ///     r#"SELECT PG_TRY_ADVISORY_LOCK(1, 42)"#
     /// );
     /// ```
-    pub fn try_advisory_lock_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn try_advisory_lock<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::TryAdvisoryLock)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::TryAdvisoryLock)
     }
 
     /// Call `PG_TRY_ADVISORY_LOCK_SHARED` function. Postgres only.
@@ -750,33 +736,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_lock_shared(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::try_advisory_lock_shared(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_TRY_ADVISORY_LOCK_SHARED(12345)"#
     /// );
-    /// ```
-    pub fn try_advisory_lock_shared<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::TryAdvisoryLockShared).arg(key)
-    }
-
-    /// Call `PG_TRY_ADVISORY_LOCK_SHARED` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_lock_shared_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::try_advisory_lock_shared((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -784,14 +753,11 @@ impl PgFunc {
     ///     r#"SELECT PG_TRY_ADVISORY_LOCK_SHARED(1, 42)"#
     /// );
     /// ```
-    pub fn try_advisory_lock_shared_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn try_advisory_lock_shared<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::TryAdvisoryLockShared)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::TryAdvisoryLockShared)
     }
 
     /// Call `PG_ADVISORY_UNLOCK` function. Postgres only.
@@ -802,33 +768,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_unlock(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::advisory_unlock(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_ADVISORY_UNLOCK(12345)"#
     /// );
-    /// ```
-    pub fn advisory_unlock<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::AdvisoryUnlock).arg(key)
-    }
-
-    /// Call `PG_ADVISORY_UNLOCK` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_unlock_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::advisory_unlock((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -836,14 +785,11 @@ impl PgFunc {
     ///     r#"SELECT PG_ADVISORY_UNLOCK(1, 42)"#
     /// );
     /// ```
-    pub fn advisory_unlock_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn advisory_unlock<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::AdvisoryUnlock)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::AdvisoryUnlock)
     }
 
     /// Call `PG_ADVISORY_UNLOCK_SHARED` function. Postgres only.
@@ -854,33 +800,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_unlock_shared(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::advisory_unlock_shared(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_ADVISORY_UNLOCK_SHARED(12345)"#
     /// );
-    /// ```
-    pub fn advisory_unlock_shared<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::AdvisoryUnlockShared).arg(key)
-    }
-
-    /// Call `PG_ADVISORY_UNLOCK_SHARED` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_unlock_shared_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::advisory_unlock_shared((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -888,14 +817,11 @@ impl PgFunc {
     ///     r#"SELECT PG_ADVISORY_UNLOCK_SHARED(1, 42)"#
     /// );
     /// ```
-    pub fn advisory_unlock_shared_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn advisory_unlock_shared<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::AdvisoryUnlockShared)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::AdvisoryUnlockShared)
     }
 
     /// Call `PG_ADVISORY_UNLOCK_ALL` function. Postgres only.
@@ -926,33 +852,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_xact_lock(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::advisory_xact_lock(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_ADVISORY_XACT_LOCK(12345)"#
     /// );
-    /// ```
-    pub fn advisory_xact_lock<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::AdvisoryXactLock).arg(key)
-    }
-
-    /// Call `PG_ADVISORY_XACT_LOCK` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_xact_lock_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::advisory_xact_lock((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -960,14 +869,11 @@ impl PgFunc {
     ///     r#"SELECT PG_ADVISORY_XACT_LOCK(1, 42)"#
     /// );
     /// ```
-    pub fn advisory_xact_lock_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn advisory_xact_lock<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::AdvisoryXactLock)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::AdvisoryXactLock)
     }
 
     /// Call `PG_ADVISORY_XACT_LOCK_SHARED` function. Postgres only.
@@ -978,33 +884,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_xact_lock_shared(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::advisory_xact_lock_shared(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_ADVISORY_XACT_LOCK_SHARED(12345)"#
     /// );
-    /// ```
-    pub fn advisory_xact_lock_shared<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::AdvisoryXactLockShared).arg(key)
-    }
-
-    /// Call `PG_ADVISORY_XACT_LOCK_SHARED` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::advisory_xact_lock_shared_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::advisory_xact_lock_shared((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1012,14 +901,11 @@ impl PgFunc {
     ///     r#"SELECT PG_ADVISORY_XACT_LOCK_SHARED(1, 42)"#
     /// );
     /// ```
-    pub fn advisory_xact_lock_shared_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn advisory_xact_lock_shared<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::AdvisoryXactLockShared)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::AdvisoryXactLockShared)
     }
 
     /// Call `PG_TRY_ADVISORY_XACT_LOCK` function. Postgres only.
@@ -1030,33 +916,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_xact_lock(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::try_advisory_xact_lock(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_TRY_ADVISORY_XACT_LOCK(12345)"#
     /// );
-    /// ```
-    pub fn try_advisory_xact_lock<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::TryAdvisoryXactLock).arg(key)
-    }
-
-    /// Call `PG_TRY_ADVISORY_XACT_LOCK` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_xact_lock_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::try_advisory_xact_lock((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1064,14 +933,11 @@ impl PgFunc {
     ///     r#"SELECT PG_TRY_ADVISORY_XACT_LOCK(1, 42)"#
     /// );
     /// ```
-    pub fn try_advisory_xact_lock_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn try_advisory_xact_lock<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::TryAdvisoryXactLock)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::TryAdvisoryXactLock)
     }
 
     /// Call `PG_TRY_ADVISORY_XACT_LOCK_SHARED` function. Postgres only.
@@ -1082,33 +948,16 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_xact_lock_shared(Expr::val(12345_i64)))
+    ///     .expr(PgFunc::try_advisory_xact_lock_shared(12345))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT PG_TRY_ADVISORY_XACT_LOCK_SHARED(12345)"#
     /// );
-    /// ```
-    pub fn try_advisory_xact_lock_shared<T>(key: T) -> FunctionCall
-    where
-        T: Into<Expr>,
-    {
-        FunctionCall::new(PgFunc::TryAdvisoryXactLockShared).arg(key)
-    }
-
-    /// Call `PG_TRY_ADVISORY_XACT_LOCK_SHARED` function with two 32-bit keys. Postgres only.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::try_advisory_xact_lock_shared_with_keys(
-    ///         Expr::val(1),
-    ///         Expr::val(42),
-    ///     ))
+    ///     .expr(PgFunc::try_advisory_xact_lock_shared((1, 42)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1116,13 +965,10 @@ impl PgFunc {
     ///     r#"SELECT PG_TRY_ADVISORY_XACT_LOCK_SHARED(1, 42)"#
     /// );
     /// ```
-    pub fn try_advisory_xact_lock_shared_with_keys<A, B>(key1: A, key2: B) -> FunctionCall
+    pub fn try_advisory_xact_lock_shared<K>(key: K) -> FunctionCall
     where
-        A: Into<Expr>,
-        B: Into<Expr>,
+        K: Into<PgAdvisoryLockKey>,
     {
-        FunctionCall::new(PgFunc::TryAdvisoryXactLockShared)
-            .arg(key1)
-            .arg(key2)
+        key.into().call(PgFunc::TryAdvisoryXactLockShared)
     }
 }

@@ -3,7 +3,7 @@
 use crate::{expr::*, query::Condition, types::*};
 
 #[cfg(feature = "backend-postgres")]
-pub use crate::extension::postgres::PgFunc;
+pub use crate::extension::postgres::{PgAdvisoryLockKey, PgFunc};
 
 /// Known SQL functions.
 ///
