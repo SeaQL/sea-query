@@ -9,13 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-- Add `PgAdvisoryLockKey` so the Postgres advisory lock functions accept either a single `i64` key or a pair of `i32` keys, e.g. `PgFunc::advisory_lock(12345)` or `PgFunc::advisory_lock((1, 42))` (#1134).
+- PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `Value`, `(i32, i32)`, `(Expr, Expr)`, or `(Value, Value)` arguments (#1134).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
-
-### Breaking Changes
-
-- The keyed Postgres advisory lock functions (`PgFunc::advisory_lock`, `PgFunc::try_advisory_xact_lock`, etc.) now take `impl Into<PgAdvisoryLockKey>` instead of `impl Into<Expr>`. Pass plain integers, for example `PgFunc::advisory_lock(Expr::val(12345_i64))` becomes `PgFunc::advisory_lock(12345)` (#1134).
 
 ### Performance
 

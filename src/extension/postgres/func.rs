@@ -1,6 +1,6 @@
 //! For calling built-in Postgres SQL functions.
 
-use crate::{PgDateTruncUnit, expr::*, func::*};
+use crate::{PgDateTruncUnit, Value, expr::*, func::*};
 
 pub mod json_exists;
 pub mod json_fn;
@@ -58,10 +58,7 @@ impl From<PgFunc> for Func {
 #[deprecated(since = "1.0.0", note = "use `PgFunc` instead")]
 pub type PgFunction = PgFunc;
 
-/// Key for the Postgres advisory lock functions, such as [`PgFunc::advisory_lock`].
-///
-/// Postgres accepts either a single `bigint` key or a pair of `integer` keys.
-/// The two key spaces do not overlap: `BigInt(1)` and `IntPair(0, 1)` are different locks.
+/// Key accepted by PostgreSQL advisory lock functions, such as [`PgFunc::advisory_lock`].
 ///
 /// # Examples
 ///
@@ -77,10 +74,12 @@ pub type PgFunction = PgFunc;
 ///     PgAdvisoryLockKey::IntPair(1, 42)
 /// );
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PgAdvisoryLockKey {
     BigInt(i64),
     IntPair(i32, i32),
+    Expr(Expr),
+    ExprPair(Expr, Expr),
 }
 
 impl From<i64> for PgAdvisoryLockKey {
@@ -95,12 +94,38 @@ impl From<(i32, i32)> for PgAdvisoryLockKey {
     }
 }
 
+impl From<Expr> for PgAdvisoryLockKey {
+    fn from(expr: Expr) -> Self {
+        Self::Expr(expr)
+    }
+}
+
+impl From<Value> for PgAdvisoryLockKey {
+    fn from(value: Value) -> Self {
+        Self::Expr(value.into())
+    }
+}
+
+impl From<(Expr, Expr)> for PgAdvisoryLockKey {
+    fn from((key1, key2): (Expr, Expr)) -> Self {
+        Self::ExprPair(key1, key2)
+    }
+}
+
+impl From<(Value, Value)> for PgAdvisoryLockKey {
+    fn from((key1, key2): (Value, Value)) -> Self {
+        Self::ExprPair(key1.into(), key2.into())
+    }
+}
+
 impl PgAdvisoryLockKey {
     fn call(self, func: PgFunc) -> FunctionCall {
         let call = FunctionCall::new(func);
         match self {
             Self::BigInt(key) => call.arg(key),
             Self::IntPair(key1, key2) => call.arg(key1).arg(key2),
+            Self::Expr(expr) => call.arg(expr),
+            Self::ExprPair(key1, key2) => call.arg(key1).arg(key2),
         }
     }
 }
