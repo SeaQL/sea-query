@@ -108,11 +108,13 @@ pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl std::fmt::Display
 
 /// Write `bytes` as uppercase hex digits.
 pub(crate) fn write_hex(w: &mut (impl Write + ?Sized), bytes: &[u8]) {
-    if bytes.len() <= 64 {
+    let len = bytes.len();
+
+    if len <= 64 {
         write_hex_with_buffer::<128>(w, bytes);
-    } else if bytes.len() <= 128 {
+    } else if len <= 128 {
         write_hex_with_buffer::<256>(w, bytes);
-    } else if bytes.len() <= 2048 {
+    } else if len <= 2048 {
         write_hex_with_buffer::<1024>(w, bytes);
     } else {
         write_hex_with_buffer::<2048>(w, bytes);
