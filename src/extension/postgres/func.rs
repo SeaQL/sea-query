@@ -1,6 +1,6 @@
 //! For calling built-in Postgres SQL functions.
 
-use crate::{PgDateTruncUnit, Value, expr::*, func::*};
+use crate::{PgDateTruncUnit, expr::*, func::*};
 
 pub mod json_exists;
 pub mod json_fn;
