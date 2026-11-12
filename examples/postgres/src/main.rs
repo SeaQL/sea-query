@@ -1,8 +1,11 @@
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, ColumnType, Iden, Order, PostgresQueryBuilder, Query, Table};
+use sea_query::{
+    ColumnDef, ColumnType, Expr, ExprTrait, Iden, Order, PostgresQueryBuilder, Query, Table,
+};
 use sea_query_postgres::PostgresBinder;
 use time::{
     OffsetDateTime, PrimitiveDateTime,
@@ -36,6 +39,7 @@ fn main() {
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
             .col(ColumnDef::new(Document::Array).array(ColumnType::Integer))
+            .col(ColumnDef::new(Document::BigDecimal).decimal())
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
@@ -147,6 +151,26 @@ fn main() {
         println!("{item:?}");
     }
     println!();
+
+    // BigDecimal: more digits than an f64 can hold
+
+    let digits = "123456789012345678.0123456789";
+    let (sql, values) = Query::insert()
+        .into_table(Document::Table)
+        .columns([Document::BigDecimal])
+        .values_panic([digits.parse::<BigDecimal>().unwrap().into()])
+        .build_postgres(PostgresQueryBuilder);
+    client.execute(sql.as_str(), &values.as_params()).unwrap();
+
+    let (sql, values) = Query::select()
+        .expr(Expr::col(Document::BigDecimal).cast_as("text"))
+        .from(Document::Table)
+        .and_where(Expr::col(Document::BigDecimal).is_not_null())
+        .build_postgres(PostgresQueryBuilder);
+    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
+    let big_decimal: String = row.get(0);
+    println!("Select big decimal from document: {big_decimal}\n");
+    assert_eq!(big_decimal, digits);
 }
 
 #[derive(Iden)]
@@ -159,6 +183,7 @@ enum Document {
     TimestampWithTimeZone,
     Decimal,
     Array,
+    BigDecimal,
 }
 
 #[derive(Debug)]

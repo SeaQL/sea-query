@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixes
 
+- sea_query_postgres: Bind `Value::BigDecimal` to a `numeric` parameter in PostgreSQL's binary `numeric` format, keeping every digit and the scale. It was sent as an `f64`, which PostgreSQL rejects for a `numeric` parameter (`insufficient data left in message`) and which keeps only about 16 significant digits. Other parameter types still receive an `f64`.
 - Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
 - Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
