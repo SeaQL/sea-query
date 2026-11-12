@@ -108,9 +108,21 @@ pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl std::fmt::Display
 
 /// Write `bytes` as uppercase hex digits.
 pub(crate) fn write_hex(w: &mut (impl Write + ?Sized), bytes: &[u8]) {
-    let mut buf = [0; 128];
-    for chunk in bytes.chunks(buf.len() / 2) {
-        let hex = hex_simd::encode_as_str(chunk, buf[..chunk.len() * 2].as_out(), AsciiCase::Upper);
+    if bytes.len() <= 64 {
+        write_hex_with_buffer::<128>(w, bytes);
+    } else if bytes.len() <= 128 {
+        write_hex_with_buffer::<256>(w, bytes);
+    } else if bytes.len() <= 2048 {
+        write_hex_with_buffer::<1024>(w, bytes);
+    } else {
+        write_hex_with_buffer::<2048>(w, bytes);
+    }
+}
+
+fn write_hex_with_buffer<const N: usize>(w: &mut (impl Write + ?Sized), bytes: &[u8]) {
+    let mut buf = [0; N];
+    for chunk in bytes.chunks(N / 2) {
+        let hex = hex_simd::encode_as_str(chunk, buf.as_mut_slice().as_out(), AsciiCase::Upper);
         w.write_str(hex).unwrap();
     }
 }
@@ -183,8 +195,8 @@ mod tests {
 
     #[test]
     fn write_hex_matches_format() {
-        // longer than one chunk, and not a multiple of it
-        for len in [0, 64, 65, 300] {
+        // Include both chunk boundaries and tails.
+        for len in [0, 1, 64, 65, 300, 512, 513, 1025, 2048, 2049] {
             let bytes: Vec<u8> = (0..len).map(|i| (i * 7) as u8).collect();
             let expected: String = bytes.iter().map(|b| format!("{b:02X}")).collect();
             let mut hex = String::new();
