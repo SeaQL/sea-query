@@ -15,14 +15,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Performance
 
-- Speed up SQL byte literal rendering (#1131).
+- Speed up SQL byte literal rendering.
 
-  100 rows × 1 KiB of bytes per row:
-
-  | Backend    | Upstream  | This PR   | Changes |
-  | ---------- | --------- | --------- | ------- |
-  | PostgreSQL | 1.0315 ms | 9.3889 µs | ~110x   |
-  | MySQL      | 1.0638 ms | 9.9077 µs | ~107x   |
+  | Bytes per row | Backend    | Before (upstream) | Current   | Speedup |
+  | ------------- | ---------- | ----------------- | --------- | ------- |
+  | 1 KiB         | PostgreSQL | 1.047 ms          | 6.155 µs  | ~170×   |
+  | 1 KiB         | MySQL      | 1.080 ms          | 5.802 µs  | ~186×   |
+  | 4 KiB         | PostgreSQL | 4.172 ms          | 16.230 µs | ~257×   |
+  | 4 KiB         | MySQL      | 4.306 ms          | 15.668 µs | ~275×   |
 
 ### Fixes
 
