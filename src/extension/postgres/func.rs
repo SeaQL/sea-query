@@ -100,21 +100,9 @@ impl From<Expr> for PgAdvisoryLockKey {
     }
 }
 
-impl From<Value> for PgAdvisoryLockKey {
-    fn from(value: Value) -> Self {
-        Self::Expr(value.into())
-    }
-}
-
 impl From<(Expr, Expr)> for PgAdvisoryLockKey {
     fn from((key1, key2): (Expr, Expr)) -> Self {
         Self::ExprPair(key1, key2)
-    }
-}
-
-impl From<(Value, Value)> for PgAdvisoryLockKey {
-    fn from((key1, key2): (Value, Value)) -> Self {
-        Self::ExprPair(key1.into(), key2.into())
     }
 }
 
