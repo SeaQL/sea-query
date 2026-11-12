@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
+- PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `(i32, i32)`, or `(Expr, Expr)` arguments (#1134).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
