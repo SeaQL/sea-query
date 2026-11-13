@@ -13,27 +13,50 @@ impl TypeBuilder for PostgresQueryBuilder {
             self.prepare_type_ref(name, sql);
         }
 
-        if let Some(as_type) = &create.as_type {
-            sql.write_str(" AS ").unwrap();
-            self.prepare_create_as_type(as_type, sql);
-        }
+        let Some(as_type) = &create.as_type else {
+            return;
+        };
 
-        if !create.values.is_empty() {
-            sql.write_str(" (").unwrap();
+        sql.write_str(" AS ").unwrap();
+        self.prepare_create_as_type(as_type, sql);
 
-            let mut vals = create.values.iter();
-            join_io!(
-                vals,
-                val,
-                join {
-                    sql.write_str(", ").unwrap();
-                },
-                do {
-                    self.prepare_value(val.to_string().into(), sql);
+        match as_type {
+            TypeAs::Enum => {
+                if !create.values.is_empty() {
+                    sql.write_str(" (").unwrap();
+
+                    let mut vals = create.values.iter();
+                    join_io!(
+                        vals,
+                        val,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_value(val.to_string().into(), sql);
+                        }
+                    );
+
+                    sql.write_str(")").unwrap();
                 }
-            );
-
-            sql.write_str(")").unwrap();
+            }
+            TypeAs::Composite => {
+                if !create.fields.is_empty() {
+                    sql.write_str("(").unwrap();
+                    let mut fields = create.fields.iter();
+                    join_io!(
+                        fields,
+                        field,
+                        join { sql.write_str(", ").unwrap(); },
+                        do {
+                            self.prepare_iden(&field.name, sql);
+                            sql.write_str(" ").unwrap();
+                            self.prepare_column_type(&field.col_type, sql);
+                        }
+                    );
+                    sql.write_str(")").unwrap();
+                }
+            }
         }
     }
 
@@ -79,6 +102,7 @@ impl TypeBuilder for PostgresQueryBuilder {
 impl PostgresQueryBuilder {
     fn prepare_create_as_type(&self, as_type: &TypeAs, sql: &mut impl SqlWriter) {
         sql.write_str(match as_type {
+            TypeAs::Composite => "",
             TypeAs::Enum => "ENUM",
         })
         .unwrap();
@@ -126,6 +150,16 @@ impl PostgresQueryBuilder {
                 self.prepare_value(existing.to_string().into(), sql);
                 sql.write_str(" TO ").unwrap();
                 self.prepare_value(new_name.to_string().into(), sql);
+            }
+            TypeAlterOpt::AddAttribute(field) => {
+                sql.write_str(" ADD ATTRIBUTE ").unwrap();
+                self.prepare_iden(&field.name, sql);
+                sql.write_str(" ").unwrap();
+                self.prepare_column_type(&field.col_type, sql);
+            }
+            TypeAlterOpt::DropAttribute(field) => {
+                sql.write_str(" DROP ATTRIBUTE ").unwrap();
+                self.prepare_iden(&field.name, sql);
             }
         }
     }
