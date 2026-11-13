@@ -172,10 +172,13 @@ impl TryFrom<SqlxValues> for sqlx::sqlite::SqliteArguments {
                     return Err(IntoArgumentsError::Unsupported(
                         "Sqlite doesn't support vector arguments",
                     ));
-                } /* #[cfg(feature = "postgres-range")]
-                  Value::Range(_) => {
-                  panic!("Sqlite doesn't support PgRange arguments");
-                  } */
+                }
+                #[cfg(feature = "postgres-range")]
+                Value::Range(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Sqlite doesn't support range arguments",
+                    ));
+                }
             }
         }
         Ok(args)

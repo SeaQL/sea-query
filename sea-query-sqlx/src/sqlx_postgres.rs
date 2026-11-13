@@ -399,15 +399,21 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                             let value = array_values::<MacAddress>(v, "MacAddress")?;
                             args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
+                        #[cfg(feature = "postgres-range")]
+                        ArrayType::Range => {
+                            let value = array_values::<sea_query::prelude::RangeType>(v, "Range")?;
+                            range::add_range_array(&mut args, value)?;
+                        }
                     }
                 }
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(v) => {
                     args.add(v).map_err(IntoArgumentsError::Encode)?;
-                } /* #[cfg(feature = "postgres-range")]
-                  Value::Range(v) => {
-                  args.add(v).map_err(sqlx::Error::Encode)?;
-                  } */
+                }
+                #[cfg(feature = "postgres-range")]
+                Value::Range(v) => {
+                    range::add_range(&mut args, v.map(|v| *v))?;
+                }
             }
         }
         Ok(args)
@@ -431,4 +437,173 @@ fn array_values<T: sea_query::ValueType + sea_query::Nullable>(
             element_type,
             source,
         })
+}
+
+#[cfg(feature = "postgres-range")]
+mod range {
+    use std::ops::Bound;
+
+    use sea_query::prelude::{RangeBound, RangeType};
+    use sqlx::encode::IsNull;
+    use sqlx::postgres::types::{Oid, PgRange};
+    use sqlx::postgres::{PgArgumentBuffer, PgArguments, PgTypeInfo, Postgres};
+    use sqlx::{Arguments, Encode, Type};
+
+    use crate::IntoArgumentsError;
+
+    /// A `NULL` sent with the `unknown` type, so that Postgres infers the
+    /// concrete range type (`int4range`, `int8range`, ...) from the query.
+    struct UntypedNull;
+
+    impl Type<Postgres> for UntypedNull {
+        fn type_info() -> PgTypeInfo {
+            PgTypeInfo::with_oid(Oid(705))
+        }
+    }
+
+    impl Encode<'_, Postgres> for UntypedNull {
+        fn encode_by_ref(
+            &self,
+            _buf: &mut PgArgumentBuffer,
+        ) -> Result<IsNull, sqlx::error::BoxDynError> {
+            Ok(IsNull::Yes)
+        }
+    }
+
+    fn to_bound<T: Clone + std::fmt::Display, U>(
+        bound: RangeBound<T>,
+        convert: impl Fn(T) -> Result<U, IntoArgumentsError>,
+    ) -> Result<Bound<U>, IntoArgumentsError> {
+        Ok(match bound {
+            RangeBound::Inclusive(v) => Bound::Included(convert(v)?),
+            RangeBound::Exclusive(v) => Bound::Excluded(convert(v)?),
+            RangeBound::Unbounded => Bound::Unbounded,
+        })
+    }
+
+    fn to_range<T: Clone + std::fmt::Display, U>(
+        start: RangeBound<T>,
+        end: RangeBound<T>,
+        convert: impl Fn(T) -> Result<U, IntoArgumentsError>,
+    ) -> Result<PgRange<U>, IntoArgumentsError> {
+        Ok(PgRange {
+            start: to_bound(start, &convert)?,
+            end: to_bound(end, &convert)?,
+        })
+    }
+
+    #[cfg(feature = "with-bigdecimal")]
+    type Numeric = sea_query::prelude::BigDecimal;
+
+    #[cfg(all(feature = "with-rust_decimal", not(feature = "with-bigdecimal")))]
+    type Numeric = sea_query::prelude::Decimal;
+
+    #[cfg(any(feature = "with-bigdecimal", feature = "with-rust_decimal"))]
+    fn to_numeric(v: f64) -> Result<Numeric, IntoArgumentsError> {
+        // go through the shortest decimal representation, so 0.1 binds as 0.1
+        v.to_string().parse::<Numeric>().map_err(|e| {
+            IntoArgumentsError::Encode(format!("invalid numrange bound {v}: {e}").into())
+        })
+    }
+
+    #[cfg(any(feature = "with-bigdecimal", feature = "with-rust_decimal"))]
+    fn to_num_range(
+        start: RangeBound<f64>,
+        end: RangeBound<f64>,
+    ) -> Result<PgRange<Numeric>, IntoArgumentsError> {
+        to_range(start, end, to_numeric)
+    }
+
+    // always fails, the `i64` is only there to give the result a type
+    #[cfg(not(any(feature = "with-bigdecimal", feature = "with-rust_decimal")))]
+    fn to_num_range(
+        _start: RangeBound<f64>,
+        _end: RangeBound<f64>,
+    ) -> Result<PgRange<i64>, IntoArgumentsError> {
+        Err(IntoArgumentsError::Unsupported(
+            "numrange arguments require the with-bigdecimal or with-rust_decimal feature",
+        ))
+    }
+
+    pub(super) fn add_range(
+        args: &mut PgArguments,
+        range: Option<RangeType>,
+    ) -> Result<(), IntoArgumentsError> {
+        match range {
+            None => args.add(UntypedNull).map_err(IntoArgumentsError::Encode),
+            Some(RangeType::Int4Range(start, end)) => args
+                .add(to_range(start, end, Ok)?)
+                .map_err(IntoArgumentsError::Encode),
+            Some(RangeType::Int8Range(start, end)) => args
+                .add(to_range(start, end, Ok)?)
+                .map_err(IntoArgumentsError::Encode),
+            Some(RangeType::NumRange(start, end)) => args
+                .add(to_num_range(start, end)?)
+                .map_err(IntoArgumentsError::Encode),
+        }
+    }
+
+    /// Collects the ranges of an array, which must all be of the variant matched by `convert`.
+    #[cfg(feature = "postgres-array")]
+    fn range_array<U>(
+        values: Vec<Option<RangeType>>,
+        convert: impl Fn(RangeType) -> Option<Result<PgRange<U>, IntoArgumentsError>>,
+    ) -> Result<Vec<Option<PgRange<U>>>, IntoArgumentsError> {
+        values
+            .into_iter()
+            .map(|v| match v {
+                Some(range) => {
+                    convert(range)
+                        .transpose()?
+                        .map(Some)
+                        .ok_or(IntoArgumentsError::Unsupported(
+                            "Value::Array of ranges must contain ranges of a single type",
+                        ))
+                }
+                None => Ok(None),
+            })
+            .collect()
+    }
+
+    /// `ArrayType::Range` doesn't say which range type the array holds, so it is taken from the
+    /// first non-NULL element, the same way `sea-query-postgres` does. Mixing range types in one
+    /// array is an error. A NULL array is sent untyped, like a NULL range. An empty or all-NULL
+    /// array has no range type, and unlike `sea-query-postgres` SQLx can't leave it for
+    /// PostgreSQL to infer, because the binary array format has to name the element type.
+    #[cfg(feature = "postgres-array")]
+    pub(super) fn add_range_array(
+        args: &mut PgArguments,
+        values: Option<Vec<Option<RangeType>>>,
+    ) -> Result<(), IntoArgumentsError> {
+        let Some(values) = values else {
+            return args.add(UntypedNull).map_err(IntoArgumentsError::Encode);
+        };
+
+        match values.iter().flatten().next() {
+            Some(RangeType::Int4Range(..)) => {
+                let value = range_array(values, |v| match v {
+                    RangeType::Int4Range(start, end) => Some(to_range(start, end, Ok)),
+                    _ => None,
+                })?;
+                args.add(value).map_err(IntoArgumentsError::Encode)
+            }
+            Some(RangeType::Int8Range(..)) => {
+                let value = range_array(values, |v| match v {
+                    RangeType::Int8Range(start, end) => Some(to_range(start, end, Ok)),
+                    _ => None,
+                })?;
+                args.add(value).map_err(IntoArgumentsError::Encode)
+            }
+            Some(RangeType::NumRange(..)) => {
+                let value = range_array(values, |v| match v {
+                    RangeType::NumRange(start, end) => Some(to_num_range(start, end)),
+                    _ => None,
+                })?;
+                args.add(value).map_err(IntoArgumentsError::Encode)
+            }
+            None => Err(IntoArgumentsError::Unsupported(
+                "cannot infer the range type of an empty or all-NULL Value::Array of ranges",
+            )),
+        }
+    }
 }

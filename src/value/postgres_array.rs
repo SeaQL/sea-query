@@ -86,6 +86,9 @@ impl NotU8 for IpNetwork {}
 #[cfg(feature = "with-mac_address")]
 impl NotU8 for MacAddress {}
 
+#[cfg(feature = "postgres-range")]
+impl NotU8 for RangeType {}
+
 /// If this blanket impl is causing trouble, please open an issue
 impl<T> NotU8 for &T where T: NotU8 {}
 

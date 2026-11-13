@@ -169,10 +169,13 @@ impl TryFrom<SqlxValues> for sqlx::mysql::MySqlArguments {
                     return Err(IntoArgumentsError::Unsupported(
                         "Mysql doesn't support MacAddress arguments",
                     ));
-                } /* #[cfg(feature = "postgres-range")]
-                  Value::Range(_) => {
-                  panic!("Mysql doesn't support PgRange arguments");
-                  } */
+                }
+                #[cfg(feature = "postgres-range")]
+                Value::Range(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support range arguments",
+                    ));
+                }
             }
         }
         Ok(args)

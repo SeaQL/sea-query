@@ -192,10 +192,13 @@ impl TryFrom<SqlxValues> for sqlx::any::AnyArguments {
                     return Err(IntoArgumentsError::Unsupported(
                         "SQLx doesn't support vector arguments for Any",
                     ));
-                } /* #[cfg(feature = "postgres-range")]
-                  Value::Range(_) => {
-                  panic!("SQLx doesn't support PgRange arguments for Any");
-                  } */
+                }
+                #[cfg(feature = "postgres-range")]
+                Value::Range(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "SQLx doesn't support range arguments for Any",
+                    ));
+                }
             }
         }
         Ok(args)

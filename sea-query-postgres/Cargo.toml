@@ -52,3 +52,6 @@ with-mac_address = [
     "mac_address",
     "eui48",
 ]
+
+[dev-dependencies]
+postgres = "0.19"

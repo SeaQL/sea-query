@@ -186,7 +186,13 @@ fn value_to_postgres_type(value: &Value) -> Type {
         Value::String(_) => Type::TEXT,
         Value::Enum(_) => Type::TEXT,
         #[cfg(feature = "postgres-range")]
-        Value::Range(_) => Type::INT8_RANGE,
+        Value::Range(v) => match v.as_deref() {
+            Some(sea_query::prelude::RangeType::Int4Range(..)) => Type::INT4_RANGE,
+            Some(sea_query::prelude::RangeType::Int8Range(..)) => Type::INT8_RANGE,
+            Some(sea_query::prelude::RangeType::NumRange(..)) => Type::NUM_RANGE,
+            // a NULL range has no range type, let PostgreSQL infer it (as SQLx does)
+            None => Type::UNKNOWN,
+        },
         Value::Char(_) => Type::CHAR,
         Value::Bytes(_) => Type::BYTEA,
         #[cfg(feature = "with-json")]
@@ -225,6 +231,8 @@ fn value_to_postgres_type(value: &Value) -> Type {
         Value::Decimal(_) => Type::NUMERIC,
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(_) => Type::NUMERIC,
+        #[cfg(all(feature = "postgres-array", feature = "postgres-range"))]
+        Value::Array(ArrayType::Range, v) => range_array_type(v.as_deref()),
         #[cfg(feature = "postgres-array")]
         Value::Array(ty, _) => array_type_to_pg_type(ty),
         #[cfg(feature = "postgres-vector")]
@@ -293,7 +301,104 @@ fn array_type_to_pg_type(ty: &ArrayType) -> Type {
         #[cfg(feature = "with-mac_address")]
         ArrayType::MacAddress => Type::MACADDR_ARRAY,
         ArrayType::Enum(_) => Type::TEXT_ARRAY,
+        // handled by `range_array_type`
         #[cfg(feature = "postgres-range")]
-        ArrayType::Range => Type::INT8_RANGE_ARRAY,
+        ArrayType::Range => Type::UNKNOWN,
+    }
+}
+
+/// `ArrayType::Range` doesn't say which range type the array holds, so it is taken from the
+/// first non-NULL element, the same way `sea-query-sqlx` does. Mixing range types in one array
+/// is an encoding error. A NULL, empty or all-NULL array has no range type, so it is left for
+/// PostgreSQL to infer from the query.
+#[cfg(all(feature = "postgres-array", feature = "postgres-range"))]
+fn range_array_type(values: Option<&Vec<Value>>) -> Type {
+    use sea_query::prelude::RangeType;
+
+    let first = values.into_iter().flatten().find_map(|v| match v {
+        Value::Range(Some(range)) => Some(range.as_ref()),
+        _ => None,
+    });
+
+    match first {
+        Some(RangeType::Int4Range(..)) => Type::INT4_RANGE_ARRAY,
+        Some(RangeType::Int8Range(..)) => Type::INT8_RANGE_ARRAY,
+        Some(RangeType::NumRange(..)) => Type::NUM_RANGE_ARRAY,
+        None => Type::UNKNOWN,
+    }
+}
+
+#[cfg(all(test, feature = "postgres-range"))]
+mod tests {
+    use super::*;
+    use sea_query::prelude::{RangeBound, RangeType};
+
+    #[test]
+    fn range_types_match_range_variant() {
+        let values = PostgresValues(vec![
+            PostgresValue(
+                RangeType::Int4Range(RangeBound::Inclusive(1), RangeBound::Exclusive(2)).into(),
+            ),
+            PostgresValue(
+                RangeType::Int8Range(RangeBound::Inclusive(1), RangeBound::Exclusive(2)).into(),
+            ),
+            PostgresValue(
+                RangeType::NumRange(RangeBound::Inclusive(1.0), RangeBound::Unbounded).into(),
+            ),
+        ]);
+
+        assert_eq!(
+            values.as_types(),
+            vec![Type::INT4_RANGE, Type::INT8_RANGE, Type::NUM_RANGE]
+        );
+
+        assert_eq!(
+            PostgresValues(vec![PostgresValue(Value::Range(None))]).as_types(),
+            vec![Type::UNKNOWN]
+        );
+    }
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn range_array_types_follow_first_non_null_element() {
+        let int8: Value = vec![RangeType::Int8Range(
+            RangeBound::Inclusive(1),
+            RangeBound::Exclusive(2),
+        )]
+        .into();
+        let num: Value = vec![RangeType::NumRange(
+            RangeBound::Inclusive(0.5),
+            RangeBound::Unbounded,
+        )]
+        .into();
+        let int4_after_null = Value::Array(
+            ArrayType::Range,
+            Some(Box::new(vec![
+                Value::Range(None),
+                RangeType::Int4Range(RangeBound::Inclusive(1), RangeBound::Exclusive(2)).into(),
+            ])),
+        );
+        let empty: Value = Vec::<RangeType>::new().into();
+        let all_null = Value::Array(ArrayType::Range, Some(Box::new(vec![Value::Range(None)])));
+        let null = Value::Array(ArrayType::Range, None);
+
+        let values = PostgresValues(
+            [int8, num, int4_after_null, empty, all_null, null]
+                .into_iter()
+                .map(PostgresValue)
+                .collect(),
+        );
+
+        assert_eq!(
+            values.as_types(),
+            vec![
+                Type::INT8_RANGE_ARRAY,
+                Type::NUM_RANGE_ARRAY,
+                Type::INT4_RANGE_ARRAY,
+                Type::UNKNOWN,
+                Type::UNKNOWN,
+                Type::UNKNOWN,
+            ]
+        );
     }
 }
