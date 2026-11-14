@@ -977,6 +977,9 @@ impl FunctionCall {
 
     /// Order the rows an aggregate function reads, e.g. `STRING_AGG(.. ORDER BY ..)`.
     /// See [`Func::group_concat`].
+    ///
+    /// SQLite supports this since 3.44, so it is rendered for SQLite only with the
+    /// `option-sqlite-aggregate-order-by` feature and left out otherwise.
     pub fn order_by<T>(mut self, expr: T, order: Order) -> Self
     where
         T: Into<Expr>,
