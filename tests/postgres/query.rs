@@ -2582,31 +2582,16 @@ fn select_array_agg_order_by() {
 #[test]
 fn select_audit_subquery_in_aggregate_order_by() {
     let query = Query::select()
-        .expr(
-            PgFunc::array_agg(Expr::col(Char::Character)).order_by(
-                Expr::SubQuery(
-                    None,
-                    Box::new(
-                        Query::select()
-                            .column(Glyph::Aspect)
-                            .from(Glyph::Table)
-                            .and_where(
-                                Expr::col((Glyph::Table, Glyph::Id))
-                                    .equals((Char::Table, Char::Id)),
-                            )
-                            .take()
-                            .into(),
-                    ),
-                ),
-                Order::Asc,
-            ),
-        )
+        .expr(PgFunc::array_agg(Expr::col(Char::Character)).order_by(
+            Expr::exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()),
+            Order::Asc,
+        ))
         .from(Char::Table)
         .to_owned();
 
     assert_eq!(
         query.to_string(PostgresQueryBuilder),
-        r#"SELECT ARRAY_AGG("character" ORDER BY (SELECT "aspect" FROM "glyph" WHERE "glyph"."id" = "character"."id") ASC) FROM "character""#
+        r#"SELECT ARRAY_AGG("character" ORDER BY EXISTS(SELECT "id" FROM "glyph") ASC) FROM "character""#
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
