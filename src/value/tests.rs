@@ -49,6 +49,34 @@ fn test_value() {
 }
 
 #[test]
+fn integer_value_type_is_lenient_and_checked() {
+    use crate::{Value, ValueType};
+
+    // An integer reads back from any integer variant, not only its own.
+    assert_eq!(
+        <i32 as ValueType>::try_from(Value::BigInt(Some(123))).unwrap(),
+        123
+    );
+    assert_eq!(
+        <i64 as ValueType>::try_from(Value::Int(Some(25))).unwrap(),
+        25
+    );
+    assert_eq!(
+        <i8 as ValueType>::try_from(Value::BigInt(Some(7))).unwrap(),
+        7
+    );
+
+    // A value that does not fit the target type fails instead of being truncated.
+    assert!(<i32 as ValueType>::try_from(Value::BigInt(Some(i64::MAX))).is_err());
+    assert!(<u32 as ValueType>::try_from(Value::Int(Some(-1))).is_err());
+
+    // NULL still fails, the same as before.
+    assert!(<i32 as ValueType>::try_from(Value::Int(None)).is_err());
+
+    assert!(<i32 as ValueType>::try_from(Value::String(None)).is_err());
+}
+
+#[test]
 fn test_option_value() {
     macro_rules! test_some_value {
         ( $type: ty, $val: literal ) => {
