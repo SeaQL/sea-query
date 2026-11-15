@@ -404,6 +404,13 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                             let value = array_values::<sea_query::prelude::RangeType>(v, "Range")?;
                             range::add_range_array(&mut args, value)?;
                         }
+                        #[cfg(not(feature = "postgres-range"))]
+                        #[allow(unreachable_patterns)]
+                        _ => {
+                            return Err(IntoArgumentsError::Unsupported(
+                                crate::RANGE_FEATURE_DISABLED,
+                            ));
+                        }
                     }
                 }
                 #[cfg(feature = "postgres-vector")]
@@ -413,6 +420,15 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                 #[cfg(feature = "postgres-range")]
                 Value::Range(v) => {
                     range::add_range(&mut args, v.map(|v| *v))?;
+                }
+                // `sea-query/postgres-range` can be enabled without the `postgres-range` feature of
+                // this crate (e.g. by another crate in the build), so don't fail to compile then
+                #[cfg(not(feature = "postgres-range"))]
+                #[allow(unreachable_patterns)]
+                _ => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        crate::RANGE_FEATURE_DISABLED,
+                    ));
                 }
             }
         }

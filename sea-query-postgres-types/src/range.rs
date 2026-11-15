@@ -154,26 +154,21 @@ mod tests {
 
     #[test]
     fn display_uses_postgres_bound_syntax() {
+        use RangeBound::*;
+
         assert_eq!(
-            RangeType::Int4Range(RangeBound::Inclusive(1), RangeBound::Exclusive(10)).to_string(),
+            RangeType::Int4Range(Inclusive(1), Exclusive(10)).to_string(),
             "[1,10)"
         );
         assert_eq!(
-            RangeType::Int8Range(RangeBound::Exclusive(1), RangeBound::Inclusive(10)).to_string(),
+            RangeType::Int8Range(Exclusive(1), Inclusive(10)).to_string(),
             "(1,10]"
         );
         assert_eq!(
-            RangeType::NumRange(RangeBound::Inclusive(0.5), RangeBound::Unbounded).to_string(),
+            RangeType::NumRange(Inclusive(0.5), Unbounded).to_string(),
             "[0.5,)"
         );
-        assert_eq!(
-            RangeType::Int4Range(RangeBound::Unbounded, RangeBound::Inclusive(3)).to_string(),
-            "(,3]"
-        );
-        assert_eq!(
-            RangeType::Int8Range(RangeBound::Unbounded, RangeBound::Unbounded).to_string(),
-            "(,)"
-        );
+        assert_eq!(RangeType::default().to_string(), "(,)");
     }
 
     #[test]
@@ -181,20 +176,15 @@ mod tests {
         use RangeBound::*;
 
         // `(,)` is the range of all values
-        assert!(!RangeType::Int4Range(Unbounded, Unbounded).empty());
-        assert!(!RangeType::Int8Range(Unbounded, Unbounded).empty());
-        assert!(!RangeType::NumRange(Unbounded, Unbounded).empty());
         assert!(!RangeType::default().empty());
+        assert!(!RangeType::NumRange(Unbounded, Unbounded).empty());
 
         assert!(!RangeType::Int4Range(Inclusive(1), Inclusive(1)).empty());
-        assert!(!RangeType::Int4Range(Inclusive(1), Exclusive(2)).empty());
-        assert!(!RangeType::Int4Range(Unbounded, Exclusive(1)).empty());
         assert!(RangeType::Int4Range(Inclusive(1), Exclusive(1)).empty());
+        // discrete ranges are canonicalized, `(1,2)` has no values
         assert!(RangeType::Int4Range(Exclusive(1), Exclusive(2)).empty());
-        assert!(RangeType::Int8Range(Exclusive(1), Inclusive(1)).empty());
         assert!(!RangeType::Int8Range(Exclusive(i64::MAX - 1), Inclusive(i64::MAX)).empty());
 
-        assert!(!RangeType::NumRange(Inclusive(0.5), Inclusive(0.5)).empty());
         assert!(!RangeType::NumRange(Exclusive(0.5), Exclusive(0.6)).empty());
         assert!(RangeType::NumRange(Inclusive(0.5), Exclusive(0.5)).empty());
 

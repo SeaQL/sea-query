@@ -160,6 +160,13 @@ impl ToSql for PostgresValue {
             Value::Range(None) => Ok(IsNull::Yes),
             #[cfg(feature = "postgres-range")]
             Value::Range(Some(v)) => v.to_sql(ty, out),
+            // `sea-query/postgres-range` can be enabled without the `postgres-range` feature of
+            // this crate (e.g. by another crate in the build), so don't fail to compile then
+            #[cfg(not(feature = "postgres-range"))]
+            #[allow(unreachable_patterns)]
+            _ => {
+                Err("Value::Range requires the postgres-range feature of sea-query-postgres".into())
+            }
         }
     }
 
@@ -241,6 +248,10 @@ fn value_to_postgres_type(value: &Value) -> Type {
         Value::IpNetwork(_) => Type::INET,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(_) => Type::MACADDR,
+        // `Value::Range` without the `postgres-range` feature of this crate, see `to_sql`
+        #[cfg(not(feature = "postgres-range"))]
+        #[allow(unreachable_patterns)]
+        _ => Type::UNKNOWN,
     }
 }
 
@@ -304,6 +315,9 @@ fn array_type_to_pg_type(ty: &ArrayType) -> Type {
         // handled by `range_array_type`
         #[cfg(feature = "postgres-range")]
         ArrayType::Range => Type::UNKNOWN,
+        #[cfg(not(feature = "postgres-range"))]
+        #[allow(unreachable_patterns)]
+        _ => Type::UNKNOWN,
     }
 }
 

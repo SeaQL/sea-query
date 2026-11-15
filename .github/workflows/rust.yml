@@ -158,6 +158,8 @@ jobs:
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-array
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-vector
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-range
+      # `sea-query/postgres-range` without the `postgres-range` feature of sea-query-sqlx
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=sea-query/postgres-range,postgres-array
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
 
   rusqlite-build:
@@ -216,6 +218,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-vector
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-range
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=sea-query/postgres-range,postgres-array
 
   sqlite:
     name: SQLite
@@ -388,7 +391,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
-      - run: cargo test --manifest-path sea-query-postgres/Cargo.toml --features postgres-array,postgres-range
+      - run: cargo test --manifest-path sea-query-postgres/Cargo.toml --features postgres-array,postgres-range,with-rust_decimal
         env:
           DATABASE_URL: postgres://sea:sea@127.0.0.1/query
 

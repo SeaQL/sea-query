@@ -19,10 +19,13 @@ postgres-protocol = { version = "0.6", default-features = false, optional = true
 postgres-types = { version = "0.2", default-features = false, optional = true }
 ordered-float = { version = "4.6", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["std", "derive"] }
+rust_decimal = { version = "1", default-features = false, optional = true }
 
 [features]
 default = ["hashable-value"]
 postgres-driver = ["postgres-protocol", "postgres-types", "bytes"]
+# encode `numrange` bounds with the postgres driver
+with-rust_decimal = ["postgres-driver", "dep:rust_decimal", "rust_decimal/db-postgres"]
 hashable-value = ["ordered-float"]
 range = []
 serde = ["dep:serde"]

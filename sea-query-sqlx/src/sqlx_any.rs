@@ -199,6 +199,15 @@ impl TryFrom<SqlxValues> for sqlx::any::AnyArguments {
                         "SQLx doesn't support range arguments for Any",
                     ));
                 }
+                // `sea-query/postgres-range` can be enabled without the `postgres-range` feature of
+                // this crate (e.g. by another crate in the build), so don't fail to compile then
+                #[cfg(not(feature = "postgres-range"))]
+                #[allow(unreachable_patterns)]
+                _ => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        crate::RANGE_FEATURE_DISABLED,
+                    ));
+                }
             }
         }
         Ok(args)

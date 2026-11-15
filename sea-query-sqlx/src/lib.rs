@@ -35,5 +35,19 @@ mod sqlx_sqlite;
 mod values;
 pub use crate::values::*;
 
+/// Returned for `Value::Range` when `sea-query/postgres-range` is enabled without the
+/// `postgres-range` feature of this crate.
+#[cfg(all(
+    not(feature = "postgres-range"),
+    any(
+        feature = "sqlx-mysql",
+        feature = "sqlx-postgres",
+        feature = "sqlx-sqlite",
+        feature = "sqlx-any"
+    )
+))]
+const RANGE_FEATURE_DISABLED: &str =
+    "Value::Range requires the postgres-range feature of sea-query-sqlx";
+
 mod sqlx;
 pub use crate::sqlx::SqlxBinder;
