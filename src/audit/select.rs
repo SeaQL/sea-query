@@ -104,6 +104,9 @@ impl Walker {
         for arg in &function.args {
             self.recurse_audit_expr(arg)?;
         }
+        for order in &function.order_by {
+            self.recurse_audit_expr(&order.expr)?;
+        }
         Ok(())
     }
 

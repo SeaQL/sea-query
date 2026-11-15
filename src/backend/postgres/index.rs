@@ -151,26 +151,36 @@ impl IndexBuilder for PostgresQueryBuilder {
                 sql.write_str(", ").unwrap();
             },
             do {
-                match col {
+                // Postgres expects `column [opclass] [ASC | DESC] [NULLS FIRST | LAST]`.
+                let (operator_class, order, nulls) = match col {
                     IndexColumn::TableColumn(column) => {
-                        self.prepare_index_column_with_table_column(column, sql);
+                        self.prepare_iden(&column.name, sql);
+                        self.write_column_index_prefix(&column.prefix, sql);
+                        (&column.operator_class, &column.order, column.nulls)
                     }
                     IndexColumn::Expr(column) => {
                         sql.write_str("(").unwrap();
                         self.prepare_expr(&column.expr, sql);
                         sql.write_str(")").unwrap();
-                        if let Some(order) = &column.order {
-                            match order {
-                                IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
-                                IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
-                            }
-                        }
+                        (&column.operator_class, &column.order, column.nulls)
                     }
-                }
+                };
 
-                if let Some(operator_class) = col.operator_class() {
+                if let Some(operator_class) = operator_class {
                     sql.write_str(" ").unwrap();
                     sql.write_str(&operator_class.0).unwrap();
+                }
+
+                match order {
+                    Some(IndexOrder::Asc) => sql.write_str(" ASC").unwrap(),
+                    Some(IndexOrder::Desc) => sql.write_str(" DESC").unwrap(),
+                    None => {}
+                }
+
+                match nulls {
+                    Some(NullOrdering::First) => sql.write_str(" NULLS FIRST").unwrap(),
+                    Some(NullOrdering::Last) => sql.write_str(" NULLS LAST").unwrap(),
+                    None => {}
                 }
             }
         );

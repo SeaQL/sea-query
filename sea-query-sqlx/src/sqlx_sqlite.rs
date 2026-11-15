@@ -112,22 +112,22 @@ impl TryFrom<SqlxValues> for sqlx::sqlite::SqliteArguments {
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDate(j) => {
-                    args.add(j.map(|j| j.to_string()))
+                    args.add(j.map(jiff_sqlx::Date::from))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTime(j) => {
-                    args.add(j.map(|j| j.to_string()))
+                    args.add(j.map(jiff_sqlx::Time::from))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDateTime(j) => {
-                    args.add(j.map(|j| j.to_string()))
+                    args.add(j.map(|j| jiff_sqlx::DateTime::from(*j)))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTimestamp(j) => {
-                    args.add(j.map(|j| j.to_string()))
+                    args.add(j.map(|j| jiff_sqlx::Timestamp::from(*j)))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-uuid")]

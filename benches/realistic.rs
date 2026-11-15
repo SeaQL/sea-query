@@ -85,10 +85,28 @@ fn insert_text_stmt() -> InsertStatement {
     q
 }
 
+fn insert_bytes_stmt() -> InsertStatement {
+    let blob: Vec<u8> = (0..1024).map(|i| i as u8).collect();
+    let mut q = Query::insert();
+    q.into_table(T::Table)
+        .columns([Alias::new("a"), Alias::new("b")]);
+    for r in 0..100 {
+        q.values_panic([r.into(), blob.clone().into()]);
+    }
+    q
+}
+
 fn bench(c: &mut Criterion) {
     let s = select_stmt();
     let i = insert_stmt();
     let it = insert_text_stmt();
+    let ib = insert_bytes_stmt();
+    c.bench_function("insert_bytes_to_string_pg", |b| {
+        b.iter(|| black_box(ib.to_string(PostgresQueryBuilder)))
+    });
+    c.bench_function("insert_bytes_to_string_mysql", |b| {
+        b.iter(|| black_box(ib.to_string(MysqlQueryBuilder)))
+    });
     c.bench_function("insert_text_to_string_pg", |b| {
         b.iter(|| black_box(it.to_string(PostgresQueryBuilder)))
     });

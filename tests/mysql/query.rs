@@ -993,33 +993,24 @@ fn select_58() {
 
 #[test]
 fn select_58_custom_values_placeholder_after_backslash_escaped_quote() {
-    let (statement, values) = Query::select()
+    let query = Query::select()
         .column(Char::Character)
         .from(Char::Table)
         .and_where(Expr::cust_with_values(
             r#"'a\'?b' = 'a\'?b' AND `character` = ?"#,
             ["needle"],
         ))
-        .build(MysqlQueryBuilder);
+        .to_owned();
+
+    let (statement, values) = query.build(MysqlQueryBuilder);
 
     assert_eq!(
         statement,
         r#"SELECT `character` FROM `character` WHERE 'a\'?b' = 'a\'?b' AND `character` = ?"#
     );
     assert_eq!(values, Values(vec!["needle".into()]));
-}
-
-#[test]
-fn select_58_custom_values_inlines_placeholder_after_backslash_escaped_quote() {
     assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(Expr::cust_with_values(
-                r#"'a\'?b' = 'a\'?b' AND `character` = ?"#,
-                ["needle"],
-            ))
-            .to_string(MysqlQueryBuilder),
+        query.to_string(MysqlQueryBuilder),
         r#"SELECT `character` FROM `character` WHERE 'a\'?b' = 'a\'?b' AND `character` = 'needle'"#
     );
 }
@@ -1621,5 +1612,22 @@ fn sub_query_with_fn() {
     assert_eq!(
         select.to_string(MysqlQueryBuilder),
         "SELECT ARRAY((SELECT * FROM `character`))"
+    );
+}
+
+#[test]
+fn select_group_concat_args() {
+    let query = Query::select()
+        .expr(
+            Func::group_concat(Expr::col(Char::Character), ", ")
+                .arg(Expr::col(Char::FontSize))
+                .order_by(Expr::col(Char::Id), Order::Desc),
+        )
+        .from(Char::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(MysqlQueryBuilder),
+        r#"SELECT GROUP_CONCAT(`character`, `font_size` ORDER BY `id` DESC SEPARATOR ', ') FROM `character`"#
     );
 }

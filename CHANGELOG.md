@@ -9,13 +9,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
+- Add `IndexColumn::nulls_first` and `IndexColumn::nulls_last` to set `NULLS FIRST` / `NULLS LAST` on index columns (Postgres only; other backends ignore it) (#1128).
+- PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `(i32, i32)`, or `(Expr, Expr)` arguments (#1134).
+- Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
+- Add `Func::group_concat` and `FunctionCall::order_by` (#1126).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
+- sea_query_sqlx: Support Jiff (#1113).
 - sea_query_sqlx: Bind PostgreSQL range values (`Value::Range`, and arrays of ranges) with SQLx behind a new `postgres-range` feature. `numrange` bounds require `with-bigdecimal` or `with-rust_decimal`. The range type of an array is taken from its first non-NULL element; empty and all-NULL range arrays can't be bound with SQLx.
 - `Vec<RangeType>` can be converted into `Value::Array`.
 - Export `RangeBound` from the prelude next to `RangeType`.
 
+### Performance
+
+- Speed up SQL byte literal rendering.
+
+  | Bytes per row | Backend    | Before (upstream) | Current   | Speedup |
+  | ------------- | ---------- | ----------------- | --------- | ------- |
+  | 1 KiB         | PostgreSQL | 1.047 ms          | 6.155 µs  | ~170×   |
+  | 1 KiB         | MySQL      | 1.080 ms          | 5.802 µs  | ~186×   |
+  | 4 KiB         | PostgreSQL | 4.172 ms          | 16.230 µs | ~257×   |
+  | 4 KiB         | MySQL      | 4.306 ms          | 15.668 µs | ~275×   |
+
 ### Fixes
 
+- Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
 - Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
@@ -25,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - sea_query_postgres: Encode `numrange` bounds with `rust_decimal`'s `numeric` encoder instead of sending `float8`, which PostgreSQL rejected. `numrange` values now require the `with-rust_decimal` feature.
 - sea_query_postgres: Encode `(,)` ranges (both bounds unbounded) as unbounded instead of `empty`, and reject ranges whose variant doesn't match the parameter type.
 - `RangeType::empty()` follows PostgreSQL: `(,)` is no longer reported as empty, while ranges like `[1,1)` are.
+- Fix PostgreSQL index columns rendering the operator class after `ASC` / `DESC`; it now comes first, as in `col opclass DESC` (#1128).
 
 ## 1.0.2 - 2026-08-12
 
