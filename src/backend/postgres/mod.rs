@@ -6,6 +6,150 @@ pub(crate) mod table;
 pub(crate) mod types;
 
 use super::*;
+use std::ops::ControlFlow;
+
+fn must_escape(b: u8) -> bool {
+    const ESCAPE: [bool; 256] = {
+        let mut table = [false; 256];
+        let mut b = 0;
+        while b < 256 {
+            table[b] = (b as u8).is_ascii_control() || b == b'\'' as usize || b == b'\\' as usize;
+            b += 1;
+        }
+        table
+    };
+    ESCAPE[b as usize]
+}
+
+#[inline]
+fn escape_mask32(chunk: &[u8; 32]) -> u32 {
+    use wide::{CmpEq, u8x32};
+
+    let bytes = u8x32::new(*chunk);
+    // min(x, 31) == x when x <= 31.
+    let ascii_controls =
+        bytes.min(u8x32::splat(31)).cmp_eq(bytes) | bytes.cmp_eq(u8x32::splat(127));
+    let single_quotes = bytes.cmp_eq(u8x32::splat(b'\''));
+    let backslashes = bytes.cmp_eq(u8x32::splat(b'\\'));
+
+    (ascii_controls | single_quotes | backslashes).move_mask() as u32
+}
+
+#[inline]
+fn escape_mask64(chunk: &[u8; 64]) -> u64 {
+    let (chunks, _) = chunk.as_chunks::<32>();
+    u64::from(escape_mask32(&chunks[0])) | (u64::from(escape_mask32(&chunks[1])) << 32)
+}
+
+fn visit_escapes<T>(
+    string: &str,
+    mut visit: impl FnMut(usize, u8) -> ControlFlow<T>,
+) -> ControlFlow<T> {
+    let (chunks, tail) = string.as_bytes().as_chunks::<64>();
+    for (chunk_i, chunk) in chunks.iter().enumerate() {
+        let mut mask = escape_mask64(chunk);
+        while mask != 0 {
+            let byte_i = mask.trailing_zeros() as usize;
+            visit(chunk_i * 64 + byte_i, chunk[byte_i])?;
+            mask &= mask - 1;
+        }
+    }
+
+    let mut tail = tail;
+    let mut offset = chunks.len() * 64;
+
+    // Remaining <= 63 bytes
+    // Benchmarks show that this approach is faster than using loops of 64 bytes + padding.
+    if let Some((chunk, rest)) = tail.split_first_chunk::<32>() {
+        let mut mask = escape_mask32(chunk);
+        while mask != 0 {
+            let byte_i = mask.trailing_zeros() as usize;
+            visit(offset + byte_i, chunk[byte_i])?;
+            mask &= mask - 1;
+        }
+        tail = rest;
+        offset += 32;
+    }
+
+    for (tail_i, &b) in tail.iter().enumerate() {
+        if must_escape(b) {
+            visit(offset + tail_i, b)?;
+        }
+    }
+
+    ControlFlow::Continue(())
+}
+
+fn first_escape_position(string: &str) -> Option<usize> {
+    visit_escapes(string, {
+        #[inline(always)]
+        |i, _| ControlFlow::Break(i)
+    })
+    .break_value()
+}
+
+#[inline(always)]
+fn write_escape(buffer: &mut impl Write, b: u8) {
+    match b {
+        b'\x08' => buffer.write_str(r"\b"),
+        b'\x0C' => buffer.write_str(r"\f"),
+        b'\n' => buffer.write_str(r"\n"),
+        b'\r' => buffer.write_str(r"\r"),
+        b'\t' => buffer.write_str(r"\t"),
+        b'\\' => buffer.write_str(r"\\"),
+        b'\'' => buffer.write_str(r"\'"),
+        b'\0' => buffer.write_str(r"\0"),
+        _ => {
+            let octal = [
+                b'\\',
+                b'0' + (b >> 6),
+                b'0' + ((b >> 3) & 7),
+                b'0' + (b & 7),
+            ];
+            buffer.write_str(std::str::from_utf8(&octal).unwrap())
+        }
+    }
+    .unwrap();
+}
+
+fn write_escaped_scalar(buffer: &mut impl Write, string: &str) {
+    let mut start = 0;
+    for (i, b) in string.bytes().enumerate() {
+        if !must_escape(b) {
+            continue;
+        }
+        if start != i {
+            buffer.write_str(&string[start..i]).unwrap();
+        }
+        write_escape(buffer, b);
+        start = i + 1;
+    }
+    if start != string.len() {
+        buffer.write_str(&string[start..]).unwrap();
+    }
+}
+
+#[inline(never)] // inline will be slower because code generation issue
+fn write_escaped_simd(buffer: &mut impl Write, string: &str) {
+    // Every escaped byte is ASCII, so slicing around it stays on char boundaries.
+    let mut start = 0;
+
+    let _ = visit_escapes(string, {
+        #[inline(always)]
+        |i, b| {
+            if start != i {
+                buffer.write_str(&string[start..i]).unwrap();
+            }
+            write_escape(buffer, b);
+            start = i + 1;
+            ControlFlow::<()>::Continue(())
+        }
+    });
+
+    if start != string.len() {
+        buffer.write_str(&string[start..]).unwrap();
+    }
+}
 
 /// Postgres query builder.
 #[derive(Default, Debug)]
@@ -26,28 +170,14 @@ impl QuotedBuilder for PostgresQueryBuilder {
 // https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-BACKSLASH-TABLE
 impl EscapeBuilder for PostgresQueryBuilder {
     fn needs_escape(&self, s: &str) -> bool {
-        s.chars().any(|c| match c {
-            '\x08' | '\x0C' | '\n' | '\r' | '\t' | '\\' | '\'' | '\0' => true,
-            c if c.is_ascii_control() => true,
-            _ => false,
-        })
+        first_escape_position(s).is_some()
     }
 
     fn write_escaped(&self, buffer: &mut impl Write, string: &str) {
-        for c in string.chars() {
-            match c {
-                '\x08' => buffer.write_str(r#"\b"#),
-                '\x0C' => buffer.write_str(r#"\f"#),
-                '\n' => buffer.write_str(r"\n"),
-                '\r' => buffer.write_str(r"\r"),
-                '\t' => buffer.write_str(r"\t"),
-                '\\' => buffer.write_str(r#"\\"#),
-                '\'' => buffer.write_str(r#"\'"#),
-                '\0' => buffer.write_str(r#"\0"#),
-                c if c.is_ascii_control() => write!(buffer, "\\{:03o}", c as u32),
-                _ => buffer.write_char(c),
-            }
-            .unwrap();
+        if string.len() < 16 {
+            write_escaped_scalar(buffer, string);
+        } else {
+            write_escaped_simd(buffer, string);
         }
     }
 
@@ -130,7 +260,7 @@ impl TableRefBuilder for PostgresQueryBuilder {}
 
 #[cfg(test)]
 mod tests {
-    use crate::{EscapeBuilder, PostgresQueryBuilder};
+    use crate::{EscapeBuilder, PostgresQueryBuilder, QueryBuilder};
 
     #[test]
     fn test_write_escaped() {
@@ -152,6 +282,60 @@ mod tests {
             if !matches!(c, '\x00' | '\x08' | '\x09' | '\x0A' | '\x0C' | '\x0D') {
                 let octal = format!("\\{b:03o}");
                 assert!(escaped.contains(&octal));
+            }
+        }
+    }
+
+    #[test]
+    fn test_write_escaped_keeps_other_chars() {
+        let escaper = PostgresQueryBuilder;
+
+        assert_eq!(escaper.escape_string(""), "");
+        assert_eq!(escaper.escape_string("plain"), "plain");
+        assert_eq!(escaper.escape_string("'"), r"\'");
+        assert_eq!(
+            escaper.escape_string("'你'😀\\é\n\x7F"),
+            r"\'你\'😀\\é\n\177"
+        );
+        assert!(!escaper.needs_escape("你😀é \"plain\""));
+        assert!(escaper.needs_escape("é\x7F"));
+    }
+
+    #[test]
+    fn string_literals_escape_ascii_at_utf8_boundaries() {
+        let escapes = [
+            r"\0", r"\001", r"\002", r"\003", r"\004", r"\005", r"\006", r"\007", r"\b", r"\t",
+            r"\n", r"\013", r"\f", r"\r", r"\016", r"\017", r"\020", r"\021", r"\022", r"\023",
+            r"\024", r"\025", r"\026", r"\027", r"\030", r"\031", r"\032", r"\033", r"\034",
+            r"\035", r"\036", r"\037",
+        ];
+        let escaper = PostgresQueryBuilder;
+        for padding in 0..=128 {
+            let prefix = format!("{}你😀é", "x".repeat(padding));
+            let mut quoted = String::new();
+            escaper.write_string_quoted(&prefix, &mut quoted);
+            assert_eq!(quoted, format!("'{prefix}'"));
+            assert!(!escaper.needs_escape(&prefix));
+
+            for (byte, escaped) in
+                (0..32)
+                    .zip(escapes)
+                    .chain([(127, r"\177"), (b'\'', r"\'"), (b'\\', r"\\")])
+            {
+                let byte = char::from(byte);
+                for (string, expected) in [
+                    (format!("{prefix}{byte}"), format!("{prefix}{escaped}")),
+                    (
+                        format!("{prefix}{byte}\\'尾😀abcdefghijklmnop{byte}\\'é字"),
+                        format!(r"{prefix}{escaped}\\\'尾😀abcdefghijklmnop{escaped}\\\'é字"),
+                    ),
+                ] {
+                    quoted.clear();
+                    escaper.write_string_quoted(&string, &mut quoted);
+                    assert_eq!(quoted, format!("E'{expected}'"));
+                    assert_eq!(escaper.escape_string(&string), expected);
+                    assert!(escaper.needs_escape(&string));
+                }
             }
         }
     }

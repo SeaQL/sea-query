@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use criterion::{Criterion, criterion_group, criterion_main};
+use hotpath::criterion::{Config, Criterion, criterion_group, criterion_main};
 use sea_query::*;
 
 #[derive(Debug, Iden)]
@@ -64,8 +64,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     group.finish();
 }
 
-fn cfg() -> Criterion {
-    Criterion::default()
+fn cfg() -> Config {
+    Config::default()
         .configure_from_args()
         .measurement_time(std::time::Duration::new(10, 0))
         .sample_size(200)
