@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   | 4 KiB         | PostgreSQL | 4.172 ms          | 16.230 µs | ~257×   |
   | 4 KiB         | MySQL      | 4.306 ms          | 15.668 µs | ~275×   |
 
+- Speed up PostgreSQL `to_string()`: ~23× for text-heavy INSERTs and ~1.3× for mixed-value INSERTs (#1132).
+
 ### Fixes
 
 - Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).

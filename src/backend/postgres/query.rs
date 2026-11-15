@@ -422,9 +422,13 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn write_string_quoted(&self, string: &str, buffer: &mut impl Write) {
-        if self.needs_escape(string) {
+        if let Some(first) = super::first_escape_position(string) {
             buffer.write_str("E'").unwrap();
-            self.write_escaped(buffer, string);
+            if first != 0 {
+                buffer.write_str(&string[..first]).unwrap();
+            }
+            super::write_escape(buffer, string.as_bytes()[first]);
+            self.write_escaped(buffer, &string[first + 1..]);
         } else {
             buffer.write_str("'").unwrap();
             buffer.write_str(string).unwrap();

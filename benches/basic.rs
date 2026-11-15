@@ -1,4 +1,4 @@
-use criterion::{Criterion, criterion_group, criterion_main};
+use hotpath::criterion::{Criterion, criterion_group, criterion_main};
 use sea_query::*;
 
 #[derive(Debug, Iden)]

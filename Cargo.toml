@@ -29,6 +29,8 @@ path = "src/lib.rs"
 
 [dependencies]
 hex-simd = "0.8.0"
+# Newer wide releases require Rust 1.89.
+wide = { version = "=0.7.33", optional = true }
 sea-query-derive = { version = "1.0.0", path = "sea-query-derive", optional = true }
 sea-query-postgres-types = { version = "0.1.1", path = "sea-query-postgres-types", optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["std", "derive", "rc"] }
@@ -47,14 +49,16 @@ itoa = { version = "1.0.15", optional = true }
 
 [dev-dependencies]
 sea-query = { path = ".", features = ["tests-cfg"] }
-criterion = { version = "0.3" }
+criterion = { version = "0.8.2" }
+hotpath = { version = "0.31.3", features = ["criterion-0-8"] }
 pretty_assertions = { version = "1" }
 
 [features]
 # STUB
+hotpath-callgrind = ["hotpath/hotpath-callgrind"]
 audit = []
 backend-mysql = []
-backend-postgres = []
+backend-postgres = ["dep:wide"]
 backend-sqlite = []
 default = ["derive", "audit", "backend-mysql", "backend-postgres", "backend-sqlite", "itoa"]
 derive = ["sea-query-derive"]
@@ -169,3 +173,8 @@ harness = false
 [[bench]]
 name = "realistic"
 harness = false
+
+[[bench]]
+name = "postgres_escape"
+harness = false
+required-features = ["backend-postgres"]
