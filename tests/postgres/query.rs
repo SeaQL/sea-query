@@ -2562,3 +2562,35 @@ fn test_pgvector_select() {
         r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
     );
 }
+
+#[test]
+fn select_array_agg_order_by() {
+    let query = Query::select()
+        .expr(
+            PgFunc::array_agg(Expr::col(Char::Character))
+                .order_by(Expr::col(Char::Id), Order::Desc),
+        )
+        .from(Char::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT ARRAY_AGG("character" ORDER BY "id" DESC) FROM "character""#
+    );
+}
+
+#[test]
+fn select_audit_subquery_in_aggregate_order_by() {
+    let query = Query::select()
+        .expr(PgFunc::array_agg(Expr::col(Char::Character)).order_by(
+            Expr::exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()),
+            Order::Asc,
+        ))
+        .from(Char::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [Glyph::Table.into_iden(), Char::Table.into_iden()]
+    );
+}
