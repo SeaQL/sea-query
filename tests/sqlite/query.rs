@@ -1898,8 +1898,7 @@ fn recursive_with_multiple_ctes() {
 }
 
 #[test]
-#[cfg(not(feature = "option-sqlite-aggregate-order-by"))]
-fn select_group_concat() {
+fn select_group_concat_order_by() {
     let query = Query::select()
         .expr(
             Func::group_concat(Expr::col(Char::Character), ", ")
@@ -1910,6 +1909,6 @@ fn select_group_concat() {
 
     assert_eq!(
         query.to_string(SqliteQueryBuilder),
-        r#"SELECT GROUP_CONCAT("character", ', ') FROM "character""#
+        r#"SELECT GROUP_CONCAT("character", ', ' ORDER BY "id" DESC) FROM "character""#
     );
 }

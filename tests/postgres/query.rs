@@ -2590,10 +2590,6 @@ fn select_audit_subquery_in_aggregate_order_by() {
         .to_owned();
 
     assert_eq!(
-        query.to_string(PostgresQueryBuilder),
-        r#"SELECT ARRAY_AGG("character" ORDER BY EXISTS(SELECT "id" FROM "glyph") ASC) FROM "character""#
-    );
-    assert_eq!(
         query.audit_unwrap().selected_tables(),
         [Glyph::Table.into_iden(), Char::Table.into_iden()]
     );

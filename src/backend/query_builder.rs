@@ -774,7 +774,7 @@ pub trait QueryBuilder:
                 Func::Random => self.random_function(),
                 Func::Round => "ROUND",
                 Func::Md5 => "MD5",
-                Func::GroupConcat(_) => "GROUP_CONCAT",
+                Func::GroupConcat { .. } => "GROUP_CONCAT",
                 #[cfg(feature = "backend-postgres")]
                 Func::PgFunction(_) => unimplemented!(),
             })
@@ -784,7 +784,7 @@ pub trait QueryBuilder:
 
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
-        if let Func::GroupConcat(separator) = &func.func {
+        if let Func::GroupConcat { separator } = &func.func {
             self.prepare_group_concat_arguments(func, separator, sql);
         } else {
             self.prepare_function_argument_list(func, sql);
@@ -837,8 +837,7 @@ pub trait QueryBuilder:
         );
     }
 
-    /// Translate the arguments of [`Func::GroupConcat`], without parentheses:
-    /// `x, ',' ORDER BY y`.
+    /// Render [`Func::GroupConcat`] arguments using the PostgreSQL and SQLite syntax.
     fn prepare_group_concat_arguments(
         &self,
         func: &FunctionCall,

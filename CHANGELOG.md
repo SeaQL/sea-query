@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `IndexColumn::nulls_first` and `IndexColumn::nulls_last` to set `NULLS FIRST` / `NULLS LAST` on index columns (Postgres only; other backends ignore it) (#1128).
 - PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `(i32, i32)`, or `(Expr, Expr)` arguments (#1134).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
-- Add `Func::group_concat`, rendered as `GROUP_CONCAT` in MySQL and SQLite and `STRING_AGG` in PostgreSQL, and `FunctionCall::order_by` for ordering within an aggregate; for SQLite (3.44+) the ordering needs the `option-sqlite-aggregate-order-by` feature (#1126).
+- Add `Func::group_concat` and `FunctionCall::order_by` (#1126).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 
 ### Performance
