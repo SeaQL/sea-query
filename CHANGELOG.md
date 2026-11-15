@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
 - Add `Func::group_concat` and `FunctionCall::order_by` (#1126).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
+- sea_query_sqlx: Support Jiff (#1113).
 
 ### Performance
 

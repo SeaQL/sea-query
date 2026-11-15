@@ -134,28 +134,24 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                     args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDate(_) => {
-                    return Err(IntoArgumentsError::Unsupported(
-                        "SQLx 0.9 does not support Jiff arguments for Postgres yet",
-                    ));
+                Value::JiffDate(j) => {
+                    args.add(j.map(jiff_sqlx::Date::from))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTime(_) => {
-                    return Err(IntoArgumentsError::Unsupported(
-                        "SQLx 0.9 does not support Jiff arguments for Postgres yet",
-                    ));
+                Value::JiffTime(j) => {
+                    args.add(j.map(jiff_sqlx::Time::from))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDateTime(_) => {
-                    return Err(IntoArgumentsError::Unsupported(
-                        "SQLx 0.9 does not support Jiff arguments for Postgres yet",
-                    ));
+                Value::JiffDateTime(j) => {
+                    args.add(j.map(|j| jiff_sqlx::DateTime::from(*j)))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTimestamp(_) => {
-                    return Err(IntoArgumentsError::Unsupported(
-                        "SQLx 0.9 does not support Jiff arguments for Postgres yet",
-                    ));
+                Value::JiffTimestamp(j) => {
+                    args.add(j.map(|j| jiff_sqlx::Timestamp::from(*j)))
+                        .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
@@ -347,27 +343,47 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                         }
                         #[cfg(feature = "with-jiff")]
                         ArrayType::JiffDate => {
-                            return Err(IntoArgumentsError::Unsupported(
-                                "SQLx 0.9 does not support Jiff array arguments for Postgres yet",
-                            ));
+                            let value = array_values::<jiff::civil::Date>(v, "JiffDate")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx::Date::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
                         #[cfg(feature = "with-jiff")]
                         ArrayType::JiffTime => {
-                            return Err(IntoArgumentsError::Unsupported(
-                                "SQLx 0.9 does not support Jiff array arguments for Postgres yet",
-                            ));
+                            let value = array_values::<jiff::civil::Time>(v, "JiffTime")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx::Time::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
                         #[cfg(feature = "with-jiff")]
                         ArrayType::JiffDateTime => {
-                            return Err(IntoArgumentsError::Unsupported(
-                                "SQLx 0.9 does not support Jiff array arguments for Postgres yet",
-                            ));
+                            let value = array_values::<jiff::civil::DateTime>(v, "JiffDateTime")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx::DateTime::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
                         #[cfg(feature = "with-jiff")]
                         ArrayType::JiffTimestamp => {
-                            return Err(IntoArgumentsError::Unsupported(
-                                "SQLx 0.9 does not support Jiff array arguments for Postgres yet",
-                            ));
+                            let value = array_values::<jiff::Timestamp>(v, "JiffTimestamp")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx::Timestamp::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
                         #[cfg(feature = "with-uuid")]
                         ArrayType::Uuid => {
