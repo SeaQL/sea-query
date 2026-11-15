@@ -1,4 +1,5 @@
 use super::*;
+use crate::backend::query_builder::{prepare_function_argument_list, prepare_function_order_by};
 use crate::extension::mysql::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
@@ -291,16 +292,23 @@ impl QueryBuilder for MysqlQueryBuilder {
         "RAND"
     }
 
-    fn prepare_group_concat_arguments(
-        &self,
-        func: &FunctionCall,
-        separator: &str,
-        sql: &mut impl SqlWriter,
-    ) {
-        self.prepare_function_argument_list(func, sql);
-        self.prepare_function_order_by(func, sql);
-        sql.write_str(" SEPARATOR ").unwrap();
-        self.prepare_constant(&separator.into(), sql);
+    fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
+        sql.write_str("(").unwrap();
+        prepare_function_argument_list(self, func, sql);
+        prepare_function_order_by(self, &func.order_by, sql);
+
+        if let Func::GroupConcat { separator } = &func.func {
+            sql.write_str(" SEPARATOR ").unwrap();
+            self.prepare_constant(&separator.into(), sql);
+        }
+
+        sql.write_str(")").unwrap();
+
+        if let Some(filter) = &func.filter {
+            sql.write_str(" FILTER (WHERE ").unwrap();
+            self.prepare_condition_where(filter, sql);
+            sql.write_str(")").unwrap();
+        }
     }
 
     fn lock_phrase(&self, lock_type: LockType) -> &'static str {

@@ -4,6 +4,49 @@ use crate::{utils::JoinWrite, *};
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
+pub(super) fn prepare_function_argument_list(
+    query_builder: &impl QueryBuilder,
+    func: &FunctionCall,
+    sql: &mut impl SqlWriter,
+) {
+    JoinWrite {
+        buf: sql,
+        items: func.args.iter().zip(func.mods.iter()),
+        at_first: |_| Ok(()),
+        r#do: |sql, (arg, modifier)| {
+            if modifier.distinct {
+                sql.write_str("DISTINCT ")?;
+            }
+            query_builder.prepare_expr(arg, sql);
+            Ok(())
+        },
+        join: |sql| sql.write_str(", "),
+        at_last: |_| Ok(()),
+    }
+    .exec()
+    .unwrap();
+}
+
+pub(super) fn prepare_function_order_by(
+    query_builder: &impl QueryBuilder,
+    orders: &[OrderExpr],
+    sql: &mut impl SqlWriter,
+) {
+    JoinWrite {
+        buf: sql,
+        items: orders.iter(),
+        at_first: |sql| sql.write_str(" ORDER BY "),
+        r#do: |sql, expr| {
+            query_builder.prepare_order_expr(expr, sql);
+            Ok(())
+        },
+        join: |sql| sql.write_str(", "),
+        at_last: |_| Ok(()),
+    }
+    .exec()
+    .unwrap();
+}
+
 pub trait QueryBuilder:
     QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider + Sized
 {
@@ -784,12 +827,14 @@ pub trait QueryBuilder:
 
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
+        prepare_function_argument_list(self, func, sql);
+
         if let Func::GroupConcat { separator } = &func.func {
-            self.prepare_group_concat_arguments(func, separator, sql);
-        } else {
-            self.prepare_function_argument_list(func, sql);
-            self.prepare_function_order_by(func, sql);
+            sql.write_str(", ").unwrap();
+            self.prepare_constant(&separator.into(), sql);
         }
+
+        prepare_function_order_by(self, &func.order_by, sql);
         sql.write_str(")").unwrap();
 
         if let Some(filter) = &func.filter {
@@ -797,57 +842,6 @@ pub trait QueryBuilder:
             self.prepare_condition_where(filter, sql);
             sql.write_str(")").unwrap();
         }
-    }
-
-    /// Translate the arguments of a [`FunctionCall`], without parentheses.
-    fn prepare_function_argument_list(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
-        let mut args = func.args.iter().zip(func.mods.iter());
-
-        if let Some((arg, modifier)) = args.next() {
-            if modifier.distinct {
-                sql.write_str("DISTINCT ").unwrap();
-            }
-            self.prepare_expr(arg, sql);
-        }
-
-        for (arg, modifier) in args {
-            sql.write_str(", ").unwrap();
-            if modifier.distinct {
-                sql.write_str("DISTINCT ").unwrap();
-            }
-            self.prepare_expr(arg, sql);
-        }
-    }
-
-    /// Translate the `ORDER BY` within the parentheses of a [`FunctionCall`].
-    fn prepare_function_order_by(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
-        let mut orders = func.order_by.iter();
-        join_io!(
-            orders,
-            expr,
-            first {
-                sql.write_str(" ORDER BY ").unwrap();
-            },
-            join {
-                sql.write_str(", ").unwrap();
-            },
-            do {
-                self.prepare_order_expr(expr, sql);
-            }
-        );
-    }
-
-    /// Render [`Func::GroupConcat`] arguments using the PostgreSQL and SQLite syntax.
-    fn prepare_group_concat_arguments(
-        &self,
-        func: &FunctionCall,
-        separator: &str,
-        sql: &mut impl SqlWriter,
-    ) {
-        self.prepare_function_argument_list(func, sql);
-        sql.write_str(", ").unwrap();
-        self.prepare_constant(&separator.into(), sql);
-        self.prepare_function_order_by(func, sql);
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
