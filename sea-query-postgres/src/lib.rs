@@ -132,7 +132,7 @@ impl ToSql for PostgresValue {
             Value::BigDecimal(Some(v)) => {
                 use bigdecimal::ToPrimitive;
                 v.to_f64()
-                    .expect("Fail to convert bigdecimal as f64")
+                    .ok_or("BigDecimal cannot be converted to f64")?
                     .to_sql(ty, out)
             }
             #[cfg(feature = "with-uuid")]
@@ -192,76 +192,64 @@ mod bigdecimal_numeric {
     const NEGATIVE: u16 = 0x4000;
     /// `NUMERIC_DSCALE_MAX`: the most fraction digits a `numeric` keeps.
     const DSCALE_MAX: i64 = 0x3FFF;
-    /// The most digits a `numeric` has before the decimal point.
-    const INTEGER_DIGITS_MAX: i64 = 131072;
 
     /// Writes `value` in the layout of PostgreSQL's `numeric_send`: number of base-10000 digits,
-    /// weight of the first digit, sign, display scale, then the digits. A negative scale (`1E+3`)
-    /// is written as the equivalent integer with scale 0.
+    /// weight of the first digit, sign, display scale, then the digits.
     pub(crate) fn to_sql(
         value: &BigDecimal,
         out: &mut BytesMut,
     ) -> Result<(), Box<dyn Error + Sync + Send>> {
-        let (integer, scale) = value.as_bigint_and_exponent();
-        let (sign, magnitude) = integer.into_parts();
-        let mut decimal = magnitude.to_str_radix(10);
-        if scale < -INTEGER_DIGITS_MAX {
-            return Err(format!("numeric exponent {} is out of range", -scale).into());
+        // the value is `integer * 10^-exponent`
+        let (integer, exponent) = value.as_bigint_and_exponent();
+        let (sign, decimal) = integer.to_radix_be(10);
+        if sign == Sign::NoSign {
+            // zero has no digits, and its scale only sets how many zeros are printed
+            out.put_u16(0);
+            out.put_i16(0);
+            out.put_u16(POSITIVE);
+            out.put_u16(u16::try_from(exponent.clamp(0, DSCALE_MAX))?);
+            return Ok(());
         }
-        let scale = if scale < 0 {
-            decimal.extend(std::iter::repeat_n('0', usize::try_from(-scale)?));
-            0
-        } else {
-            scale
-        };
+        let scale = exponent.max(0);
         if scale > DSCALE_MAX {
             return Err(
                 format!("numeric scale {scale} is out of range (at most {DSCALE_MAX})").into(),
             );
         }
-        let fraction = usize::try_from(scale)?;
-        // whole groups of four on both sides of the point
-        let mut digits = String::new();
-        let integer_len = decimal.len().saturating_sub(fraction);
-        digits.extend(std::iter::repeat_n('0', (4 - integer_len % 4) % 4));
-        digits.extend(std::iter::repeat_n(
-            '0',
-            fraction.saturating_sub(decimal.len()),
-        ));
-        digits.push_str(&decimal);
-        digits.extend(std::iter::repeat_n('0', (4 - fraction % 4) % 4));
-        let groups: Vec<i16> = digits
-            .as_bytes()
-            .chunks(4)
-            .map(|group| group.iter().fold(0i16, |n, d| n * 10 + i16::from(d - b'0')))
-            .collect();
-        let integer_groups = i64::try_from(integer_len.div_ceil(4))?;
-        let leading = groups.iter().take_while(|g| **g == 0).count();
-        let trailing = groups[leading..]
-            .iter()
-            .rev()
-            .take_while(|g| **g == 0)
-            .count();
-        let groups = &groups[leading..groups.len() - trailing];
-        let (weight, sign) = if groups.is_empty() {
-            (0, POSITIVE)
-        } else {
-            let weight = integer_groups - 1 - i64::try_from(leading)?;
-            (
-                weight,
-                if sign == Sign::Minus {
-                    NEGATIVE
-                } else {
-                    POSITIVE
-                },
-            )
+        // power of ten of the first decimal digit
+        let top = i64::try_from(decimal.len())?
+            .checked_sub(exponent)
+            .and_then(|n| n.checked_sub(1))
+            .ok_or("numeric value is out of range")?;
+        let weight =
+            i16::try_from(top.div_euclid(4)).map_err(|_| "numeric value is out of range")?;
+        // the first base-10000 digit holds the top 1 to 4 decimal digits, the rest hold 4 each
+        let first = usize::try_from(top.rem_euclid(4))? + 1;
+        let (head, tail) = decimal.split_at(first.min(decimal.len()));
+        let group = |chunk: &[u8], width: usize| {
+            chunk
+                .iter()
+                .copied()
+                .chain(std::iter::repeat(0))
+                .take(width)
+                .fold(0i16, |n, d| n * 10 + i16::from(d))
         };
-        out.put_i16(i16::try_from(groups.len()).map_err(|_| "numeric value has too many digits")?);
-        out.put_i16(i16::try_from(weight).map_err(|_| "numeric value is out of range")?);
-        out.put_u16(sign);
+        let mut digits = Vec::with_capacity(decimal.len() / 4 + 2);
+        digits.push(group(head, first));
+        digits.extend(tail.chunks(4).map(|chunk| group(chunk, 4)));
+        while digits.last() == Some(&0) {
+            digits.pop();
+        }
+        out.put_u16(u16::try_from(digits.len()).map_err(|_| "numeric value has too many digits")?);
+        out.put_i16(weight);
+        out.put_u16(if sign == Sign::Minus {
+            NEGATIVE
+        } else {
+            POSITIVE
+        });
         out.put_u16(u16::try_from(scale)?);
-        for group in groups {
-            out.put_i16(*group);
+        for digit in digits {
+            out.put_i16(digit);
         }
         Ok(())
     }
@@ -270,41 +258,78 @@ mod bigdecimal_numeric {
     mod tests {
         use std::str::FromStr;
 
+        use bigdecimal::num_bigint::BigInt;
+
         use super::*;
 
-        fn encode(text: &str) -> Vec<i16> {
+        fn encode(value: &BigDecimal) -> Vec<u16> {
             let mut out = BytesMut::new();
-            to_sql(&BigDecimal::from_str(text).unwrap(), &mut out).unwrap();
+            to_sql(value, &mut out).unwrap();
             out.chunks(2)
-                .map(|b| i16::from_be_bytes([b[0], b[1]]))
+                .map(|b| u16::from_be_bytes([b[0], b[1]]))
+                .collect()
+        }
+
+        fn encode_str(text: &str) -> Vec<i16> {
+            encode(&BigDecimal::from_str(text).unwrap())
+                .into_iter()
+                .map(|n| n as i16)
                 .collect()
         }
 
         #[test]
         fn numeric_send_layout() {
             // ndigits, weight, sign, dscale, digits
-            assert_eq!(encode("0"), [0, 0, 0, 0]);
-            assert_eq!(encode("0.00"), [0, 0, 0, 2]);
-            assert_eq!(encode("12.50"), [2, 0, 0, 2, 12, 5000]);
-            assert_eq!(encode("-12.5"), [2, 0, 0x4000, 1, 12, 5000]);
-            assert_eq!(encode("10000"), [1, 1, 0, 0, 1]);
-            assert_eq!(encode("1E+3"), [1, 0, 0, 0, 1000]);
-            assert_eq!(encode("0.00012"), [2, -1, 0, 5, 1, 2000]);
+            assert_eq!(encode_str("0"), [0, 0, 0, 0]);
+            assert_eq!(encode_str("0.00"), [0, 0, 0, 2]);
+            assert_eq!(encode_str("-0.00"), [0, 0, 0, 2]);
+            assert_eq!(encode_str("12.50"), [2, 0, 0, 2, 12, 5000]);
+            assert_eq!(encode_str("-12.5"), [2, 0, 0x4000, 1, 12, 5000]);
+            assert_eq!(encode_str("10000"), [1, 1, 0, 0, 1]);
+            assert_eq!(encode_str("1E+3"), [1, 0, 0, 0, 1000]);
+            assert_eq!(encode_str("12E+4"), [1, 1, 0, 0, 12]);
+            assert_eq!(encode_str("0.00012"), [2, -1, 0, 5, 1, 2000]);
+            assert_eq!(encode_str("0.000012"), [1, -2, 0, 6, 1200]);
             assert_eq!(
-                encode("123456789012345678.0123456789"),
+                encode_str("123456789012345678.0123456789"),
                 [8, 4, 0, 10, 12, 3456, 7890, 1234, 5678, 123, 4567, 8900]
             );
         }
 
         #[test]
+        fn zero_with_any_exponent() {
+            assert_eq!(encode_str("0E+200000"), [0, 0, 0, 0]);
+            assert_eq!(encode_str("0E-20000"), [0, 0, 0, 0x3FFF]);
+            for exponent in [i64::MIN, i64::MAX] {
+                let zero = BigDecimal::new(BigInt::from(0), exponent);
+                assert_eq!(encode(&zero)[..3], [0, 0, 0]);
+            }
+        }
+
+        #[test]
         fn out_of_range() {
-            for text in ["1E+131073", "1E-16384"] {
+            for text in ["1E+131072", "1E-16384"] {
                 let value = BigDecimal::from_str(text).unwrap();
                 assert!(to_sql(&value, &mut BytesMut::new()).is_err(), "{text}");
             }
-            let mut out = BytesMut::new();
-            to_sql(&BigDecimal::from_str("1E-16383").unwrap(), &mut out).unwrap();
-            to_sql(&BigDecimal::from_str("1E+131071").unwrap(), &mut out).unwrap();
+            for exponent in [i64::MIN, i64::MAX] {
+                let value = BigDecimal::new(BigInt::from(1), exponent);
+                assert!(to_sql(&value, &mut BytesMut::new()).is_err(), "{exponent}");
+            }
+            assert_eq!(encode_str("1E-16383"), [1, -4096, 0, 16383, 10]);
+            assert_eq!(encode_str("1E+131071"), [1, 32767, 0, 0, 1000]);
+        }
+
+        #[test]
+        fn more_digits_than_i16() {
+            // the widest numeric: 131072 digits before the point and 16383 after
+            let digits = "1".repeat(131072 + 16383);
+            let value = BigDecimal::new(BigInt::from_str(&digits).unwrap(), 16383);
+            let encoded = encode(&value);
+            assert_eq!(encoded[..4], [36864, 32767, 0, 16383]);
+            assert_eq!(encoded.len(), 4 + 36864);
+            assert_eq!(encoded[4..6], [1111, 1111]);
+            assert_eq!(*encoded.last().unwrap(), 1110);
         }
 
         #[test]

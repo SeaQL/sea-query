@@ -4,7 +4,8 @@ use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
 use sea_query::{
-    ColumnDef, ColumnType, Expr, ExprTrait, Iden, Order, PostgresQueryBuilder, Query, Table,
+    ArrayType, ColumnDef, ColumnType, Expr, ExprTrait, Iden, Order, PostgresQueryBuilder, Query,
+    Table, Value,
 };
 use sea_query_postgres::PostgresBinder;
 use time::{
@@ -40,6 +41,7 @@ fn main() {
             .col(ColumnDef::new(Document::Decimal).decimal())
             .col(ColumnDef::new(Document::Array).array(ColumnType::Integer))
             .col(ColumnDef::new(Document::BigDecimal).decimal())
+            .col(ColumnDef::new(Document::BigDecimalArray).array(ColumnType::Decimal(None)))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
@@ -171,6 +173,57 @@ fn main() {
     let big_decimal: String = row.get(0);
     println!("Select big decimal from document: {big_decimal}\n");
     assert_eq!(big_decimal, digits);
+
+    // BigDecimal in a numeric[] with NULL elements
+
+    let elements = [Some("1.50"), None, Some("-0.000012"), Some("0.00")];
+    let array = Value::Array(
+        ArrayType::BigDecimal,
+        Some(Box::new(
+            elements
+                .iter()
+                .map(|e| Value::BigDecimal(e.map(|e| Box::new(e.parse().unwrap()))))
+                .collect(),
+        )),
+    );
+    let (sql, values) = Query::insert()
+        .into_table(Document::Table)
+        .columns([Document::BigDecimalArray])
+        .values_panic([array.into()])
+        .build_postgres(PostgresQueryBuilder);
+    client.execute(sql.as_str(), &values.as_params()).unwrap();
+
+    let (sql, values) = Query::select()
+        .expr(Expr::col(Document::BigDecimalArray).cast_as("text"))
+        .from(Document::Table)
+        .and_where(Expr::col(Document::BigDecimalArray).is_not_null())
+        .build_postgres(PostgresQueryBuilder);
+    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
+    let big_decimal_array: String = row.get(0);
+    println!("Select big decimal array from document: {big_decimal_array}\n");
+    assert_eq!(big_decimal_array, "{1.50,NULL,-0.000012,0.00}");
+
+    // BigDecimal round trip through the server's numeric parser
+
+    for (text, expected) in [
+        ("1E+5", "100000"),
+        ("-12E+4", "-120000"),
+        ("0E+200000", "0"),
+        ("0.0001", "0.0001"),
+        ("12345.6789", "12345.6789"),
+        ("-99999999.99999999", "-99999999.99999999"),
+    ] {
+        let (sql, values) = Query::select()
+            .expr(
+                Expr::val(text.parse::<BigDecimal>().unwrap())
+                    .cast_as("numeric")
+                    .cast_as("text"),
+            )
+            .build_postgres(PostgresQueryBuilder);
+        let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
+        let round_trip: String = row.get(0);
+        assert_eq!(round_trip, expected, "{text}");
+    }
 }
 
 #[derive(Iden)]
@@ -184,6 +237,7 @@ enum Document {
     Decimal,
     Array,
     BigDecimal,
+    BigDecimalArray,
 }
 
 #[derive(Debug)]
