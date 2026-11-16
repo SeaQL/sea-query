@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `Func::group_concat` and `FunctionCall::order_by` (#1126).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 - sea_query_sqlx: Support Jiff (#1113).
+- sea_query_sqlx: Bind PostgreSQL range values (`Value::Range`, and arrays of ranges) with SQLx behind a new `postgres-range` feature. `numrange` bounds require `with-bigdecimal` or `with-rust_decimal`. The range type of an array is taken from its first non-NULL element; empty and all-NULL range arrays can't be bound with SQLx.
+- `Vec<RangeType>` can be converted into `Value::Array`.
+- Export `RangeBound` from the prelude next to `RangeType`.
 
 ### Performance
 
@@ -35,6 +38,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
 - Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
+- Fix inverted inclusive / exclusive brackets when rendering `RangeType` literals, e.g. `Inclusive(1)..Exclusive(10)` now renders as `'[1,10)'`.
+- Fix `sea-query-sqlx` and `sea-query-postgres` failing to compile when the `postgres-range` feature of `sea-query` is enabled, with or without their own `postgres-range` feature. Without it, range values are rejected with an error.
+- sea_query_postgres: Use `int4range` / `numrange` parameter types for `Int4Range` / `NumRange` values instead of always `int8range`, and infer the type of range arrays from their first non-NULL element (`unknown` for NULL, empty and all-NULL values).
+- sea_query_postgres: Encode `numrange` bounds with `rust_decimal`'s `numeric` encoder instead of sending `float8`, which PostgreSQL rejected. `numrange` values now require the `with-rust_decimal` feature.
+- sea_query_postgres: Encode `(,)` ranges (both bounds unbounded) as unbounded instead of `empty`, and reject ranges whose variant doesn't match the parameter type.
+- `RangeType::empty()` follows PostgreSQL: `(,)` is no longer reported as empty, while ranges like `[1,1)` are.
 - Fix PostgreSQL index columns rendering the operator class after `ASC` / `DESC`; it now comes first, as in `col opclass DESC` (#1128).
 
 ## 1.0.2 - 2026-08-12
