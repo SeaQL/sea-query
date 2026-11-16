@@ -1,5 +1,8 @@
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "with-bigdecimal")]
+mod numeric;
+
 use std::error::Error;
 
 use bytes::BytesMut;
@@ -125,15 +128,19 @@ impl ToSql for PostgresValue {
             Value::BigDecimal(None) => Ok(IsNull::Yes),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(Some(v)) if *ty == Type::NUMERIC => {
-                bigdecimal_numeric::to_sql(v, out)?;
+                numeric::to_sql(v, out)?;
                 Ok(IsNull::No)
             }
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => {
+            Value::BigDecimal(Some(v)) if *ty == Type::FLOAT8 => {
                 use bigdecimal::ToPrimitive;
                 v.to_f64()
                     .ok_or("BigDecimal cannot be converted to f64")?
                     .to_sql(ty, out)
+            }
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(_)) => {
+                Err(postgres_types::WrongType::new::<bigdecimal::BigDecimal>(ty.clone()).into())
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
@@ -175,192 +182,6 @@ impl ToSql for PostgresValue {
     }
 
     to_sql_checked!();
-}
-
-/// Binary encoding of `BigDecimal` for `NUMERIC` parameters, so the value reaches the server
-/// exactly: all digits and the scale are kept (`1.2300` stays `1.2300`), which an `f64` cannot do.
-#[cfg(feature = "with-bigdecimal")]
-mod bigdecimal_numeric {
-    use std::error::Error;
-
-    use bigdecimal::BigDecimal;
-    use bigdecimal::num_bigint::Sign;
-    use bytes::{BufMut, BytesMut};
-
-    /// `NUMERIC_POS` and `NUMERIC_NEG` of PostgreSQL's `numeric.c`.
-    const POSITIVE: u16 = 0x0000;
-    const NEGATIVE: u16 = 0x4000;
-    /// `NUMERIC_DSCALE_MAX`: the most fraction digits a `numeric` keeps.
-    const DSCALE_MAX: i64 = 0x3FFF;
-
-    /// Writes `value` in the layout of PostgreSQL's `numeric_send`: number of base-10000 digits,
-    /// weight of the first digit, sign, display scale, then the digits.
-    pub(crate) fn to_sql(
-        value: &BigDecimal,
-        out: &mut BytesMut,
-    ) -> Result<(), Box<dyn Error + Sync + Send>> {
-        // the value is `integer * 10^-exponent`
-        let (integer, exponent) = value.as_bigint_and_exponent();
-        let (sign, decimal) = integer.to_radix_be(10);
-        if sign == Sign::NoSign {
-            // zero has no digits, and its scale only sets how many zeros are printed
-            out.put_u16(0);
-            out.put_i16(0);
-            out.put_u16(POSITIVE);
-            out.put_u16(u16::try_from(exponent.clamp(0, DSCALE_MAX))?);
-            return Ok(());
-        }
-        let scale = exponent.max(0);
-        if scale > DSCALE_MAX {
-            return Err(
-                format!("numeric scale {scale} is out of range (at most {DSCALE_MAX})").into(),
-            );
-        }
-        // power of ten of the first decimal digit
-        let top = i64::try_from(decimal.len())?
-            .checked_sub(exponent)
-            .and_then(|n| n.checked_sub(1))
-            .ok_or("numeric value is out of range")?;
-        let weight =
-            i16::try_from(top.div_euclid(4)).map_err(|_| "numeric value is out of range")?;
-        // the first base-10000 digit holds the top 1 to 4 decimal digits, the rest hold 4 each
-        let first = usize::try_from(top.rem_euclid(4))? + 1;
-        let (head, tail) = decimal.split_at(first.min(decimal.len()));
-        let group = |chunk: &[u8], width: usize| {
-            chunk
-                .iter()
-                .copied()
-                .chain(std::iter::repeat(0))
-                .take(width)
-                .fold(0i16, |n, d| n * 10 + i16::from(d))
-        };
-        let mut digits = Vec::with_capacity(decimal.len() / 4 + 2);
-        digits.push(group(head, first));
-        digits.extend(tail.chunks(4).map(|chunk| group(chunk, 4)));
-        while digits.last() == Some(&0) {
-            digits.pop();
-        }
-        out.put_u16(u16::try_from(digits.len()).map_err(|_| "numeric value has too many digits")?);
-        out.put_i16(weight);
-        out.put_u16(if sign == Sign::Minus {
-            NEGATIVE
-        } else {
-            POSITIVE
-        });
-        out.put_u16(u16::try_from(scale)?);
-        for digit in digits {
-            out.put_i16(digit);
-        }
-        Ok(())
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use std::str::FromStr;
-
-        use bigdecimal::num_bigint::BigInt;
-
-        use super::*;
-
-        fn encode(value: &BigDecimal) -> Vec<u16> {
-            let mut out = BytesMut::new();
-            to_sql(value, &mut out).unwrap();
-            out.chunks(2)
-                .map(|b| u16::from_be_bytes([b[0], b[1]]))
-                .collect()
-        }
-
-        fn encode_str(text: &str) -> Vec<i16> {
-            encode(&BigDecimal::from_str(text).unwrap())
-                .into_iter()
-                .map(|n| n as i16)
-                .collect()
-        }
-
-        #[test]
-        fn numeric_send_layout() {
-            // ndigits, weight, sign, dscale, digits
-            assert_eq!(encode_str("0"), [0, 0, 0, 0]);
-            assert_eq!(encode_str("0.00"), [0, 0, 0, 2]);
-            assert_eq!(encode_str("-0.00"), [0, 0, 0, 2]);
-            assert_eq!(encode_str("12.50"), [2, 0, 0, 2, 12, 5000]);
-            assert_eq!(encode_str("-12.5"), [2, 0, 0x4000, 1, 12, 5000]);
-            assert_eq!(encode_str("10000"), [1, 1, 0, 0, 1]);
-            assert_eq!(encode_str("1E+3"), [1, 0, 0, 0, 1000]);
-            assert_eq!(encode_str("12E+4"), [1, 1, 0, 0, 12]);
-            assert_eq!(encode_str("0.00012"), [2, -1, 0, 5, 1, 2000]);
-            assert_eq!(encode_str("0.000012"), [1, -2, 0, 6, 1200]);
-            assert_eq!(
-                encode_str("123456789012345678.0123456789"),
-                [8, 4, 0, 10, 12, 3456, 7890, 1234, 5678, 123, 4567, 8900]
-            );
-        }
-
-        #[test]
-        fn zero_with_any_exponent() {
-            assert_eq!(encode_str("0E+200000"), [0, 0, 0, 0]);
-            assert_eq!(encode_str("0E-20000"), [0, 0, 0, 0x3FFF]);
-            for exponent in [i64::MIN, i64::MAX] {
-                let zero = BigDecimal::new(BigInt::from(0), exponent);
-                assert_eq!(encode(&zero)[..3], [0, 0, 0]);
-            }
-        }
-
-        #[test]
-        fn out_of_range() {
-            for text in ["1E+131072", "1E-16384"] {
-                let value = BigDecimal::from_str(text).unwrap();
-                assert!(to_sql(&value, &mut BytesMut::new()).is_err(), "{text}");
-            }
-            for exponent in [i64::MIN, i64::MAX] {
-                let value = BigDecimal::new(BigInt::from(1), exponent);
-                assert!(to_sql(&value, &mut BytesMut::new()).is_err(), "{exponent}");
-            }
-            assert_eq!(encode_str("1E-16383"), [1, -4096, 0, 16383, 10]);
-            assert_eq!(encode_str("1E+131071"), [1, 32767, 0, 0, 1000]);
-        }
-
-        #[test]
-        fn more_digits_than_i16() {
-            // the widest numeric: 131072 digits before the point and 16383 after
-            let digits = "1".repeat(131072 + 16383);
-            let value = BigDecimal::new(BigInt::from_str(&digits).unwrap(), 16383);
-            let encoded = encode(&value);
-            assert_eq!(encoded[..4], [36864, 32767, 0, 16383]);
-            assert_eq!(encoded.len(), 4 + 36864);
-            assert_eq!(encoded[4..6], [1111, 1111]);
-            assert_eq!(*encoded.last().unwrap(), 1110);
-        }
-
-        #[test]
-        fn bound_by_type() {
-            use crate::PostgresValue;
-            use postgres_types::{IsNull, ToSql, Type};
-            use sea_query::Value;
-
-            let value = BigDecimal::from_str("123456789012345678.0123456789").unwrap();
-            let bind = |value: Value, ty: &Type| {
-                let mut out = BytesMut::new();
-                let is_null = PostgresValue(value).to_sql(ty, &mut out).unwrap();
-                (matches!(is_null, IsNull::Yes), out.to_vec())
-            };
-
-            let mut expected = BytesMut::new();
-            to_sql(&value, &mut expected).unwrap();
-            assert_eq!(
-                bind(value.clone().into(), &Type::NUMERIC),
-                (false, expected.to_vec())
-            );
-            assert_eq!(
-                bind(Value::BigDecimal(None), &Type::NUMERIC),
-                (true, vec![])
-            );
-            // other parameter types keep the `f64` conversion
-            let value_f64 = bigdecimal::ToPrimitive::to_f64(&value).unwrap();
-            let (_, float) = bind(value.into(), &Type::FLOAT8);
-            assert_eq!(float, value_f64.to_be_bytes());
-        }
-    }
 }
 
 fn value_to_postgres_type(value: &Value) -> Type {

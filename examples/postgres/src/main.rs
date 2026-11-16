@@ -154,7 +154,7 @@ fn main() {
     }
     println!();
 
-    // BigDecimal: more digits than an f64 can hold
+    // BigDecimal
 
     let digits = "123456789012345678.0123456789";
     let (sql, values) = Query::insert()
@@ -171,10 +171,10 @@ fn main() {
         .build_postgres(PostgresQueryBuilder);
     let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
     let big_decimal: String = row.get(0);
-    println!("Select big decimal from document: {big_decimal}\n");
+    println!("Select BigDecimal from document: {big_decimal}\n");
     assert_eq!(big_decimal, digits);
 
-    // BigDecimal in a numeric[] with NULL elements
+    // BigDecimal arrays
 
     let elements = [Some("1.50"), None, Some("-0.000012"), Some("0.00")];
     let array = Value::Array(
@@ -200,10 +200,10 @@ fn main() {
         .build_postgres(PostgresQueryBuilder);
     let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
     let big_decimal_array: String = row.get(0);
-    println!("Select big decimal array from document: {big_decimal_array}\n");
+    println!("Select BigDecimal array from document: {big_decimal_array}\n");
     assert_eq!(big_decimal_array, "{1.50,NULL,-0.000012,0.00}");
 
-    // BigDecimal round trip through the server's numeric parser
+    // Numeric round trips
 
     for (text, expected) in [
         ("1E+5", "100000"),
