@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix MySQL column types for `jiff::civil::DateTime`: use `DATETIME` instead of `TIMESTAMP` to prevent unwanted time-zone conversions.
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
 - Fix PostgreSQL index columns rendering the operator class after `ASC` / `DESC`; it now comes first, as in `col opclass DESC` (#1128).
+- Fix PostgreSQL `ILIKE` and `NOT ILIKE` parentheses, which also broke `ESCAPE` (#776).
 
 ## 1.0.2 - 2026-08-12
 
