@@ -52,6 +52,16 @@ fn create_3() {
 }
 
 #[test]
+fn create_empty_enum() {
+    assert_eq!(
+        Type::create()
+            .as_enum("empty")
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "empty" AS ENUM ()"#,
+    );
+}
+
+#[test]
 fn create_4() {
     #[derive(Iden)]
     enum FontFamily {
@@ -95,6 +105,16 @@ fn create_6() {
             .fields([("inner", ColumnType::custom("inner_type"))])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "outer_type" AS ("inner" inner_type)"#,
+    );
+}
+
+#[test]
+fn create_empty_composite() {
+    assert_eq!(
+        Type::create()
+            .as_composite("empty")
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "empty" AS ()"#,
     );
 }
 

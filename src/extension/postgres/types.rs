@@ -66,7 +66,7 @@ pub enum TypeAlterOpt {
     Rename(DynIden),
     RenameValue(DynIden, DynIden),
     AddAttribute(CompositeFieldType),
-    DropAttribute(CompositeFieldType),
+    DropAttribute(DynIden),
 }
 
 #[derive(Debug, Clone)]
@@ -453,7 +453,7 @@ impl TypeAlterStatement {
         ))
     }
 
-    /// Add an attribute to a composite type
+    /// Set the attribute to add
     ///
     /// ```
     /// use sea_query::{extension::postgres::Type, tests_cfg::*, *};
@@ -473,7 +473,7 @@ impl TypeAlterStatement {
         }))
     }
 
-    /// Drop an attribute from a composite type
+    /// Set the attribute to drop
     ///
     /// ```
     /// use sea_query::{extension::postgres::Type, tests_cfg::*, *};
@@ -487,10 +487,7 @@ impl TypeAlterStatement {
     /// )
     /// ```
     pub fn drop_attribute(self, name: impl IntoIden) -> Self {
-        self.alter_option(TypeAlterOpt::DropAttribute(CompositeFieldType {
-            name: name.into_iden(),
-            col_type: ColumnType::Text,
-        }))
+        self.alter_option(TypeAlterOpt::DropAttribute(name.into_iden()))
     }
 
     fn alter_option(mut self, option: TypeAlterOpt) -> Self {

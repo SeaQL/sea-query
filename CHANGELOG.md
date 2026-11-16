@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add `TypeAlterStatement::add_value_if_not_exists`.
 - Add Postgres `PgFunc::set_config` (#1145).
+- Support creating PostgreSQL composite types https://github.com/SeaQL/sea-query/pull/1087
 - Add `IndexColumn::nulls_first` and `IndexColumn::nulls_last` to set `NULLS FIRST` / `NULLS LAST` on index columns (Postgres only; other backends ignore it) (#1128).
 - PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `(i32, i32)`, or `(Expr, Expr)` arguments (#1134).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixes
 
+- Fix invalid SQL when creating PostgreSQL enum types with no values https://github.com/SeaQL/sea-query/pull/1087
 - sea_query_postgres: Bind `BigDecimal` to `numeric` and `numeric[]` parameters (#1136).
 - Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
