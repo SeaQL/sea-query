@@ -1196,7 +1196,7 @@ fn select_ilike_escape() {
 }
 
 #[test]
-fn select_ilike_same_parentheses_as_like() {
+fn select_ilike_parentheses_follow_operator_precedence() {
     assert_eq!(
         Query::select()
             .column(Char::Character)
