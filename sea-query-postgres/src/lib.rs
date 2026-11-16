@@ -1,5 +1,8 @@
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "with-bigdecimal")]
+mod numeric;
+
 use std::error::Error;
 
 use bytes::BytesMut;
@@ -122,11 +125,22 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(v) => {
+            Value::BigDecimal(None) => Ok(IsNull::Yes),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(v)) if *ty == Type::NUMERIC => {
+                numeric::to_sql(v, out)?;
+                Ok(IsNull::No)
+            }
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(v)) if *ty == Type::FLOAT8 => {
                 use bigdecimal::ToPrimitive;
-                v.as_deref()
-                    .map(|v| v.to_f64().expect("Fail to convert bigdecimal as f64"))
+                v.to_f64()
+                    .ok_or("BigDecimal cannot be converted to f64")?
                     .to_sql(ty, out)
+            }
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(_)) => {
+                Err(postgres_types::WrongType::new::<bigdecimal::BigDecimal>(ty.clone()).into())
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
