@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `Func::group_concat` and `FunctionCall::order_by` (#1126).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 - sea_query_sqlx: Support Jiff (#1113).
+  MySQL does not support Jiff values. Binding them causes a runtime error.
 
 ### Performance
 
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).
 - Preserve NULL elements in PostgreSQL arrays bound with SQLx (#1116).
 - Stop ignoring errors from SQLx `Arguments::add`. `IntoArguments` now panics on these errors; use `TryFrom` or `TryInto` to handle them (#1116).
+- Fix MySQL column types for `jiff::civil::DateTime`: use `DATETIME` instead of `TIMESTAMP` to prevent unwanted time-zone conversions.
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
 - Fix PostgreSQL index columns rendering the operator class after `ASC` / `DESC`; it now comes first, as in `col opclass DESC` (#1128).
 

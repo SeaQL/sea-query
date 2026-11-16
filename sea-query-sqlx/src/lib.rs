@@ -7,17 +7,9 @@
 //! returns the query and a [`SqlxValues`] object, which can be directly passed to `sqlx`'s
 //! [`sqlx::query_with`][1] method.
 //!
+//! MySQL does not support Jiff values. Binding them causes a runtime error.
+//!
 //! [1]: ../sqlx/fn.query_with.html
-
-#[cfg(all(
-    any(feature = "sqlx-mysql", feature = "sqlx-any"),
-    feature = "with-jiff",
-    not(feature = "unimplemented-jiff-sqlx")
-))]
-const _: () = panic!(
-    "sea-query-sqlx does not support with-jiff together with sqlx-mysql/sqlx-any yet; \
-enable the `unimplemented-jiff-sqlx` feature to acknowledge the limitation"
-);
 
 #[cfg(feature = "sqlx-any")]
 mod sqlx_any;

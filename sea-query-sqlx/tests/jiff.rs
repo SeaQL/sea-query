@@ -36,3 +36,27 @@ fn postgres_jiff_arrays_reject_invalid_elements() {
         Err(IntoArgumentsError::InvalidArray { .. })
     ));
 }
+
+#[cfg(all(feature = "sqlx-mysql", feature = "with-jiff"))]
+#[test]
+fn mysql_rejects_jiff_arguments() {
+    use sea_query::{Value, Values};
+    use sea_query_sqlx::{IntoArgumentsError, SqlxValues};
+    use sqlx::mysql::MySqlArguments;
+
+    let date = jiff::civil::date(2024, 2, 29);
+    let values = [
+        date.into(),
+        date.at(1, 2, 3, 0).time().into(),
+        date.at(1, 2, 3, 0).into(),
+        jiff::Timestamp::UNIX_EPOCH.into(),
+        Value::JiffDate(None),
+        Value::JiffTime(None),
+        Value::JiffDateTime(None),
+        Value::JiffTimestamp(None),
+    ];
+    for value in values {
+        let result = MySqlArguments::try_from(SqlxValues(Values(vec![value])));
+        assert!(matches!(result, Err(IntoArgumentsError::Unsupported(_))));
+    }
+}

@@ -1,6 +1,21 @@
 use super::*;
 use pretty_assertions::assert_eq;
 
+#[cfg(feature = "with-jiff")]
+#[test]
+fn jiff_datetime_column() {
+    assert_eq!(
+        Table::create()
+            .table("event")
+            .col(ColumnDef::new_with_type(
+                "scheduled_at",
+                <jiff::civil::DateTime as ValueType>::column_type(),
+            ))
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `event` ( `scheduled_at` datetime )"
+    );
+}
+
 #[test]
 fn create_1() {
     assert_eq!(
