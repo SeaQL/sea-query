@@ -126,7 +126,7 @@ jobs:
       - run: cargo test --package sea-query-derive
 
   binder-build:
-    name: Build `sea-query-sqlx`
+    name: sea-query-sqlx
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -161,7 +161,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-jiff,postgres-array
 
   rusqlite-build:
-    name: Build `sea-query-rusqlite`
+    name: sea-query-rusqlite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -189,7 +189,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-vector
 
   postgres-build:
-    name: Build `sea-query-postgres`
+    name: sea-query-postgres
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -204,6 +204,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-postgres/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
+      - run: cargo test --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector --no-run
       - run: cargo test --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-json
@@ -261,6 +262,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,sqlx-any,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio --no-run
       - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-sqlite,sqlx-any,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
 
   mysql:
@@ -302,6 +304,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio --no-run
       - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
         env:
           DATABASE_URL: mysql://sea:sea@127.0.0.1/query
@@ -345,6 +348,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio --no-run
       - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-mysql,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,runtime-tokio
         env:
           DATABASE_URL: mysql://sea:sea@127.0.0.1/query
@@ -426,6 +430,7 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,runtime-tokio --no-run
       - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector,runtime-tokio
         env:
           DATABASE_URL: postgres://sea:sea@127.0.0.1/query
