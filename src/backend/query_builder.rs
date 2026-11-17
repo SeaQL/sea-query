@@ -1051,7 +1051,7 @@ pub trait QueryBuilder:
     fn prepare_join_on(&self, join_on: &JoinOn, sql: &mut impl SqlWriter) {
         match join_on {
             JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql),
-            JoinOn::Columns(_c) => unimplemented!(),
+            JoinOn::Columns(c) => self.prepare_using(c, sql),
         }
     }
 
@@ -1684,6 +1684,24 @@ pub trait QueryBuilder:
                 self.prepare_condition_where(c, sql);
             }
         }
+    }
+
+    fn prepare_using(&self, using: &[Expr], sql: &mut impl SqlWriter) {
+        sql.write_str(" USING (").unwrap();
+        JoinWrite {
+            buf: sql,
+            items: using,
+            at_first: |_| Ok(()),
+            r#do: |sql, expr| {
+                self.prepare_expr(expr, sql);
+                Ok(())
+            },
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
+        }
+        .exec()
+        .unwrap();
+        sql.write_str(")").unwrap();
     }
 
     #[doc(hidden)]
