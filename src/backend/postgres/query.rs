@@ -326,6 +326,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunc::AdvisoryXactLockShared => "PG_ADVISORY_XACT_LOCK_SHARED",
                     PgFunc::TryAdvisoryXactLock => "PG_TRY_ADVISORY_XACT_LOCK",
                     PgFunc::TryAdvisoryXactLockShared => "PG_TRY_ADVISORY_XACT_LOCK_SHARED",
+                    PgFunc::SetConfig => "SET_CONFIG",
                 })
                 .unwrap(),
             Func::GroupConcat { .. } => sql.write_str("STRING_AGG").unwrap(),

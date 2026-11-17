@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
+- Add Postgres `PgFunc::set_config` (#1139).
 - Add `IndexColumn::nulls_first` and `IndexColumn::nulls_last` to set `NULLS FIRST` / `NULLS LAST` on index columns (Postgres only; other backends ignore it) (#1128).
 - PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `(i32, i32)`, or `(Expr, Expr)` arguments (#1134).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
