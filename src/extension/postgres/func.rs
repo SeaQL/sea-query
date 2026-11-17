@@ -45,6 +45,7 @@ pub enum PgFunc {
     AdvisoryXactLockShared,
     TryAdvisoryXactLock,
     TryAdvisoryXactLockShared,
+    SetConfig,
 }
 
 impl From<PgFunc> for Func {
@@ -989,5 +990,43 @@ impl PgFunc {
         K: Into<PgAdvisoryLockKey>,
     {
         key.into().call(PgFunc::TryAdvisoryXactLockShared)
+    }
+
+    /// Call `SET_CONFIG` function. Postgres only.
+    ///
+    /// Unlike `SET`, the setting name and value are ordinary arguments, so they can be bound
+    /// as parameters. With `is_local` set, the setting only lasts until the end of the
+    /// current transaction, like `SET LOCAL`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::set_config("search_path", "my_schema", false))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT SET_CONFIG('search_path', 'my_schema', FALSE)"#
+    /// );
+    ///
+    /// let (sql, values) = Query::select()
+    ///     .expr(PgFunc::set_config("statement_timeout", "5s", true))
+    ///     .build(PostgresQueryBuilder);
+    ///
+    /// assert_eq!(sql, r#"SELECT SET_CONFIG($1, $2, $3)"#);
+    /// assert_eq!(
+    ///     values,
+    ///     Values(vec!["statement_timeout".into(), "5s".into(), true.into()])
+    /// );
+    /// ```
+    pub fn set_config(
+        name: impl Into<Expr>,
+        value: impl Into<Expr>,
+        is_local: bool,
+    ) -> FunctionCall {
+        FunctionCall::new(PgFunc::SetConfig).args([name.into(), value.into(), is_local.into()])
     }
 }
