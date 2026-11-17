@@ -305,15 +305,8 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" ADD VALUE IF NOT EXISTS 'weight'"#
     /// );
     /// ```
-    pub fn add_value_if_not_exists<T>(self, value: T) -> Self
-    where
-        T: IntoIden,
-    {
-        self.alter_option(TypeAlterOpt::Add {
-            value: value.into_iden(),
-            placement: None,
-            if_not_exists: true,
-        })
+    pub fn add_value_if_not_exists(self, value: impl IntoIden) -> Self {
+        self.add_value(value).if_not_exists()
     }
 
     /// Add a enum value before an existing value
