@@ -1022,11 +1022,11 @@ impl PgFunc {
     ///     Values(vec!["statement_timeout".into(), "5s".into(), true.into()])
     /// );
     /// ```
-    pub fn set_config<N, V>(name: N, value: V, is_local: bool) -> FunctionCall
-    where
-        N: Into<Expr>,
-        V: Into<Expr>,
-    {
+    pub fn set_config(
+        name: impl Into<Expr>,
+        value: impl Into<Expr>,
+        is_local: bool,
+    ) -> FunctionCall {
         FunctionCall::new(PgFunc::SetConfig).args([name.into(), value.into(), is_local.into()])
     }
 }
