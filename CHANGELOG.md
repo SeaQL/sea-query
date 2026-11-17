@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - sea_query_sqlx: Implement `TryFrom<SqlxValues>` for SQLx arguments to allow callers to handle conversion errors (#1116).
 - sea_query_sqlx: Support Jiff (#1113).
   MySQL does not support Jiff values. Binding them causes a runtime error.
+- Use `From` instead of `Into` to implement the conversion from `CaseStatement` to `Expr`.
 
 ### Performance
 
