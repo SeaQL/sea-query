@@ -1932,31 +1932,40 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
+    /// let font = Query::select()
+    ///     .expr_as(Expr::col(Font::Id), Char::FontId)
+    ///     .from(Font::Table)
+    ///     .to_owned();
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .join_using(JoinType::LeftJoin, Font::Table, [Char::FontId])
+    ///     .join_using(
+    ///         JoinType::LeftJoin,
+    ///         TableRef::SubQuery(font.into(), Font::Table.into_iden()),
+    ///         [Char::FontId],
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` LEFT JOIN `font` USING (`font_id`)"#
+    ///     r#"SELECT `character` FROM `character` LEFT JOIN (SELECT `id` AS `font_id` FROM `font`) AS `font` USING (`font_id`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" FROM "character" LEFT JOIN "font" USING ("font_id")"#
+    ///     r#"SELECT "character" FROM "character" LEFT JOIN (SELECT "id" AS "font_id" FROM "font") AS "font" USING ("font_id")"#
     /// );
     /// ```
     pub fn join_using(
         &mut self,
         join: JoinType,
         tbl_ref: impl IntoTableRef,
-        columns: impl IntoIterator<Item = impl IntoColumnRef>,
+        columns: impl IntoIterator<Item = impl IntoIden>,
     ) -> &mut Self {
         let columns = columns
             .into_iter()
-            .map(IntoColumnRef::into_column_ref)
-            .map(Expr::from)
+            .map(IntoIden::into_iden)
+            .map(Expr::col)
             .collect();
 
         self.push_join(join, tbl_ref.into(), JoinOn::Columns(columns), false)

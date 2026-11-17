@@ -1688,17 +1688,19 @@ pub trait QueryBuilder:
 
     fn prepare_using(&self, using: &[Expr], sql: &mut impl SqlWriter) {
         sql.write_str(" USING (").unwrap();
-        let mut using_iter = using.iter();
-        join_io!(
-            using_iter,
-            expr,
-            join {
-                sql.write_str(", ").unwrap();
-            },
-            do {
+        JoinWrite {
+            buf: sql,
+            items: using,
+            at_first: |_| Ok(()),
+            r#do: |sql, expr| {
                 self.prepare_expr(expr, sql);
-            }
-        );
+                Ok(())
+            },
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
+        }
+        .exec()
+        .unwrap();
         sql.write_str(")").unwrap();
     }
 
