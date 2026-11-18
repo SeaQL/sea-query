@@ -20,12 +20,14 @@ pub use postgres::*;
 #[cfg(feature = "backend-sqlite")]
 pub use sqlite::*;
 
+mod constraint_builder;
 mod foreign_key_builder;
 mod index_builder;
 mod query_builder;
 mod table_builder;
 mod table_ref_builder;
 
+pub use self::constraint_builder::*;
 pub use self::foreign_key_builder::*;
 pub use self::index_builder::*;
 pub use self::query_builder::*;
@@ -34,7 +36,10 @@ pub use self::table_ref_builder::*;
 
 pub trait GenericBuilder: QueryBuilder + SchemaBuilder {}
 
-pub trait SchemaBuilder: TableBuilder + IndexBuilder + ForeignKeyBuilder {}
+pub trait SchemaBuilder:
+    TableBuilder + IndexBuilder + ForeignKeyBuilder + ConstraintBuilder
+{
+}
 
 pub trait QuotedBuilder {
     /// The type of quote the builder uses.
