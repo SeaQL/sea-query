@@ -473,7 +473,7 @@ impl InsertStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -505,7 +505,7 @@ impl InsertStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -539,7 +539,7 @@ impl InsertStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING *"
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
