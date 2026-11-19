@@ -1,5 +1,5 @@
 use crate::ColumnType;
-use crate::{QueryBuilder, QuotedBuilder, prepare::*, types::*};
+use crate::{PostgresQueryBuilder, QueryBuilder, QuotedBuilder, prepare::*, types::*};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -91,6 +91,56 @@ impl Type {
     /// Construct type [`TypeCreateStatement`]
     pub fn create() -> TypeCreateStatement {
         TypeCreateStatement::new()
+    }
+
+    /// Create an enum type
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::Type, *};
+    ///
+    /// assert_eq!(
+    ///     Type::create_enum(("app", "status"))
+    ///         .values(["pending", "approved"])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TYPE "app"."status" AS ENUM ('pending', 'approved')"#,
+    /// );
+    /// ```
+    ///
+    /// ```compile_fail,E0599
+    /// use sea_query::{extension::postgres::Type, ColumnType};
+    ///
+    /// Type::create_enum("status").fields([("code", ColumnType::Integer)]);
+    /// ```
+    pub fn create_enum(name: impl IntoTypeRef) -> EnumCreateStatement {
+        EnumCreateStatement {
+            name: name.into_type_ref(),
+            values: Vec::new(),
+        }
+    }
+
+    /// Create a composite type
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::Type, *};
+    ///
+    /// assert_eq!(
+    ///     Type::create_composite(("app", "record"))
+    ///         .fields([("code", ColumnType::Integer), ("label", ColumnType::Text)])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TYPE "app"."record" AS ("code" integer, "label" text)"#,
+    /// );
+    /// ```
+    ///
+    /// ```compile_fail,E0599
+    /// use sea_query::extension::postgres::Type;
+    ///
+    /// Type::create_composite("record").values(["pending"]);
+    /// ```
+    pub fn create_composite(name: impl IntoTypeRef) -> CompositeTypeCreateStatement {
+        CompositeTypeCreateStatement {
+            name: name.into_type_ref(),
+            fields: Vec::new(),
+        }
     }
 
     /// Construct type [`TypeDropStatement`]
@@ -196,6 +246,72 @@ impl TypeCreateStatement {
         self.name = Some(name.into_type_ref());
         self.as_type = Some(as_type);
         self
+    }
+}
+
+/// An enum type creation statement
+#[derive(Debug, Clone)]
+pub struct EnumCreateStatement {
+    name: TypeRef,
+    values: Vec<DynIden>,
+}
+
+impl EnumCreateStatement {
+    /// Add enum values
+    pub fn values<T, I>(&mut self, values: I) -> &mut Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = T>,
+    {
+        for value in values {
+            self.values.push(value.into_iden());
+        }
+        self
+    }
+}
+
+impl From<EnumCreateStatement> for TypeCreateStatement {
+    fn from(statement: EnumCreateStatement) -> Self {
+        Self {
+            name: Some(statement.name),
+            as_type: Some(TypeAs::Enum),
+            values: statement.values,
+            ..Self::default()
+        }
+    }
+}
+
+/// A composite type creation statement
+#[derive(Debug, Clone)]
+pub struct CompositeTypeCreateStatement {
+    name: TypeRef,
+    fields: Vec<CompositeFieldType>,
+}
+
+impl CompositeTypeCreateStatement {
+    /// Add composite fields
+    pub fn fields(
+        &mut self,
+        fields: impl IntoIterator<Item = (impl IntoIden, ColumnType)>,
+    ) -> &mut Self {
+        for (name, col_type) in fields {
+            self.fields.push(CompositeFieldType {
+                name: name.into_iden(),
+                col_type,
+            });
+        }
+        self
+    }
+}
+
+impl From<CompositeTypeCreateStatement> for TypeCreateStatement {
+    fn from(statement: CompositeTypeCreateStatement) -> Self {
+        Self {
+            name: Some(statement.name),
+            as_type: Some(TypeAs::Composite),
+            fields: statement.fields,
+            ..Self::default()
+        }
     }
 }
 
@@ -586,6 +702,50 @@ macro_rules! impl_type_statement_builder {
     };
 }
 
+macro_rules! impl_postgres_type_statement_builder {
+    ( $struct_name: ident, $func_name: ident, $members: ident ) => {
+        impl $struct_name {
+            pub fn build_ref(&self, type_builder: &PostgresQueryBuilder) -> String {
+                let mut sql = String::with_capacity(256);
+                self.build_collect_ref(type_builder, &mut sql)
+            }
+
+            pub fn build_collect(
+                &self,
+                type_builder: PostgresQueryBuilder,
+                sql: &mut impl SqlWriter,
+            ) -> String {
+                self.build_collect_ref(&type_builder, sql)
+            }
+
+            pub fn build_collect_ref(
+                &self,
+                type_builder: &PostgresQueryBuilder,
+                sql: &mut impl SqlWriter,
+            ) -> String {
+                type_builder.$func_name(Some(&self.name), &self.$members, sql);
+                sql.to_string()
+            }
+
+            /// Build corresponding SQL statement and return SQL string
+            pub fn to_string(&self, type_builder: PostgresQueryBuilder) -> String {
+                self.build_ref(&type_builder)
+            }
+        }
+    };
+}
+
 impl_type_statement_builder!(TypeCreateStatement, prepare_type_create_statement);
 impl_type_statement_builder!(TypeAlterStatement, prepare_type_alter_statement);
 impl_type_statement_builder!(TypeDropStatement, prepare_type_drop_statement);
+
+impl_postgres_type_statement_builder!(
+    EnumCreateStatement,
+    prepare_enum_type_create_statement,
+    values
+);
+impl_postgres_type_statement_builder!(
+    CompositeTypeCreateStatement,
+    prepare_composite_type_create_statement,
+    fields
+);

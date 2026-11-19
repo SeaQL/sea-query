@@ -7,52 +7,22 @@ impl TypeBuilder for PostgresQueryBuilder {
         create: &TypeCreateStatement,
         sql: &mut impl SqlWriter,
     ) {
-        sql.write_str("CREATE TYPE ").unwrap();
-
-        if let Some(name) = &create.name {
-            self.prepare_type_ref(name, sql);
-        }
-
-        let Some(as_type) = &create.as_type else {
-            return;
-        };
-
-        match as_type {
-            TypeAs::Enum => {
-                sql.write_str(" AS ENUM (").unwrap();
-                JoinWrite {
-                    buf: sql,
-                    items: &create.values,
-                    at_first: |_| Ok(()),
-                    r#do: |sql, val| {
-                        self.prepare_value(val.to_string().into(), sql);
-                        Ok(())
-                    },
-                    join: |sql| sql.write_str(", "),
-                    at_last: |_| Ok(()),
-                }
-                .exec()
-                .unwrap();
-                sql.write_str(")").unwrap();
+        match &create.as_type {
+            Some(TypeAs::Enum) => {
+                self.prepare_enum_type_create_statement(create.name.as_ref(), &create.values, sql);
             }
-            TypeAs::Composite => {
-                sql.write_str(" AS (").unwrap();
-                JoinWrite {
-                    buf: sql,
-                    items: &create.fields,
-                    at_first: |_| Ok(()),
-                    r#do: |sql, field| {
-                        self.prepare_iden(&field.name, sql);
-                        sql.write_str(" ")?;
-                        self.prepare_column_type(&field.col_type, sql);
-                        Ok(())
-                    },
-                    join: |sql| sql.write_str(", "),
-                    at_last: |_| Ok(()),
+            Some(TypeAs::Composite) => {
+                self.prepare_composite_type_create_statement(
+                    create.name.as_ref(),
+                    &create.fields,
+                    sql,
+                );
+            }
+            None => {
+                sql.write_str("CREATE TYPE ").unwrap();
+                if let Some(name) = &create.name {
+                    self.prepare_type_ref(name, sql);
                 }
-                .exec()
-                .unwrap();
-                sql.write_str(")").unwrap();
             }
         }
     }
@@ -98,6 +68,62 @@ impl TypeBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
+    pub(crate) fn prepare_enum_type_create_statement(
+        &self,
+        name: Option<&TypeRef>,
+        values: &[DynIden],
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("CREATE TYPE ").unwrap();
+        if let Some(name) = name {
+            self.prepare_type_ref(name, sql);
+        }
+        sql.write_str(" AS ENUM (").unwrap();
+        JoinWrite {
+            buf: sql,
+            items: values,
+            at_first: |_| Ok(()),
+            r#do: |sql, value| {
+                self.prepare_value(value.to_string().into(), sql);
+                Ok(())
+            },
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
+        }
+        .exec()
+        .unwrap();
+        sql.write_str(")").unwrap();
+    }
+
+    pub(crate) fn prepare_composite_type_create_statement(
+        &self,
+        name: Option<&TypeRef>,
+        fields: &[CompositeFieldType],
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("CREATE TYPE ").unwrap();
+        if let Some(name) = name {
+            self.prepare_type_ref(name, sql);
+        }
+        sql.write_str(" AS (").unwrap();
+        JoinWrite {
+            buf: sql,
+            items: fields,
+            at_first: |_| Ok(()),
+            r#do: |sql, field| {
+                self.prepare_iden(&field.name, sql);
+                sql.write_str(" ")?;
+                self.prepare_column_type(&field.col_type, sql);
+                Ok(())
+            },
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
+        }
+        .exec()
+        .unwrap();
+        sql.write_str(")").unwrap();
+    }
+
     fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut impl SqlWriter) {
         sql.write_str(match opt {
             TypeDropOpt::Cascade => "CASCADE",

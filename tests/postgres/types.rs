@@ -1,6 +1,9 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{PostgresQueryBuilder, extension::postgres::Type};
+use sea_query::{
+    PostgresQueryBuilder,
+    extension::postgres::{Type, TypeCreateStatement},
+};
 
 #[test]
 fn create_1() {
@@ -115,6 +118,31 @@ fn create_empty_composite() {
             .as_composite("empty")
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "empty" AS ()"#,
+    );
+}
+
+#[test]
+fn typed_type_creation_converts_to_legacy_statements() {
+    let enum_statement = TypeCreateStatement::from(
+        Type::create_enum("status")
+            .values(["pending"])
+            .values(["approved"])
+            .to_owned(),
+    );
+    assert_eq!(
+        enum_statement.to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "status" AS ENUM ('pending', 'approved')"#,
+    );
+
+    let composite_statement = TypeCreateStatement::from(
+        Type::create_composite("record")
+            .fields([("code", ColumnType::Integer)])
+            .fields([("label", ColumnType::Text)])
+            .to_owned(),
+    );
+    assert_eq!(
+        composite_statement.to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "record" AS ("code" integer, "label" text)"#,
     );
 }
 
