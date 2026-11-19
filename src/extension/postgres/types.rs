@@ -185,7 +185,9 @@ impl TypeCreateStatement {
     where
         T: IntoTypeRef,
     {
-        self.as_type(name, TypeAs::Enum)
+        self.name = Some(name.into_type_ref());
+        self.as_type = Some(TypeAs::Enum);
+        self
     }
 
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
@@ -196,55 +198,6 @@ impl TypeCreateStatement {
         for v in values.into_iter() {
             self.values.push(v.into_iden());
         }
-        self
-    }
-
-    /// Create composite as custom type
-    ///
-    /// ```
-    /// use sea_query::{extension::postgres::Type, *};
-    ///
-    /// #[derive(Iden)]
-    /// enum FontFamily {
-    ///     #[iden = "font_family"]
-    ///     Type,
-    ///     Serif,
-    ///     Sans,
-    ///     Monospace,
-    /// }
-    ///
-    /// assert_eq!(
-    ///     Type::create()
-    ///         .as_composite(FontFamily::Type)
-    ///         .fields([
-    ///             (FontFamily::Serif, ColumnType::Text),
-    ///             (FontFamily::Sans, ColumnType::Text),
-    ///             (FontFamily::Monospace, ColumnType::Text),
-    ///         ])
-    ///         .to_string(PostgresQueryBuilder),
-    ///     r#"CREATE TYPE "font_family" AS ("serif" text, "sans" text, "monospace" text)"#,
-    /// );
-    /// ```
-    pub fn as_composite(&mut self, name: impl IntoTypeRef) -> &mut Self {
-        self.as_type(name.into_type_ref(), TypeAs::Composite)
-    }
-
-    pub fn fields(
-        &mut self,
-        fields: impl IntoIterator<Item = (impl IntoIden, ColumnType)>,
-    ) -> &mut Self {
-        for (name, col_type) in fields {
-            self.fields.push(CompositeFieldType {
-                name: name.into_iden(),
-                col_type,
-            });
-        }
-        self
-    }
-
-    fn as_type(&mut self, name: impl IntoTypeRef, as_type: TypeAs) -> &mut Self {
-        self.name = Some(name.into_type_ref());
-        self.as_type = Some(as_type);
         self
     }
 }
@@ -258,7 +211,7 @@ pub struct EnumCreateStatement {
 
 impl EnumCreateStatement {
     /// Add enum values
-    pub fn values<T, I>(&mut self, values: I) -> &mut Self
+    pub fn values<T, I>(mut self, values: I) -> Self
     where
         T: IntoIden,
         I: IntoIterator<Item = T>,
@@ -290,10 +243,7 @@ pub struct CompositeTypeCreateStatement {
 
 impl CompositeTypeCreateStatement {
     /// Add composite fields
-    pub fn fields(
-        &mut self,
-        fields: impl IntoIterator<Item = (impl IntoIden, ColumnType)>,
-    ) -> &mut Self {
+    pub fn fields(mut self, fields: impl IntoIterator<Item = (impl IntoIden, ColumnType)>) -> Self {
         for (name, col_type) in fields {
             self.fields.push(CompositeFieldType {
                 name: name.into_iden(),

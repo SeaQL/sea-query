@@ -65,46 +65,9 @@ fn create_empty_enum() {
 }
 
 #[test]
-fn create_4() {
-    #[derive(Iden)]
-    enum FontFamily {
-        #[iden = "font_family"]
-        Type,
-        Serif,
-        Sans,
-        Monospace,
-    }
+fn create_composite_with_custom_type() {
     assert_eq!(
-        Type::create()
-            .as_composite(FontFamily::Type)
-            .fields([
-                (FontFamily::Serif, ColumnType::Text),
-                (FontFamily::Sans, ColumnType::Text),
-                (FontFamily::Monospace, ColumnType::Text),
-            ])
-            .to_string(PostgresQueryBuilder),
-        r#"CREATE TYPE "font_family" AS ("serif" text, "sans" text, "monospace" text)"#,
-    );
-}
-#[test]
-fn create_5() {
-    assert_eq!(
-        Type::create()
-            .as_composite(("schema", Font::Table))
-            .fields([
-                ("serif", ColumnType::Text),
-                ("sans", ColumnType::Text),
-                ("monospace", ColumnType::Text),
-            ])
-            .to_string(PostgresQueryBuilder),
-        r#"CREATE TYPE "schema"."font" AS ("serif" text, "sans" text, "monospace" text)"#,
-    );
-}
-#[test]
-fn create_6() {
-    assert_eq!(
-        Type::create()
-            .as_composite("outer_type")
+        Type::create_composite("outer_type")
             .fields([("inner", ColumnType::custom("inner_type"))])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "outer_type" AS ("inner" inner_type)"#,
@@ -114,20 +77,17 @@ fn create_6() {
 #[test]
 fn create_empty_composite() {
     assert_eq!(
-        Type::create()
-            .as_composite("empty")
-            .to_string(PostgresQueryBuilder),
+        Type::create_composite("empty").to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "empty" AS ()"#,
     );
 }
 
 #[test]
-fn typed_type_creation_converts_to_legacy_statements() {
+fn convert_create_statement() {
     let enum_statement = TypeCreateStatement::from(
         Type::create_enum("status")
             .values(["pending"])
-            .values(["approved"])
-            .to_owned(),
+            .values(["approved"]),
     );
     assert_eq!(
         enum_statement.to_string(PostgresQueryBuilder),
@@ -137,8 +97,7 @@ fn typed_type_creation_converts_to_legacy_statements() {
     let composite_statement = TypeCreateStatement::from(
         Type::create_composite("record")
             .fields([("code", ColumnType::Integer)])
-            .fields([("label", ColumnType::Text)])
-            .to_owned(),
+            .fields([("label", ColumnType::Text)]),
     );
     assert_eq!(
         composite_statement.to_string(PostgresQueryBuilder),
@@ -258,7 +217,7 @@ fn alter_6() {
 }
 
 #[test]
-fn alter_7() {
+fn add_attribute() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
@@ -269,7 +228,7 @@ fn alter_7() {
 }
 
 #[test]
-fn alter_8() {
+fn drop_attribute() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
