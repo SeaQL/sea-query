@@ -9,6 +9,7 @@
   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
+  [![hotpath-cloud](https://img.shields.io/endpoint?url=https://hotpath.rs/badge-cloud.json)](https://hotpath.rs/app/repos/SeaQL/sea-query)
 
 </div>
 

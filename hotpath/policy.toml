@@ -1,0 +1,38 @@
+# hotpath-cloud performance regression and budgets config.
+#
+# Docs: https://hotpath.rs/cloud
+
+[functions]
+min_percent_total = 2
+
+# Instruction counts (icount) from a Callgrind or merged run: usually
+# deterministic across runs, so a small change is already a real one.
+[functions.icount]
+judged = true
+fail_check = false
+min_percent_change = 3
+metrics = ["avg", "total"]
+min_calls = 1
+
+[functions.alloc]
+judged = true
+min_percent_change = 20
+metrics = ["avg", "total"]
+min_calls = 1
+
+[functions.timing]
+judged = false
+min_percent_change = 50
+metrics = ["avg", "total"]
+min_calls = 1
+
+# Specify thread names to compare. List only threads expected to have
+# the same workload across runs. Unlisted threads are ignored.
+#
+# [threads]
+# names = ["main"]
+#
+# [threads.alloc]
+# judged = false
+# min_percent_change = 20
+# metrics = ["total"]

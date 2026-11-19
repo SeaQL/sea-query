@@ -1,0 +1,132 @@
+# hotpath-cloud benchmarks (https://hotpath.rs/ci_integration). Four Criterion
+# benchmarks, one job each, run in merged mode: one build runs natively for
+# timing and allocations, then under Callgrind for instruction counts.
+#
+# Pushes to master upload the baselines directly. Pull requests, forks
+# included, store each report as an artifact that hotpath-relay.yml uploads.
+name: Hotpath benchmark
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  upload:
+    name: benchmark (push, ${{ matrix.name }})
+    if: github.event_name == 'push'
+    # Instruction counts depend on the Valgrind build, the Rust toolchain and
+    # the OS, so the image, the package and the toolchain are pinned.
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # the upload authenticates with the job's OIDC token
+    strategy: &benchmarks
+      fail-fast: false
+      matrix:
+        # `name` is the hotpath-cloud series; keep the names in sync with the
+        # matrix of hotpath-relay.yml. `bench` is the bench target and `id`
+        # the Criterion benchmark id in it.
+        include:
+          - name: basic-select_and_to_string
+            bench: basic
+            id: select_and_to_string
+          - name: value-select_and_build-pg
+            bench: value
+            id: value/select_and_build::pg
+          - name: realistic-select_to_string_pg
+            bench: realistic
+            id: select_to_string_pg
+          - name: postgres_escape-query-middle_quote
+            bench: postgres_escape
+            id: postgres_escape/query/middle_quote
+    # Shared by both runs, so their reports describe one benchmark.
+    env: &benchmark-env
+      HOTPATH_BENCHMARK: ${{ matrix.name }}
+      HOTPATH_USER_METADATA: runner=Linux-X64,toolchain=1.88.0,profile=bench,valgrind=3.26.0
+      HOTPATH_OUTPUT_FORMAT: json
+      HOTPATH_CRITERION_ITERATIONS: 10000
+      # Identical in every `cargo bench`, so both runs use the one build.
+      BENCH_ARGS: --bench ${{ matrix.bench }} --features hotpath-alloc,hotpath-cloud,hotpath-callgrind
+      BENCH_ID: ${{ matrix.id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.88.0"
+      - uses: Swatinem/rust-cache@v2
+      - name: Install valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind=1:3.26.0-0ubuntu1
+          valgrind --version
+      - name: Build benchmark
+        run: cargo bench -q $BENCH_ARGS --no-run
+      - name: Run benchmark natively
+        env:
+          HOTPATH_OUTPUT_PATH: ${{ runner.temp }}/native.json
+        run: cargo bench -q $BENCH_ARGS -- --test --exact "$BENCH_ID"
+      - name: Run benchmark under Callgrind and upload the merged report
+        env:
+          HOTPATH_UPLOAD: fail-on-error
+          HOTPATH_UPLOAD_RESPONSE_PATH: ${{ github.workspace }}/upload.json
+          HOTPATH_OUTPUT_PATH: ${{ runner.temp }}/merged.json
+          HOTPATH_MERGE_REPORT: ${{ runner.temp }}/native.json
+          HOTPATH_CALLGRIND_OUT_FILE: ${{ runner.temp }}/callgrind.out.%p
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER: valgrind -q --tool=callgrind --instr-atstart=no --callgrind-out-file=${{ runner.temp }}/callgrind.out.%p
+        run: |
+          cargo bench -q $BENCH_ARGS -- --test --exact "$BENCH_ID"
+          test -s "$HOTPATH_UPLOAD_RESPONSE_PATH"
+          jq -e --arg id "$BENCH_ID" \
+            '.meta.run == "merged" and (.functions_icount.data | length > 0) and (.functions_timing.data | length > 0) and .meta.criterion.benchmark == $id' \
+            "$HOTPATH_OUTPUT_PATH" > /dev/null
+
+  report:
+    name: benchmark (pull request, ${{ matrix.name }})
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    # Runs the pull request's code: no `id-token: write`, no secrets, no upload.
+    permissions:
+      contents: read
+    strategy: *benchmarks
+    env: *benchmark-env
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The pull request's head commit, not the default merge commit.
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.88.0"
+      - uses: Swatinem/rust-cache@v2
+      - name: Install valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind=1:3.26.0-0ubuntu1
+          valgrind --version
+      - name: Build benchmark
+        run: cargo bench -q $BENCH_ARGS --no-run
+      - name: Run benchmark natively
+        env:
+          HOTPATH_OUTPUT_PATH: ${{ runner.temp }}/native.json
+        run: cargo bench -q $BENCH_ARGS -- --test --exact "$BENCH_ID"
+      - name: Run benchmark under Callgrind and write the merged report
+        env:
+          HOTPATH_OUTPUT_PATH: ${{ github.workspace }}/report.json
+          HOTPATH_MERGE_REPORT: ${{ runner.temp }}/native.json
+          HOTPATH_CALLGRIND_OUT_FILE: ${{ runner.temp }}/callgrind.out.%p
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER: valgrind -q --tool=callgrind --instr-atstart=no --callgrind-out-file=${{ runner.temp }}/callgrind.out.%p
+        run: |
+          cargo bench -q $BENCH_ARGS -- --test --exact "$BENCH_ID"
+          test -s "$HOTPATH_OUTPUT_PATH"
+          jq -e --arg id "$BENCH_ID" \
+            '.meta.run == "merged" and (.functions_icount.data | length > 0) and (.functions_timing.data | length > 0) and .meta.criterion.benchmark == $id' \
+            "$HOTPATH_OUTPUT_PATH" > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hotpath-report-${{ matrix.name }}
+          path: report.json
+          retention-days: 1
+          if-no-files-found: error
