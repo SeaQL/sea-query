@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> Remove this line to confirm you've reviewed this PR before submitting.
-
 <div align="center">
 
   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280" alt="SeaQuery logo"/>
@@ -51,7 +48,6 @@ Macro: `derive`
 
 SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
-<!-- AI-generated: -->
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 `with-jiff`, `with-jiff-0_2`, `with-jiff-1`, `with-ipnetwork`, `with-mac_address`,
 `postgres-array`, `postgres-interval`, `postgres-vector`
