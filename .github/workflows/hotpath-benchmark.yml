@@ -10,6 +10,19 @@ on:
   push:
     branches: [master]
   pull_request:
+    paths-ignore:
+      - "**.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - .gitignore
+      - "changelog/**"
+      - "docs/**"
+      - "examples/**"
+      - "tests/**"
+      - "sea-query-diesel/**"
+      - "sea-query-postgres/**"
+      - "sea-query-rbatis/**"
+      - "sea-query-rusqlite/**"
+      - "sea-query-sqlx/**"
 
 jobs:
   upload:
