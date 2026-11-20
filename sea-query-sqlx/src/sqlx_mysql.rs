@@ -106,28 +106,52 @@ impl TryFrom<SqlxValues> for sqlx::mysql::MySqlArguments {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffDate(_) => {
                     return Err(IntoArgumentsError::Unsupported(
                         "Mysql doesn't support JiffDate arguments",
                     ));
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffTime(_) => {
                     return Err(IntoArgumentsError::Unsupported(
                         "Mysql doesn't support JiffTime arguments",
                     ));
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffDateTime(_) => {
                     return Err(IntoArgumentsError::Unsupported(
                         "Mysql doesn't support JiffDateTime arguments",
                     ));
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffTimestamp(_) => {
                     return Err(IntoArgumentsError::Unsupported(
                         "Mysql doesn't support JiffTimestamp arguments",
+                    ));
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Date(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support Jiff1Date arguments",
+                    ));
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Time(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support Jiff1Time arguments",
+                    ));
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1DateTime(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support Jiff1DateTime arguments",
+                    ));
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Timestamp(_) => {
+                    return Err(IntoArgumentsError::Unsupported(
+                        "Mysql doesn't support Jiff1Timestamp arguments",
                     ));
                 }
                 #[cfg(feature = "with-uuid")]

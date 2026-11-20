@@ -95,16 +95,26 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::TimeTime(None)
         | Value::TimeDateTime(None)
         | Value::TimeDateTimeWithTimeZone(None) => Json::Null,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         Value::JiffDate(Some(_))
         | Value::JiffTime(Some(_))
         | Value::JiffDateTime(Some(_))
         | Value::JiffTimestamp(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         Value::JiffDate(None)
         | Value::JiffTime(None)
         | Value::JiffDateTime(None)
         | Value::JiffTimestamp(None) => Json::Null,
+        #[cfg(feature = "with-jiff-1")]
+        Value::Jiff1Date(Some(_))
+        | Value::Jiff1Time(Some(_))
+        | Value::Jiff1DateTime(Some(_))
+        | Value::Jiff1Timestamp(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-jiff-1")]
+        Value::Jiff1Date(None)
+        | Value::Jiff1Time(None)
+        | Value::Jiff1DateTime(None)
+        | Value::Jiff1Timestamp(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;

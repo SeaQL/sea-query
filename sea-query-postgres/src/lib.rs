@@ -114,14 +114,21 @@ impl ToSql for PostgresValue {
             Value::TimeDateTime(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => v.to_sql(ty, out),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDate(v) => v.to_sql(ty, out),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTime(v) => v.to_sql(ty, out),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDateTime(v) => v.to_sql(ty, out),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTimestamp(v) => v.to_sql(ty, out),
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Date(_)
+            | Value::Jiff1Time(_)
+            | Value::Jiff1DateTime(_)
+            | Value::Jiff1Timestamp(_) => {
+                Err("postgres-types does not support encoding Jiff 1 values".into())
+            }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-bigdecimal")]
@@ -144,6 +151,14 @@ impl ToSql for PostgresValue {
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
+            #[cfg(all(feature = "postgres-array", feature = "with-jiff-1"))]
+            Value::Array(
+                ArrayType::Jiff1Date
+                | ArrayType::Jiff1Time
+                | ArrayType::Jiff1DateTime
+                | ArrayType::Jiff1Timestamp,
+                _,
+            ) => Err("postgres-types does not support encoding Jiff 1 arrays".into()),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => v
                 .iter()
@@ -225,14 +240,22 @@ fn value_to_postgres_type(value: &Value) -> Type {
         Value::TimeDateTime(_) => Type::TIMESTAMP,
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => Type::TIMESTAMPTZ,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         Value::JiffDate(_) => Type::DATE,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         Value::JiffTime(_) => Type::TIME,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         Value::JiffDateTime(_) => Type::TIMESTAMP,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         Value::JiffTimestamp(_) => Type::TIMESTAMPTZ,
+        #[cfg(feature = "with-jiff-1")]
+        Value::Jiff1Date(_) => Type::DATE,
+        #[cfg(feature = "with-jiff-1")]
+        Value::Jiff1Time(_) => Type::TIME,
+        #[cfg(feature = "with-jiff-1")]
+        Value::Jiff1DateTime(_) => Type::TIMESTAMP,
+        #[cfg(feature = "with-jiff-1")]
+        Value::Jiff1Timestamp(_) => Type::TIMESTAMPTZ,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(_) => Type::UUID,
         #[cfg(feature = "with-rust_decimal")]
@@ -288,14 +311,22 @@ fn array_type_to_pg_type(ty: &ArrayType) -> Type {
         ArrayType::TimeDateTime => Type::TIMESTAMP_ARRAY,
         #[cfg(feature = "with-time")]
         ArrayType::TimeDateTimeWithTimeZone => Type::TIMESTAMPTZ_ARRAY,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         ArrayType::JiffDate => Type::DATE_ARRAY,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         ArrayType::JiffTime => Type::TIME_ARRAY,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         ArrayType::JiffDateTime => Type::TIMESTAMP_ARRAY,
-        #[cfg(feature = "with-jiff")]
+        #[cfg(feature = "with-jiff-0_2")]
         ArrayType::JiffTimestamp => Type::TIMESTAMPTZ_ARRAY,
+        #[cfg(feature = "with-jiff-1")]
+        ArrayType::Jiff1Date => Type::DATE_ARRAY,
+        #[cfg(feature = "with-jiff-1")]
+        ArrayType::Jiff1Time => Type::TIME_ARRAY,
+        #[cfg(feature = "with-jiff-1")]
+        ArrayType::Jiff1DateTime => Type::TIMESTAMP_ARRAY,
+        #[cfg(feature = "with-jiff-1")]
+        ArrayType::Jiff1Timestamp => Type::TIMESTAMPTZ_ARRAY,
         #[cfg(feature = "with-uuid")]
         ArrayType::Uuid => Type::UUID_ARRAY,
         #[cfg(feature = "with-rust_decimal")]

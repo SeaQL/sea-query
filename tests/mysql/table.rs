@@ -4,6 +4,8 @@ use pretty_assertions::assert_eq;
 #[cfg(feature = "with-jiff")]
 #[test]
 fn jiff_datetime_column() {
+    use sea_query::prelude::jiff;
+
     assert_eq!(
         Table::create()
             .table("event")

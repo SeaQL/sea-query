@@ -49,14 +49,22 @@ impl PartialEq for Value {
             #[cfg(feature = "with-time")]
             (Self::TimeDateTimeWithTimeZone(l), Self::TimeDateTimeWithTimeZone(r)) => l == r,
 
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             (Self::JiffDate(l), Self::JiffDate(r)) => l == r,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             (Self::JiffTime(l), Self::JiffTime(r)) => l == r,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             (Self::JiffDateTime(l), Self::JiffDateTime(r)) => l == r,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             (Self::JiffTimestamp(l), Self::JiffTimestamp(r)) => l == r,
+            #[cfg(feature = "with-jiff-1")]
+            (Self::Jiff1Date(l), Self::Jiff1Date(r)) => l == r,
+            #[cfg(feature = "with-jiff-1")]
+            (Self::Jiff1Time(l), Self::Jiff1Time(r)) => l == r,
+            #[cfg(feature = "with-jiff-1")]
+            (Self::Jiff1DateTime(l), Self::Jiff1DateTime(r)) => l == r,
+            #[cfg(feature = "with-jiff-1")]
+            (Self::Jiff1Timestamp(l), Self::Jiff1Timestamp(r)) => l == r,
 
             #[cfg(feature = "with-uuid")]
             (Self::Uuid(l), Self::Uuid(r)) => l == r,
@@ -133,14 +141,22 @@ impl Hash for Value {
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(offset_date_time) => offset_date_time.hash(state),
 
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDate(date) => date.hash(state),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTime(time) => time.hash(state),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDateTime(datetime) => datetime.hash(state),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTimestamp(timestamp) => timestamp.hash(state),
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Date(date) => date.hash(state),
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Time(time) => time.hash(state),
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1DateTime(datetime) => datetime.hash(state),
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Timestamp(timestamp) => timestamp.hash(state),
 
             #[cfg(feature = "with-uuid")]
             Value::Uuid(uuid) => uuid.hash(state),

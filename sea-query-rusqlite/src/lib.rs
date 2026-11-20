@@ -109,14 +109,21 @@ impl ToSql for RusqliteValue {
             Value::TimeDateTime(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => v.to_sql(),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDate(v) => v.to_sql(),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTime(v) => v.to_sql(),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDateTime(v) => v.to_sql(),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTimestamp(v) => v.to_sql(),
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Date(_)
+            | Value::Jiff1Time(_)
+            | Value::Jiff1DateTime(_)
+            | Value::Jiff1Timestamp(_) => Err(rusqlite::Error::ToSqlConversionFailure(
+                "Jiff 1 values are not supported by rusqlite".into(),
+            )),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(),
             #[cfg(feature = "with-json")]

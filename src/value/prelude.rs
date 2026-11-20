@@ -7,8 +7,12 @@ pub use chrono::{self, DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, N
 #[cfg(feature = "with-time")]
 pub use time::{self, OffsetDateTime, PrimitiveDateTime};
 
-#[cfg(feature = "with-jiff")]
-pub use jiff::{self, Timestamp};
+#[cfg(feature = "with-jiff-0_2")]
+pub use jiff::Timestamp;
+#[cfg(feature = "with-jiff-0_2")]
+pub use jiff_0_2 as jiff;
+#[cfg(feature = "with-jiff-1")]
+pub use jiff_1;
 
 #[cfg(feature = "with-rust_decimal")]
 pub use rust_decimal::{self, Decimal};

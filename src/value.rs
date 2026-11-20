@@ -40,9 +40,13 @@ pub mod time_format;
 #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
 mod with_time;
 
-#[cfg(feature = "with-jiff")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+#[cfg(feature = "with-jiff-0_2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
 pub mod with_jiff;
+
+#[cfg(feature = "with-jiff-1")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+pub mod with_jiff_1;
 
 #[cfg(feature = "with-rust_decimal")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
@@ -146,21 +150,37 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone,
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffDate,
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffTime,
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffDateTime,
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffTimestamp,
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1Date,
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1Time,
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1DateTime,
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1Timestamp,
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -301,21 +321,37 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<OffsetDateTime>),
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffDate(Option<jiff::civil::Date>),
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffTime(Option<jiff::civil::Time>),
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffDateTime(Option<Box<jiff::civil::DateTime>>),
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(feature = "with-jiff-0_2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-0_2")))]
     JiffTimestamp(Option<Box<Timestamp>>),
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1Date(Option<jiff_1::civil::Date>),
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1Time(Option<jiff_1::civil::Time>),
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1DateTime(Option<Box<jiff_1::civil::DateTime>>),
+
+    #[cfg(feature = "with-jiff-1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff-1")))]
+    Jiff1Timestamp(Option<Box<jiff_1::Timestamp>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -464,21 +500,26 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTimeWithTimeZone(_) => Self::TimeDateTimeWithTimeZone(None),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDate(_) => Self::JiffDate(None),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTime(_) => Self::JiffTime(None),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDateTime(_) => Self::JiffDateTime(None),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTimestamp(_) => Self::JiffTimestamp(None),
+
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Date(_) => Self::Jiff1Date(None),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Time(_) => Self::Jiff1Time(None),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1DateTime(_) => Self::Jiff1DateTime(None),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Timestamp(_) => Self::Jiff1Timestamp(None),
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -584,21 +625,26 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTimeWithTimeZone(v) => v.is_some(),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDate(v) => v.is_some(),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTime(v) => v.is_some(),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDateTime(v) => v.is_some(),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTimestamp(v) => v.is_some(),
+
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Date(v) => v.is_some(),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Time(v) => v.is_some(),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1DateTime(v) => v.is_some(),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Timestamp(v) => v.is_some(),
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -718,23 +764,32 @@ impl Value {
                 Self::TimeDateTimeWithTimeZone(Some(OffsetDateTime::UNIX_EPOCH))
             }
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDate(_) => Self::JiffDate(Some(jiff::civil::date(1970, 1, 1))),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTime(_) => Self::JiffTime(Some(jiff::civil::time(0, 0, 0, 0))),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDateTime(_) => {
                 Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0).into()))
             }
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH.into())),
+
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Date(_) => Self::Jiff1Date(Some(jiff_1::civil::date(1970, 1, 1))),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Time(_) => Self::Jiff1Time(Some(jiff_1::civil::time(0, 0, 0, 0))),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1DateTime(_) => {
+                Self::Jiff1DateTime(Some(jiff_1::civil::date(1970, 1, 1).at(0, 0, 0, 0).into()))
+            }
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Timestamp(_) => {
+                Self::Jiff1Timestamp(Some(jiff_1::Timestamp::UNIX_EPOCH.into()))
+            }
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -851,21 +906,26 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTimeWithTimeZone(v) => array_type_of(v),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDate(v) => array_type_of(v),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTime(v) => array_type_of(v),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffDateTime(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(feature = "with-jiff-0_2")]
             Self::JiffTimestamp(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
+
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Date(v) => array_type_of(v),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Time(v) => array_type_of(v),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1DateTime(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
+            #[cfg(feature = "with-jiff-1")]
+            Self::Jiff1Timestamp(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]

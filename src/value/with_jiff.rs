@@ -83,16 +83,3 @@ impl Value {
         }
     }
 }
-
-impl Value {
-    #[cfg(test)]
-    pub(crate) fn jiff_value_to_string(&self) -> Option<String> {
-        match self {
-            Self::JiffDate(v) => v.as_ref().map(|v| v.to_string()),
-            Self::JiffTime(v) => v.as_ref().map(|v| v.to_string()),
-            Self::JiffDateTime(v) => v.as_ref().map(|v| v.to_string()),
-            Self::JiffTimestamp(v) => v.as_ref().map(|v| v.to_string()),
-            _ => panic!("not jiff Value"),
-        }
-    }
-}

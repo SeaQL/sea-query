@@ -125,23 +125,43 @@ impl TryFrom<SqlxValues> for sqlx::any::AnyArguments {
                     args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string())
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffDate(j) => {
                     args.add(j.map(|j| j.to_string()))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffTime(j) => {
                     args.add(j.map(|j| j.to_string()))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffDateTime(j) => {
                     args.add(j.map(|j| j.to_string()))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffTimestamp(j) => {
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Date(j) => {
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Time(j) => {
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1DateTime(j) => {
+                    args.add(j.map(|j| j.to_string()))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Timestamp(j) => {
                     args.add(j.map(|j| j.to_string()))
                         .map_err(IntoArgumentsError::Encode)?;
                 }

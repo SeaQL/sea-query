@@ -10,6 +10,10 @@ use sea_query::prelude::Json;
 use sea_query::prelude::MacAddress;
 #[cfg(all(feature = "postgres-array", feature = "with-uuid"))]
 use sea_query::prelude::Uuid;
+#[cfg(all(feature = "postgres-array", feature = "with-jiff-0_2"))]
+use sea_query::prelude::jiff;
+#[cfg(all(feature = "postgres-array", feature = "with-jiff-1"))]
+use sea_query::prelude::jiff_1;
 #[cfg(all(feature = "postgres-array", feature = "with-time"))]
 use sea_query::prelude::time;
 #[cfg(all(feature = "postgres-array", feature = "with-chrono"))]
@@ -133,24 +137,44 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     args.add(t).map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffDate(j) => {
-                    args.add(j.map(jiff_sqlx::Date::from))
+                    args.add(j.map(jiff_sqlx_0_2::Date::from))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffTime(j) => {
-                    args.add(j.map(jiff_sqlx::Time::from))
+                    args.add(j.map(jiff_sqlx_0_2::Time::from))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffDateTime(j) => {
-                    args.add(j.map(|j| jiff_sqlx::DateTime::from(*j)))
+                    args.add(j.map(|j| jiff_sqlx_0_2::DateTime::from(*j)))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(feature = "with-jiff-0_2")]
                 Value::JiffTimestamp(j) => {
-                    args.add(j.map(|j| jiff_sqlx::Timestamp::from(*j)))
+                    args.add(j.map(|j| jiff_sqlx_0_2::Timestamp::from(*j)))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Date(j) => {
+                    args.add(j.map(jiff_sqlx_1::Date::from))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Time(j) => {
+                    args.add(j.map(jiff_sqlx_1::Time::from))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1DateTime(j) => {
+                    args.add(j.map(|j| jiff_sqlx_1::DateTime::from(*j)))
+                        .map_err(IntoArgumentsError::Encode)?;
+                }
+                #[cfg(feature = "with-jiff-1")]
+                Value::Jiff1Timestamp(j) => {
+                    args.add(j.map(|j| jiff_sqlx_1::Timestamp::from(*j)))
                         .map_err(IntoArgumentsError::Encode)?;
                 }
                 #[cfg(feature = "with-uuid")]
@@ -341,46 +365,91 @@ impl TryFrom<SqlxValues> for sqlx::postgres::PgArguments {
                             )?;
                             args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
-                        #[cfg(feature = "with-jiff")]
+                        #[cfg(feature = "with-jiff-0_2")]
                         ArrayType::JiffDate => {
                             let value = array_values::<jiff::civil::Date>(v, "JiffDate")?;
                             let value = value.map(|values| {
                                 values
                                     .into_iter()
-                                    .map(|v| v.map(jiff_sqlx::Date::from))
+                                    .map(|v| v.map(jiff_sqlx_0_2::Date::from))
                                     .collect::<Vec<_>>()
                             });
                             args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
-                        #[cfg(feature = "with-jiff")]
+                        #[cfg(feature = "with-jiff-0_2")]
                         ArrayType::JiffTime => {
                             let value = array_values::<jiff::civil::Time>(v, "JiffTime")?;
                             let value = value.map(|values| {
                                 values
                                     .into_iter()
-                                    .map(|v| v.map(jiff_sqlx::Time::from))
+                                    .map(|v| v.map(jiff_sqlx_0_2::Time::from))
                                     .collect::<Vec<_>>()
                             });
                             args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
-                        #[cfg(feature = "with-jiff")]
+                        #[cfg(feature = "with-jiff-0_2")]
                         ArrayType::JiffDateTime => {
                             let value = array_values::<jiff::civil::DateTime>(v, "JiffDateTime")?;
                             let value = value.map(|values| {
                                 values
                                     .into_iter()
-                                    .map(|v| v.map(jiff_sqlx::DateTime::from))
+                                    .map(|v| v.map(jiff_sqlx_0_2::DateTime::from))
                                     .collect::<Vec<_>>()
                             });
                             args.add(value).map_err(IntoArgumentsError::Encode)?;
                         }
-                        #[cfg(feature = "with-jiff")]
+                        #[cfg(feature = "with-jiff-0_2")]
                         ArrayType::JiffTimestamp => {
                             let value = array_values::<jiff::Timestamp>(v, "JiffTimestamp")?;
                             let value = value.map(|values| {
                                 values
                                     .into_iter()
-                                    .map(|v| v.map(jiff_sqlx::Timestamp::from))
+                                    .map(|v| v.map(jiff_sqlx_0_2::Timestamp::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
+                        }
+                        #[cfg(feature = "with-jiff-1")]
+                        ArrayType::Jiff1Date => {
+                            let value = array_values::<jiff_1::civil::Date>(v, "Jiff1Date")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx_1::Date::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
+                        }
+                        #[cfg(feature = "with-jiff-1")]
+                        ArrayType::Jiff1Time => {
+                            let value = array_values::<jiff_1::civil::Time>(v, "Jiff1Time")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx_1::Time::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
+                        }
+                        #[cfg(feature = "with-jiff-1")]
+                        ArrayType::Jiff1DateTime => {
+                            let value =
+                                array_values::<jiff_1::civil::DateTime>(v, "Jiff1DateTime")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx_1::DateTime::from))
+                                    .collect::<Vec<_>>()
+                            });
+                            args.add(value).map_err(IntoArgumentsError::Encode)?;
+                        }
+                        #[cfg(feature = "with-jiff-1")]
+                        ArrayType::Jiff1Timestamp => {
+                            let value = array_values::<jiff_1::Timestamp>(v, "Jiff1Timestamp")?;
+                            let value = value.map(|values| {
+                                values
+                                    .into_iter()
+                                    .map(|v| v.map(jiff_sqlx_1::Timestamp::from))
                                     .collect::<Vec<_>>()
                             });
                             args.add(value).map_err(IntoArgumentsError::Encode)?;

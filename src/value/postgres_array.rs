@@ -47,17 +47,29 @@ impl NotU8 for PrimitiveDateTime {}
 #[cfg(feature = "with-time")]
 impl NotU8 for OffsetDateTime {}
 
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::civil::Date {}
+#[cfg(feature = "with-jiff-0_2")]
+impl NotU8 for jiff_0_2::civil::Date {}
 
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::civil::Time {}
+#[cfg(feature = "with-jiff-0_2")]
+impl NotU8 for jiff_0_2::civil::Time {}
 
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::civil::DateTime {}
+#[cfg(feature = "with-jiff-0_2")]
+impl NotU8 for jiff_0_2::civil::DateTime {}
 
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::Timestamp {}
+#[cfg(feature = "with-jiff-0_2")]
+impl NotU8 for jiff_0_2::Timestamp {}
+
+#[cfg(feature = "with-jiff-1")]
+impl NotU8 for jiff_1::civil::Date {}
+
+#[cfg(feature = "with-jiff-1")]
+impl NotU8 for jiff_1::civil::Time {}
+
+#[cfg(feature = "with-jiff-1")]
+impl NotU8 for jiff_1::civil::DateTime {}
+
+#[cfg(feature = "with-jiff-1")]
+impl NotU8 for jiff_1::Timestamp {}
 
 #[cfg(feature = "with-rust_decimal")]
 impl NotU8 for Decimal {}
