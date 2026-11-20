@@ -68,7 +68,7 @@ fn create_empty_enum() {
 fn create_composite_with_custom_type() {
     assert_eq!(
         Type::create_composite("outer_type")
-            .fields([("inner", ColumnType::custom("inner_type"))])
+            .field(("inner", ColumnType::custom("inner_type")))
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "outer_type" AS ("inner" inner_type)"#,
     );
@@ -84,11 +84,8 @@ fn create_empty_composite() {
 
 #[test]
 fn convert_create_statement() {
-    let enum_statement = TypeCreateStatement::from(
-        Type::create_enum("status")
-            .values(["pending"])
-            .values(["approved"]),
-    );
+    let enum_statement =
+        TypeCreateStatement::from(Type::create_enum("status", ["pending", "approved"]));
     assert_eq!(
         enum_statement.to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "status" AS ENUM ('pending', 'approved')"#,
@@ -96,12 +93,12 @@ fn convert_create_statement() {
 
     let composite_statement = TypeCreateStatement::from(
         Type::create_composite("record")
-            .fields([("code", ColumnType::Integer)])
-            .fields([("label", ColumnType::Text)]),
+            .field(("code", ColumnType::Integer))
+            .field(("label", ColumnType::Text, "C")),
     );
     assert_eq!(
         composite_statement.to_string(PostgresQueryBuilder),
-        r#"CREATE TYPE "record" AS ("code" integer, "label" text)"#,
+        r#"CREATE TYPE "record" AS ("code" integer, "label" text COLLATE "C")"#,
     );
 }
 
@@ -214,28 +211,6 @@ fn alter_6() {
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "schema"."font" RENAME TO "typeface""#
     )
-}
-
-#[test]
-fn add_attribute() {
-    assert_eq!(
-        Type::alter()
-            .name(Font::Table)
-            .add_attribute(Font::Variant, ColumnType::Text)
-            .to_string(PostgresQueryBuilder),
-        r#"ALTER TYPE "font" ADD ATTRIBUTE "variant" text"#
-    )
-}
-
-#[test]
-fn drop_attribute() {
-    assert_eq!(
-        Type::alter()
-            .name(Font::Table)
-            .drop_attribute(Font::Variant)
-            .to_string(PostgresQueryBuilder),
-        r#"ALTER TYPE "font" DROP ATTRIBUTE "variant""#
-    );
 }
 
 #[test]

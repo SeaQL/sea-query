@@ -12,9 +12,29 @@ pub use crate::TypeRef;
 pub use crate::IntoTypeRef;
 
 #[derive(Debug, Clone)]
-pub struct CompositeFieldType {
+pub(crate) struct CompositeFieldType {
     pub(crate) name: DynIden,
     pub(crate) col_type: ColumnType,
+    pub(crate) collation: Option<(Option<DynIden>, DynIden)>,
+}
+
+impl<N: IntoIden> From<(N, ColumnType)> for CompositeFieldType {
+    fn from((name, col_type): (N, ColumnType)) -> Self {
+        Self {
+            name: name.into_iden(),
+            col_type,
+            collation: None,
+        }
+    }
+}
+
+impl<N: IntoIden, C: MaybeQualifiedOnce> From<(N, ColumnType, C)> for CompositeFieldType {
+    fn from((name, col_type, collation): (N, ColumnType, C)) -> Self {
+        Self {
+            collation: Some(collation.into_2_parts()),
+            ..Self::from((name, col_type))
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -65,7 +85,10 @@ pub enum TypeAlterOpt {
     },
     Rename(DynIden),
     RenameValue(DynIden, DynIden),
-    AddAttribute(CompositeFieldType),
+    AddAttribute {
+        name: DynIden,
+        col_type: ColumnType,
+    },
     DropAttribute(DynIden),
 }
 
@@ -74,6 +97,68 @@ pub enum TypeAlterOpt {
 pub enum TypeAlterAddOpt {
     Before(DynIden),
     After(DynIden),
+}
+
+/// An enum type creation statement
+#[derive(Debug, Clone)]
+pub struct EnumCreateStatement {
+    name: TypeRef,
+    values: Vec<DynIden>,
+}
+
+impl From<EnumCreateStatement> for TypeCreateStatement {
+    fn from(statement: EnumCreateStatement) -> Self {
+        Self {
+            name: Some(statement.name),
+            as_type: Some(TypeAs::Enum),
+            values: statement.values,
+            ..Self::default()
+        }
+    }
+}
+
+/// A composite type creation statement
+#[derive(Debug, Clone)]
+pub struct CompositeTypeCreateStatement {
+    name: TypeRef,
+    fields: Vec<CompositeFieldType>,
+}
+
+mod composite_field {
+    use super::*;
+
+    pub trait IntoCompositeField {
+        fn add_to(self, statement: &mut CompositeTypeCreateStatement);
+    }
+
+    impl<T> IntoCompositeField for T
+    where
+        CompositeFieldType: From<T>,
+    {
+        fn add_to(self, statement: &mut CompositeTypeCreateStatement) {
+            statement.fields.push(CompositeFieldType::from(self));
+        }
+    }
+}
+
+impl CompositeTypeCreateStatement {
+    /// Add a field as `(name, type)` or `(name, type, collation)`.
+    /// A collation can be qualified as `(schema, name)`.
+    pub fn field(mut self, field: impl composite_field::IntoCompositeField) -> Self {
+        field.add_to(&mut self);
+        self
+    }
+}
+
+impl From<CompositeTypeCreateStatement> for TypeCreateStatement {
+    fn from(statement: CompositeTypeCreateStatement) -> Self {
+        Self {
+            name: Some(statement.name),
+            as_type: Some(TypeAs::Composite),
+            fields: statement.fields,
+            ..Self::default()
+        }
+    }
 }
 
 pub trait TypeBuilder: QuotedBuilder {
@@ -99,22 +184,24 @@ impl Type {
     /// use sea_query::{extension::postgres::Type, *};
     ///
     /// assert_eq!(
-    ///     Type::create_enum(("app", "status"))
-    ///         .values(["pending", "approved"])
+    ///     Type::create_enum(("app", "status"), ["pending", "approved"])
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"CREATE TYPE "app"."status" AS ENUM ('pending', 'approved')"#,
     /// );
     /// ```
     ///
-    /// ```compile_fail,E0599
+    /// ```compile_fail,E0277
     /// use sea_query::{extension::postgres::Type, ColumnType};
     ///
-    /// Type::create_enum("status").fields([("code", ColumnType::Integer)]);
+    /// Type::create_enum("status", [("code", ColumnType::Integer)]);
     /// ```
-    pub fn create_enum(name: impl IntoTypeRef) -> EnumCreateStatement {
+    pub fn create_enum(
+        name: impl IntoTypeRef,
+        values: impl IntoIterator<Item = impl IntoIden>,
+    ) -> EnumCreateStatement {
         EnumCreateStatement {
             name: name.into_type_ref(),
-            values: Vec::new(),
+            values: values.into_iter().map(IntoIden::into_iden).collect(),
         }
     }
 
@@ -125,16 +212,17 @@ impl Type {
     ///
     /// assert_eq!(
     ///     Type::create_composite(("app", "record"))
-    ///         .fields([("code", ColumnType::Integer), ("label", ColumnType::Text)])
+    ///         .field(("code", ColumnType::Integer))
+    ///         .field(("label", ColumnType::Text, ("pg_catalog", "C")))
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"CREATE TYPE "app"."record" AS ("code" integer, "label" text)"#,
+    ///     r#"CREATE TYPE "app"."record" AS ("code" integer, "label" text COLLATE "pg_catalog"."C")"#,
     /// );
     /// ```
     ///
-    /// ```compile_fail,E0599
+    /// ```compile_fail,E0277
     /// use sea_query::extension::postgres::Type;
     ///
-    /// Type::create_composite("record").values(["pending"]);
+    /// Type::create_composite("record").field("pending");
     /// ```
     pub fn create_composite(name: impl IntoTypeRef) -> CompositeTypeCreateStatement {
         CompositeTypeCreateStatement {
@@ -199,69 +287,6 @@ impl TypeCreateStatement {
             self.values.push(v.into_iden());
         }
         self
-    }
-}
-
-/// An enum type creation statement
-#[derive(Debug, Clone)]
-pub struct EnumCreateStatement {
-    name: TypeRef,
-    values: Vec<DynIden>,
-}
-
-impl EnumCreateStatement {
-    /// Add enum values
-    pub fn values<T, I>(mut self, values: I) -> Self
-    where
-        T: IntoIden,
-        I: IntoIterator<Item = T>,
-    {
-        for value in values {
-            self.values.push(value.into_iden());
-        }
-        self
-    }
-}
-
-impl From<EnumCreateStatement> for TypeCreateStatement {
-    fn from(statement: EnumCreateStatement) -> Self {
-        Self {
-            name: Some(statement.name),
-            as_type: Some(TypeAs::Enum),
-            values: statement.values,
-            ..Self::default()
-        }
-    }
-}
-
-/// A composite type creation statement
-#[derive(Debug, Clone)]
-pub struct CompositeTypeCreateStatement {
-    name: TypeRef,
-    fields: Vec<CompositeFieldType>,
-}
-
-impl CompositeTypeCreateStatement {
-    /// Add composite fields
-    pub fn fields(mut self, fields: impl IntoIterator<Item = (impl IntoIden, ColumnType)>) -> Self {
-        for (name, col_type) in fields {
-            self.fields.push(CompositeFieldType {
-                name: name.into_iden(),
-                col_type,
-            });
-        }
-        self
-    }
-}
-
-impl From<CompositeTypeCreateStatement> for TypeCreateStatement {
-    fn from(statement: CompositeTypeCreateStatement) -> Self {
-        Self {
-            name: Some(statement.name),
-            as_type: Some(TypeAs::Composite),
-            fields: statement.fields,
-            ..Self::default()
-        }
     }
 }
 
@@ -533,10 +558,10 @@ impl TypeAlterStatement {
     /// )
     /// ```
     pub fn add_attribute(self, name: impl IntoIden, col_type: ColumnType) -> Self {
-        self.alter_option(TypeAlterOpt::AddAttribute(CompositeFieldType {
+        self.alter_option(TypeAlterOpt::AddAttribute {
             name: name.into_iden(),
             col_type,
-        }))
+        })
     }
 
     /// Set the attribute to drop

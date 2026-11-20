@@ -11,8 +11,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add `TypeAlterStatement::add_value_if_not_exists`.
 - Add Postgres `PgFunc::set_config` (#1145).
-- Support creating PostgreSQL composite types https://github.com/SeaQL/sea-query/pull/1087
-- Add `Type::create_enum` and `Type::create_composite` builders https://github.com/SeaQL/sea-query/pull/1087
+- Support creating PostgreSQL composite types with `Type::create_composite` (#1087).
+
+  ```rust
+  use sea_query::{ColumnType, PostgresQueryBuilder, extension::postgres::Type};
+
+  let summary_sql = Type::create_composite("order_summary")
+      .field(("id", ColumnType::Integer))
+      .field(("status", ColumnType::Text, "C"))
+      .to_string(PostgresQueryBuilder);
+  ```
+
+- Add or drop attributes on existing composite types with `TypeAlterStatement::add_attribute` and `TypeAlterStatement::drop_attribute`.
+
+- Add `Type::create_enum` for creating PostgreSQL enum types.
+
+  ```rust
+  use sea_query::{PostgresQueryBuilder, extension::postgres::Type};
+
+  let status_sql = Type::create_enum("order_status", ["pending", "shipped"])
+      .to_string(PostgresQueryBuilder);
+  ```
+
 - Add `IndexColumn::nulls_first` and `IndexColumn::nulls_last` to set `NULLS FIRST` / `NULLS LAST` on index columns (Postgres only; other backends ignore it) (#1128).
 - PostgreSQL advisory-lock functions now accept `i64`, `Expr`, `(i32, i32)`, or `(Expr, Expr)` arguments (#1134).
 - Add Postgres `PgFunc::jsonb_build_object` and `PgFunc::jsonb_agg` (#1133).
