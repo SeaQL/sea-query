@@ -357,4 +357,16 @@ pub trait TableBuilder:
         rename: &TableRenameStatement,
         sql: &mut impl SqlWriter,
     );
+
+    /// Append follow-up SQL for table/column comments after CREATE TABLE.
+    fn append_table_create_comments(
+        &self,
+        _create: &TableCreateStatement,
+        _sql: &mut impl SqlWriter,
+    ) {
+    }
+
+    /// Append follow-up SQL for column comments after ALTER TABLE.
+    fn append_alter_table_comments(&self, _alter: &TableAlterStatement, _sql: &mut impl SqlWriter) {
+    }
 }
