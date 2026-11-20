@@ -1,87 +1,84 @@
 use super::*;
-use crate::extension::postgres::*;
+use crate::{extension::postgres::*, utils::JoinWrite};
 
-impl TypeBuilder for PostgresQueryBuilder {
-    fn prepare_type_create_statement(
+impl PostgresQueryBuilder {
+    pub(crate) fn prepare_enum_type_create_statement(
         &self,
-        create: &TypeCreateStatement,
+        name: Option<&TypeRef>,
+        values: &[DynIden],
         sql: &mut impl SqlWriter,
     ) {
         sql.write_str("CREATE TYPE ").unwrap();
-
-        if let Some(name) = &create.name {
+        if let Some(name) = name {
             self.prepare_type_ref(name, sql);
         }
-
-        if let Some(as_type) = &create.as_type {
-            sql.write_str(" AS ").unwrap();
-            self.prepare_create_as_type(as_type, sql);
-        }
-
-        if !create.values.is_empty() {
-            sql.write_str(" (").unwrap();
-
-            let mut vals = create.values.iter();
-            join_io!(
-                vals,
-                val,
-                join {
-                    sql.write_str(", ").unwrap();
-                },
-                do {
-                    self.prepare_value(val.to_string().into(), sql);
-                }
-            );
-
-            sql.write_str(")").unwrap();
-        }
-    }
-
-    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut impl SqlWriter) {
-        sql.write_str("DROP TYPE ").unwrap();
-
-        if drop.if_exists {
-            sql.write_str("IF EXISTS ").unwrap();
-        }
-
-        let mut names = drop.names.iter();
-
-        join_io!(
-            names,
-            name,
-            join {
-                sql.write_str(", ").unwrap();
+        sql.write_str(" AS ENUM (").unwrap();
+        JoinWrite {
+            buf: sql,
+            items: values,
+            at_first: |_| Ok(()),
+            r#do: |sql, value| {
+                self.prepare_value(value.to_string().into(), sql);
+                Ok(())
             },
-            do {
-                self.prepare_type_ref(name, sql);
-            }
-        );
-
-        if let Some(option) = &drop.option {
-            sql.write_str(" ").unwrap();
-            self.prepare_drop_type_opt(option, sql);
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
         }
+        .exec()
+        .unwrap();
+        sql.write_str(")").unwrap();
     }
 
-    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut impl SqlWriter) {
-        sql.write_str("ALTER TYPE ").unwrap();
+    fn prepare_composite_field(
+        &self,
+        name: &DynIden,
+        col_type: &ColumnType,
+        collation: Option<&(Option<DynIden>, DynIden)>,
+        sql: &mut impl SqlWriter,
+    ) -> std::fmt::Result {
+        self.prepare_iden(name, sql);
+        sql.write_str(" ")?;
+        self.prepare_column_type(col_type, sql);
+        if let Some((schema, collation)) = collation {
+            sql.write_str(" COLLATE ")?;
+            if let Some(schema) = schema {
+                self.prepare_iden(schema, sql);
+                sql.write_str(".")?;
+            }
+            self.prepare_iden(collation, sql);
+        }
+        Ok(())
+    }
 
-        if let Some(name) = &alter.name {
+    pub(crate) fn prepare_composite_type_create_statement(
+        &self,
+        name: Option<&TypeRef>,
+        fields: &[CompositeField],
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("CREATE TYPE ").unwrap();
+        if let Some(name) = name {
             self.prepare_type_ref(name, sql);
         }
-
-        if let Some(option) = &alter.option {
-            self.prepare_alter_type_opt(option, sql)
+        sql.write_str(" AS (").unwrap();
+        JoinWrite {
+            buf: sql,
+            items: fields,
+            at_first: |_| Ok(()),
+            r#do: |sql, field| {
+                self.prepare_composite_field(
+                    &field.name,
+                    &field.col_type,
+                    field.collation.as_ref(),
+                    sql,
+                )
+            },
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
         }
-    }
-}
-
-impl PostgresQueryBuilder {
-    fn prepare_create_as_type(&self, as_type: &TypeAs, sql: &mut impl SqlWriter) {
-        sql.write_str(match as_type {
-            TypeAs::Enum => "ENUM",
-        })
+        .exec()
         .unwrap();
+        sql.write_str(")").unwrap();
     }
 
     fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut impl SqlWriter) {
@@ -127,6 +124,81 @@ impl PostgresQueryBuilder {
                 sql.write_str(" TO ").unwrap();
                 self.prepare_value(new_name.to_string().into(), sql);
             }
+            TypeAlterOpt::AddAttribute { name, col_type } => {
+                sql.write_str(" ADD ATTRIBUTE ").unwrap();
+                self.prepare_composite_field(name, col_type, None, sql)
+                    .unwrap();
+            }
+            TypeAlterOpt::DropAttribute(name) => {
+                sql.write_str(" DROP ATTRIBUTE ").unwrap();
+                self.prepare_iden(name, sql);
+            }
+        }
+    }
+}
+
+impl TypeBuilder for PostgresQueryBuilder {
+    fn prepare_type_create_statement(
+        &self,
+        create: &TypeCreateStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        match &create.as_type {
+            Some(TypeAs::Enum) => {
+                self.prepare_enum_type_create_statement(create.name.as_ref(), &create.values, sql);
+            }
+            Some(TypeAs::Composite) => {
+                self.prepare_composite_type_create_statement(
+                    create.name.as_ref(),
+                    &create.fields,
+                    sql,
+                );
+            }
+            None => {
+                sql.write_str("CREATE TYPE ").unwrap();
+                if let Some(name) = &create.name {
+                    self.prepare_type_ref(name, sql);
+                }
+            }
+        }
+    }
+
+    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("DROP TYPE ").unwrap();
+
+        if drop.if_exists {
+            sql.write_str("IF EXISTS ").unwrap();
+        }
+
+        JoinWrite {
+            buf: sql,
+            items: &drop.names,
+            at_first: |_| Ok(()),
+            r#do: |sql, name| {
+                self.prepare_type_ref(name, sql);
+                Ok(())
+            },
+            join: |sql| sql.write_str(", "),
+            at_last: |_| Ok(()),
+        }
+        .exec()
+        .unwrap();
+
+        if let Some(option) = &drop.option {
+            sql.write_str(" ").unwrap();
+            self.prepare_drop_type_opt(option, sql);
+        }
+    }
+
+    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("ALTER TYPE ").unwrap();
+
+        if let Some(name) = &alter.name {
+            self.prepare_type_ref(name, sql);
+        }
+
+        if let Some(option) = &alter.option {
+            self.prepare_alter_type_opt(option, sql)
         }
     }
 }

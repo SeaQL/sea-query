@@ -1,6 +1,9 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{PostgresQueryBuilder, extension::postgres::Type};
+use sea_query::{
+    PostgresQueryBuilder,
+    extension::postgres::{Type, TypeCreateStatement},
+};
 
 #[test]
 fn create_1() {
@@ -49,6 +52,54 @@ fn create_3() {
             }
         }
     }
+}
+
+#[test]
+fn create_empty_enum() {
+    assert_eq!(
+        Type::create()
+            .as_enum("empty")
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "empty" AS ENUM ()"#,
+    );
+}
+
+#[test]
+fn create_composite_with_custom_type() {
+    assert_eq!(
+        Type::create_composite("outer_type")
+            .field(("inner", ColumnType::custom("inner_type")))
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "outer_type" AS ("inner" inner_type)"#,
+    );
+}
+
+#[test]
+fn create_empty_composite() {
+    assert_eq!(
+        Type::create_composite("empty").to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "empty" AS ()"#,
+    );
+}
+
+#[test]
+fn convert_create_statement() {
+    let enum_statement =
+        TypeCreateStatement::from(Type::create_enum("status", ["pending", "approved"]));
+    assert_eq!(
+        enum_statement.to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "status" AS ENUM ('pending', 'approved')"#,
+    );
+
+    let composite_statement = TypeCreateStatement::from(
+        Type::create_composite("record")
+            .field(("code", ColumnType::Integer))
+            .field(("label", ColumnType::Text, "C")),
+    );
+    assert_eq!(
+        composite_statement.to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "record" AS ("code" integer, "label" text COLLATE "C")"#,
+    );
 }
 
 #[test]
