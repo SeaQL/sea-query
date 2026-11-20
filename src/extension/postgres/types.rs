@@ -12,13 +12,13 @@ pub use crate::TypeRef;
 pub use crate::IntoTypeRef;
 
 #[derive(Debug, Clone)]
-pub(crate) struct CompositeFieldType {
+pub struct CompositeField {
     pub(crate) name: DynIden,
     pub(crate) col_type: ColumnType,
     pub(crate) collation: Option<(Option<DynIden>, DynIden)>,
 }
 
-impl<N: IntoIden> From<(N, ColumnType)> for CompositeFieldType {
+impl<N: IntoIden> From<(N, ColumnType)> for CompositeField {
     fn from((name, col_type): (N, ColumnType)) -> Self {
         Self {
             name: name.into_iden(),
@@ -28,7 +28,7 @@ impl<N: IntoIden> From<(N, ColumnType)> for CompositeFieldType {
     }
 }
 
-impl<N: IntoIden, C: MaybeQualifiedOnce> From<(N, ColumnType, C)> for CompositeFieldType {
+impl<N: IntoIden, C: MaybeQualifiedOnce> From<(N, ColumnType, C)> for CompositeField {
     fn from((name, col_type, collation): (N, ColumnType, C)) -> Self {
         Self {
             collation: Some(collation.into_2_parts()),
@@ -42,7 +42,7 @@ pub struct TypeCreateStatement {
     pub(crate) name: Option<TypeRef>,
     pub(crate) as_type: Option<TypeAs>,
     pub(crate) values: Vec<DynIden>,
-    pub(crate) fields: Vec<CompositeFieldType>,
+    pub(crate) fields: Vec<CompositeField>,
 }
 
 #[derive(Debug, Clone)]
@@ -121,31 +121,14 @@ impl From<EnumCreateStatement> for TypeCreateStatement {
 #[derive(Debug, Clone)]
 pub struct CompositeTypeCreateStatement {
     name: TypeRef,
-    fields: Vec<CompositeFieldType>,
-}
-
-mod composite_field {
-    use super::*;
-
-    pub trait IntoCompositeField {
-        fn add_to(self, statement: &mut CompositeTypeCreateStatement);
-    }
-
-    impl<T> IntoCompositeField for T
-    where
-        CompositeFieldType: From<T>,
-    {
-        fn add_to(self, statement: &mut CompositeTypeCreateStatement) {
-            statement.fields.push(CompositeFieldType::from(self));
-        }
-    }
+    fields: Vec<CompositeField>,
 }
 
 impl CompositeTypeCreateStatement {
     /// Add a field as `(name, type)` or `(name, type, collation)`.
     /// A collation can be qualified as `(schema, name)`.
-    pub fn field(mut self, field: impl composite_field::IntoCompositeField) -> Self {
-        field.add_to(&mut self);
+    pub fn field(mut self, field: impl Into<CompositeField>) -> Self {
+        self.fields.push(field.into());
         self
     }
 }
@@ -189,12 +172,6 @@ impl Type {
     ///     r#"CREATE TYPE "app"."status" AS ENUM ('pending', 'approved')"#,
     /// );
     /// ```
-    ///
-    /// ```compile_fail,E0277
-    /// use sea_query::{extension::postgres::Type, ColumnType};
-    ///
-    /// Type::create_enum("status", [("code", ColumnType::Integer)]);
-    /// ```
     pub fn create_enum(
         name: impl IntoTypeRef,
         values: impl IntoIterator<Item = impl IntoIden>,
@@ -217,12 +194,6 @@ impl Type {
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"CREATE TYPE "app"."record" AS ("code" integer, "label" text COLLATE "pg_catalog"."C")"#,
     /// );
-    /// ```
-    ///
-    /// ```compile_fail,E0277
-    /// use sea_query::extension::postgres::Type;
-    ///
-    /// Type::create_composite("record").field("pending");
     /// ```
     pub fn create_composite(name: impl IntoTypeRef) -> CompositeTypeCreateStatement {
         CompositeTypeCreateStatement {

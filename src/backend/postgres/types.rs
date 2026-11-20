@@ -53,7 +53,7 @@ impl PostgresQueryBuilder {
     pub(crate) fn prepare_composite_type_create_statement(
         &self,
         name: Option<&TypeRef>,
-        fields: &[CompositeFieldType],
+        fields: &[CompositeField],
         sql: &mut impl SqlWriter,
     ) {
         sql.write_str("CREATE TYPE ").unwrap();
