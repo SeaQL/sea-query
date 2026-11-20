@@ -1242,14 +1242,22 @@ pub trait QueryBuilder:
             Value::TimeDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDate(None) => buf.write_str("NULL")?,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTime(None) => buf.write_str("NULL")?,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDateTime(None) => buf.write_str("NULL")?,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTimestamp(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Date(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Time(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1DateTime(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Timestamp(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-bigdecimal")]
@@ -1364,26 +1372,50 @@ pub trait QueryBuilder:
                 buf.write_str(&v.format(time_format::FORMAT_DATETIME_TZ).unwrap())?;
                 buf.write_str("'")?;
             }
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDate(Some(v)) => {
                 buf.write_str("'")?;
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTime(Some(v)) => {
                 buf.write_str("'")?;
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffDateTime(Some(v)) => {
                 buf.write_str("'")?;
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
-            #[cfg(feature = "with-jiff")]
+            #[cfg(feature = "with-jiff-0_2")]
             Value::JiffTimestamp(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Date(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Time(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1DateTime(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff-1")]
+            Value::Jiff1Timestamp(Some(v)) => {
                 buf.write_str("'")?;
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;

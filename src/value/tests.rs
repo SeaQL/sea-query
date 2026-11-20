@@ -34,6 +34,32 @@ fn test_value() {
     test_value!(f64, 3.25);
     test_value!(char, 'x');
 
+    #[cfg(feature = "with-jiff-0_2")]
+    {
+        use jiff::{Timestamp, civil};
+
+        test_value!(civil::Date, civil::date(2024, 2, 29));
+        test_value!(civil::Time, civil::time(12, 34, 56, 123_456_789));
+        test_value!(
+            civil::DateTime,
+            civil::date(2024, 2, 29).at(12, 34, 56, 123_456_789)
+        );
+        test_value!(Timestamp, Timestamp::new(1, 123_456_789).unwrap());
+    }
+
+    #[cfg(feature = "with-jiff-1")]
+    {
+        use jiff_1::{Timestamp, civil};
+
+        test_value!(civil::Date, civil::date(2024, 2, 29));
+        test_value!(civil::Time, civil::time(12, 34, 56, 123_456_789));
+        test_value!(
+            civil::DateTime,
+            civil::date(2024, 2, 29).at(12, 34, 56, 123_456_789)
+        );
+        test_value!(Timestamp, Timestamp::new(1, 123_456_789).unwrap());
+    }
+
     test_ref_value!(bool, true);
     test_ref_value!(i8, 127);
     test_ref_value!(i16, 32767);

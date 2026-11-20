@@ -116,10 +116,11 @@ jobs:
       - run: cargo build --workspace --features=postgres-array
       - run: cargo build --workspace --features=postgres-vector
       - run: cargo build --workspace --features=thread-safe
+      - run: cargo check --no-default-features --features=with-jiff,postgres-array
+      - run: cargo check --no-default-features --features=with-jiff-1,postgres-array
       - run: cargo test --no-run
       - run: cargo test
-      - run: cargo test --features=all-features --no-run
-      - run: cargo test --features=all-features
+      - run: cargo test --features=all-features,with-jiff-1
       - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses --no-run
       - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses
       - run: cargo test --package sea-query-derive --no-run
@@ -158,7 +159,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-array
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-vector
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-jiff,postgres-array
+      - run: cargo test --manifest-path sea-query-sqlx/Cargo.toml --features sqlx-postgres,sqlx-sqlite,sqlx-mysql,sqlx-any,with-jiff,with-jiff-1,postgres-array,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --test jiff
 
   rusqlite-build:
     name: sea-query-rusqlite
@@ -187,6 +188,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-mac_address
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-array
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-vector
+      - run: cargo check --manifest-path sea-query-rusqlite/Cargo.toml --features=with-jiff,with-jiff-1
 
   postgres-build:
     name: sea-query-postgres
@@ -216,6 +218,7 @@ jobs:
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-mac_address
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-vector
+      - run: cargo check --manifest-path sea-query-postgres/Cargo.toml --features=with-jiff,with-jiff-1,postgres-array
 
   sqlite:
     name: SQLite

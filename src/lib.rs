@@ -60,8 +60,10 @@
 //!
 //! SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 //!
+//! AI-generated:
 //! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-//! `with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`, `postgres-vector`
+//! `with-jiff`, `with-jiff-0_2`, `with-jiff-1`, `with-ipnetwork`, `with-mac_address`,
+//! `postgres-array`, `postgres-interval`, `postgres-vector`
 //!
 //! ## Usage
 //!
