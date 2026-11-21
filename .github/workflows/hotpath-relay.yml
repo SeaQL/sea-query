@@ -1,0 +1,44 @@
+# Uploads the reports of pull request runs of hotpath-benchmark.yml to
+# hotpath.rs. Pull requests from forks get no OIDC token, so the benchmark job
+# stores its reports as an artifact and this workflow uploads them, without
+# ever checking out or running code from the pull request.
+name: Hotpath relay
+
+on:
+  workflow_run:
+    workflows: ["Hotpath benchmark"] # the `name:` of the benchmark workflow
+    types: [completed]
+
+permissions: {} # jobs get only what they declare
+
+jobs:
+  relay:
+    # only successful pull request runs have reports; the action checks this too
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep in sync with the matrix of hotpath-benchmark.yml, whose pull
+        # request jobs each store `report.json` in `hotpath-report-<name>`.
+        benchmark:
+          - basic-select_and_to_string
+          - value-select_and_build-pg
+          - realistic-select_to_string_pg
+          - postgres_escape-query-middle_quote
+    permissions:
+      actions: read # download the artifact of the benchmark run
+      id-token: write # authenticate the upload
+      pull-requests: read # find the pull request the run belongs to
+    concurrency: # a newer run of the same benchmark and branch supersedes an older one
+      group: hotpath-relay-${{ matrix.benchmark }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: true
+    steps:
+      - uses: hotpath-rs/hotpath-relay@d40b0e465fa852b0c1f4e33989140d11d7b2742c
+        with:
+          benchmark: ${{ matrix.benchmark }}
+          artifact_name: hotpath-report-${{ matrix.benchmark }}
+          report_file: report.json
