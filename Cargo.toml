@@ -51,11 +51,14 @@ itoa = { version = "1.0.15", optional = true }
 [dev-dependencies]
 sea-query = { path = ".", features = ["tests-cfg"] }
 criterion = { version = "0.8.2" }
-hotpath = { version = "0.31.3", features = ["criterion-0-8"] }
+hotpath = { version = "0.32.1", features = ["criterion-0-8"] }
 pretty_assertions = { version = "1" }
 
 [features]
 # STUB
+hotpath = ["hotpath/hotpath"]
+hotpath-alloc = ["hotpath", "hotpath/hotpath-alloc"]
+hotpath-cloud = ["hotpath", "hotpath/hotpath-cloud"]
 hotpath-callgrind = ["hotpath/hotpath-callgrind"]
 audit = []
 backend-mysql = []
