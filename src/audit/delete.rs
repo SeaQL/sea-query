@@ -24,7 +24,7 @@ impl AuditTrait for DeleteStatement {
         if let Some(with) = &self.with {
             let mut walker = select::Walker { access: requests };
             walker.recurse_audit_with_clause(with)?;
-            walker.recurse_audit_with_clause_cleanup(with);
+            walker.recurse_audit_with_clause_cleanup(with, 0);
             requests = walker.access;
         }
 

@@ -86,6 +86,7 @@ fn window_bind_parameters_follow_sql_order() {
         .take();
     let named = WindowStatement::new()
         .order_by_expr(Expr::col("uid").add(20), Order::Asc)
+        .frame_between(FrameType::Rows, Frame::Preceding(1), Frame::Following(2))
         .take();
     let query = Query::select()
         .expr(Func::lag(Expr::col("uid").add(1)).over(inline))
@@ -101,11 +102,18 @@ fn window_bind_parameters_follow_sql_order() {
             concat!(
                 r#"SELECT LAG("uid" + $1) OVER (  ORDER BY "uid" + $2 ASC ), "#,
                 r#"LEAD("uid") OVER "by_id" FROM "activity" "#,
-                r#"WINDOW "by_id" AS ( ORDER BY "uid" + $3 ASC) "#,
-                r#"ORDER BY "uid" + $4 ASC"#,
+                r#"WINDOW "by_id" AS ( ORDER BY "uid" + $3 ASC ROWS BETWEEN $4 PRECEDING AND $5 FOLLOWING) "#,
+                r#"ORDER BY "uid" + $6 ASC"#,
             )
             .to_owned(),
-            Values(vec![1.into(), 10.into(), 20.into(), 30.into()]),
+            Values(vec![
+                1.into(),
+                10.into(),
+                20.into(),
+                1u32.into(),
+                2u32.into(),
+                30.into(),
+            ]),
         ),
     );
 }
@@ -179,6 +187,102 @@ fn audit_includes_tables_read_by_window_definitions() {
             "activity".into_iden(),
             "inline_window_priorities".into_iden(),
             "named_window_priorities".into_iden(),
+        ],
+    );
+}
+
+#[cfg(feature = "audit")]
+#[test]
+fn nested_window_cte_does_not_hide_an_outer_table() {
+    let cte = CommonTableExpression::new()
+        .table_name("activity")
+        .query(Query::select().expr_as(Expr::val(99), "uid").to_owned())
+        .to_owned();
+    let subquery = Query::select()
+        .column("uid")
+        .from("activity")
+        .with_cte(WithClause::new().cte(cte).to_owned())
+        .to_owned();
+    let window = WindowStatement::new()
+        .order_by_expr(Expr::SubQuery(None, Box::new(subquery.into())), Order::Asc)
+        .take();
+    let query = Query::select()
+        .from("activity")
+        .expr(Func::rank().over("by_priority"))
+        .window("by_priority", window.clone())
+        .to_owned();
+
+    assert_eq!(
+        query.audit().unwrap().selected_tables(),
+        ["activity".into_iden()],
+    );
+
+    let query = Query::select()
+        .expr(Func::rank().over(window.clone()))
+        .from("other_activity")
+        .to_owned();
+
+    assert_eq!(
+        query.audit().unwrap().selected_tables(),
+        ["other_activity".into_iden()],
+    );
+
+    let query = Query::select()
+        .column("uid")
+        .from("activity")
+        .order_by_expr(Func::rank().over(window), Order::Asc)
+        .to_owned();
+
+    assert_eq!(
+        query.audit().unwrap().selected_tables(),
+        ["activity".into_iden()],
+    );
+}
+
+#[cfg(feature = "audit")]
+#[test]
+fn audit_includes_tables_read_by_a_window_aggregate_filter() {
+    let priorities = Query::select().column("uid").from("priorities").to_owned();
+    let total = Func::sum(Expr::col("uid")).filter(Expr::col("uid").in_subquery(priorities));
+    let query = Query::select()
+        .expr(WindowFunctionCall::from(total).over(WindowStatement::new()))
+        .from("activity")
+        .to_owned();
+
+    let mut tables = query.audit().unwrap().selected_tables();
+    tables.sort_by_key(DynIden::inner);
+    assert_eq!(tables, ["activity".into_iden(), "priorities".into_iden()]);
+}
+
+#[cfg(feature = "audit")]
+#[test]
+fn audit_includes_tables_read_through_select_clauses() {
+    let subquery = |table| Query::select().column("uid").from(table).to_owned();
+    let query = Query::select()
+        .column(("activity", "uid"))
+        .from("activity")
+        .left_join(
+            "details",
+            Expr::col(("activity", "uid")).in_subquery(subquery("join_priorities")),
+        )
+        .group_by_col(("activity", "uid"))
+        .add_group_by([Expr::SubQuery(
+            None,
+            Box::new(subquery("group_priorities").into()),
+        )])
+        .and_having(Expr::col(("activity", "uid")).in_subquery(subquery("having_priorities")))
+        .to_owned();
+
+    let mut tables = query.audit().unwrap().selected_tables();
+    tables.sort_by_key(DynIden::inner);
+    assert_eq!(
+        tables,
+        [
+            "activity".into_iden(),
+            "details".into_iden(),
+            "group_priorities".into_iden(),
+            "having_priorities".into_iden(),
+            "join_priorities".into_iden(),
         ],
     );
 }

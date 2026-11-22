@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     CaseStatement, CommonTableExpression, Condition, ConditionExpression, ConditionHolder,
-    ConditionHolderContents, CteQuery, Cycle, Expr, FunctionCall, LogicalChainOper, Search,
+    ConditionHolderContents, CteQuery, Cycle, Expr, FunctionCall, JoinOn, LogicalChainOper, Search,
     SelectStatement, SubQueryStatement, TableRef, WindowSelectType, WindowStatement, WithClause,
     WithQuery,
 };
@@ -45,7 +45,7 @@ impl WithClause {
     fn audit_impl(&self) -> Result<Vec<QueryAccessRequest>, Error> {
         let mut walker = Walker::default();
         walker.recurse_audit_with_clause(self)?;
-        walker.recurse_audit_with_clause_cleanup(self);
+        walker.recurse_audit_with_clause_cleanup(self, 0);
         Ok(walker.access)
     }
 }
@@ -67,6 +67,7 @@ impl Walker {
     }
 
     fn recurse_audit_select(&mut self, select: &SelectStatement) -> Result<(), Error> {
+        let scope_start = self.access.len();
         for select in &select.selects {
             self.recurse_audit_expr(&select.expr)?;
             if let Some(WindowSelectType::Query(window)) = &select.window {
@@ -78,7 +79,22 @@ impl Walker {
         }
         for join in &select.join {
             self.recurse_audit_table(&join.table)?;
+            match &join.on {
+                Some(JoinOn::Condition(condition)) => {
+                    self.recurse_audit_condition_holder(condition)?;
+                }
+                Some(JoinOn::Columns(columns)) => {
+                    for expr in columns {
+                        self.recurse_audit_expr(expr)?;
+                    }
+                }
+                None => {}
+            }
         }
+        for expr in &select.groups {
+            self.recurse_audit_expr(expr)?;
+        }
+        self.recurse_audit_condition_holder(&select.having)?;
         if let Some((_, window)) = &select.window {
             self.recurse_audit_window(window)?;
         }
@@ -91,7 +107,7 @@ impl Walker {
         self.recurse_audit_condition_holder(&select.r#where)?;
         if let Some(with) = &select.with {
             self.recurse_audit_with_clause(with)?;
-            self.recurse_audit_with_clause_cleanup(with);
+            self.recurse_audit_with_clause_cleanup(with, scope_start);
         }
         Ok(())
     }
@@ -112,11 +128,12 @@ impl Walker {
     }
 
     fn recurse_audit_with(&mut self, with: &WithQuery) -> Result<(), Error> {
+        let scope_start = self.access.len();
         self.recurse_audit_with_clause(&with.with_clause)?;
         if let Some(subquery) = &with.query {
             self.recurse_audit_subquery(subquery)?;
         }
-        self.recurse_audit_with_clause_cleanup(&with.with_clause);
+        self.recurse_audit_with_clause_cleanup(&with.with_clause, scope_start);
         Ok(())
     }
 
@@ -126,6 +143,9 @@ impl Walker {
         }
         for order in &function.order_by {
             self.recurse_audit_expr(&order.expr)?;
+        }
+        if let Some(filter) = &function.filter {
+            self.recurse_audit_condition(filter)?;
         }
         Ok(())
     }
@@ -195,13 +215,21 @@ impl Walker {
         Ok(())
     }
 
-    pub(super) fn recurse_audit_with_clause_cleanup(&mut self, with_clause: &WithClause) {
-        // remove cte alias
-        for cte in &with_clause.cte_expressions {
-            if let Some(table_name) = &cte.table_name {
-                self.remove_item(AccessType::Select, &TableName(None, table_name.clone()));
-            }
-        }
+    pub(super) fn recurse_audit_with_clause_cleanup(
+        &mut self,
+        with_clause: &WithClause,
+        scope_start: usize,
+    ) {
+        self.access
+            .extract_if(scope_start.., |request| {
+                request.access_type == AccessType::Select
+                    && request.schema_table.0.is_none()
+                    && with_clause
+                        .cte_expressions
+                        .iter()
+                        .any(|cte| cte.table_name.as_ref() == Some(&request.schema_table.1))
+            })
+            .for_each(drop);
     }
 
     fn recurse_audit_cte_search(&mut self, search: &Search) -> Result<(), Error> {
@@ -265,16 +293,6 @@ impl Walker {
             }
         }
         Ok(())
-    }
-
-    fn remove_item(&mut self, access_type: AccessType, target: &TableName) {
-        while let Some(pos) = self
-            .access
-            .iter()
-            .position(|item| item.access_type == access_type && &item.schema_table == target)
-        {
-            self.access.remove(pos);
-        }
     }
 }
 

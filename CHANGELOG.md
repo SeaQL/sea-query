@@ -78,6 +78,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixes
 
+- Fix SQL rendering for numeric `PRECEDING` and `FOLLOWING` window frame bounds (#1150).
+- Prevent nested CTE aliases from removing previously recorded outer table reads from query audits (#1150).
+- Include table reads from subqueries in `FILTER`, `JOIN ON`, `GROUP BY`, and `HAVING` in query audits (#1150).
+
 - Fix invalid SQL when creating PostgreSQL enum types with no values https://github.com/SeaQL/sea-query/pull/1087
 - sea_query_postgres: Bind `BigDecimal` to `numeric` and `numeric[]` parameters (#1136).
 - Fix `Expr::cust_with_values` failing to bind placeholders inside PostgreSQL array brackets (#1074).

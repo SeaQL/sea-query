@@ -1769,12 +1769,12 @@ pub trait QueryBuilder:
             Frame::UnboundedPreceding => sql.write_str("UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
                 self.prepare_value(v.into(), sql);
-                sql.write_str("PRECEDING").unwrap();
+                sql.write_str(" PRECEDING").unwrap();
             }
             Frame::CurrentRow => sql.write_str("CURRENT ROW").unwrap(),
             Frame::Following(v) => {
                 self.prepare_value(v.into(), sql);
-                sql.write_str("FOLLOWING").unwrap();
+                sql.write_str(" FOLLOWING").unwrap();
             }
             Frame::UnboundedFollowing => sql.write_str("UNBOUNDED FOLLOWING").unwrap(),
         }
