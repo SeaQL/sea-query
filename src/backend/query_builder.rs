@@ -47,6 +47,22 @@ pub(super) fn prepare_function_order_by(
     .unwrap();
 }
 
+fn prepare_over_clause(
+    query_builder: &impl QueryBuilder,
+    window: &WindowSelectType,
+    sql: &mut impl SqlWriter,
+) {
+    sql.write_str(" OVER ").unwrap();
+    match window {
+        WindowSelectType::Name(name) => query_builder.prepare_iden(name, sql),
+        WindowSelectType::Query(window) => {
+            sql.write_str("( ").unwrap();
+            query_builder.prepare_window_statement(window, sql);
+            sql.write_str(" )").unwrap();
+        }
+    }
+}
+
 pub trait QueryBuilder:
     QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider + Sized
 {
@@ -235,6 +251,14 @@ pub trait QueryBuilder:
 
         self.prepare_condition(&select.having, "HAVING", sql);
 
+        if let Some((name, window)) = &select.window {
+            sql.write_str(" WINDOW ").unwrap();
+            self.prepare_iden(name, sql);
+            sql.write_str(" AS (").unwrap();
+            self.prepare_window_statement(window, sql);
+            sql.write_str(")").unwrap();
+        }
+
         if !select.unions.is_empty() {
             select.unions.iter().for_each(|(union_type, query)| {
                 self.prepare_union_statement(*union_type, query, sql);
@@ -261,14 +285,6 @@ pub trait QueryBuilder:
         if let Some(lock) = &select.lock {
             sql.write_str(" ").unwrap();
             self.prepare_select_lock(lock, sql);
-        }
-
-        if let Some((name, query)) = &select.window {
-            sql.write_str(" WINDOW ").unwrap();
-            self.prepare_iden(name, sql);
-            sql.write_str(" AS (").unwrap();
-            self.prepare_window_statement(query, sql);
-            sql.write_str(")").unwrap();
         }
     }
 
@@ -475,6 +491,12 @@ pub trait QueryBuilder:
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
             }
+            Expr::WindowFunction(expr) => {
+                let func = &expr.function;
+                self.prepare_function_name(&func.func, sql);
+                self.prepare_function_arguments(func, sql);
+                prepare_over_clause(self, &expr.window, sql);
+            }
             Expr::Binary(left, op, right) => match (op, right.as_ref()) {
                 (BinOper::In, Expr::Tuple(t)) if t.is_empty() => {
                     self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql)
@@ -615,19 +637,9 @@ pub trait QueryBuilder:
     /// Translate [`SelectExpr`] into SQL statement.
     fn prepare_select_expr(&self, select_expr: &SelectExpr, sql: &mut impl SqlWriter) {
         self.prepare_expr(&select_expr.expr, sql);
-        match &select_expr.window {
-            Some(WindowSelectType::Name(name)) => {
-                sql.write_str(" OVER ").unwrap();
-                self.prepare_iden(name, sql);
-            }
-            Some(WindowSelectType::Query(window)) => {
-                sql.write_str(" OVER ").unwrap();
-                sql.write_str("( ").unwrap();
-                self.prepare_window_statement(window, sql);
-                sql.write_str(" )").unwrap();
-            }
-            None => {}
-        };
+        if let Some(window) = &select_expr.window {
+            prepare_over_clause(self, window, sql);
+        }
 
         if let Some(alias) = &select_expr.alias {
             sql.write_str(" AS ").unwrap();
@@ -804,6 +816,13 @@ pub trait QueryBuilder:
                 Func::Abs => "ABS",
                 Func::Coalesce => "COALESCE",
                 Func::Count => "COUNT",
+                Func::RowNumber => "ROW_NUMBER",
+                Func::Rank => "RANK",
+                Func::DenseRank => "DENSE_RANK",
+                Func::Lead => "LEAD",
+                Func::Lag => "LAG",
+                Func::FirstValue => "FIRST_VALUE",
+                Func::LastValue => "LAST_VALUE",
                 Func::IfNull => self.if_null_function(),
                 Func::Greatest => self.greatest_function(),
                 Func::Least => self.least_function(),
@@ -2034,6 +2053,7 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
         | Expr::Tuple(_)
         | Expr::Constant(_)
         | Expr::FunctionCall(_)
+        | Expr::WindowFunction(_)
         | Expr::Value(_)
         | Expr::Keyword(_)
         | Expr::Case(_)

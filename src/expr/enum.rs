@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::*;
+use crate::{func::WindowFunctionExpr, *};
 
 /// An arbitrary, dynamically-typed SQL expression.
 ///
@@ -23,6 +23,7 @@ pub enum Expr {
     Tuple(Vec<Expr>),
     Unary(UnOper, Box<Expr>),
     FunctionCall(FunctionCall),
+    WindowFunction(Box<WindowFunctionExpr>),
     Binary(Box<Expr>, BinOper, Box<Expr>),
     SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),

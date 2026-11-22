@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 
-use crate::{Expr, IntoColumnRef, NullOrdering, Order, OrderExpr, OrderedStatement};
+use crate::{
+    DynIden, Expr, IntoColumnRef, IntoIden, NullOrdering, Order, OrderExpr, OrderedStatement,
+};
 
 pub trait OverStatement {
     #[doc(hidden)]
@@ -272,5 +274,27 @@ impl WindowStatement {
         I: IntoIterator<Item = (T, Order, NullOrdering)>,
     {
         <Self as OrderedStatement>::order_by_columns_with_nulls(self, cols)
+    }
+}
+
+/// Window specification for an `OVER` clause.
+#[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
+pub enum WindowSelectType {
+    /// Name declared with [`SelectStatement::window`](crate::SelectStatement::window).
+    Name(DynIden),
+    /// Inline window definition.
+    Query(WindowStatement),
+}
+
+impl From<WindowStatement> for WindowSelectType {
+    fn from(stmt: WindowStatement) -> Self {
+        Self::Query(stmt)
+    }
+}
+
+impl<T: IntoIden> From<T> for WindowSelectType {
+    fn from(iden: T) -> Self {
+        Self::Name(iden.into_iden())
     }
 }
