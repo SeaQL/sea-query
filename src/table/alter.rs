@@ -67,7 +67,7 @@ pub enum TableAlterOption {
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
     DropConstraint(DynIden),
-    // Note: A separate variant was added to avoid breaking changed with the existing drop constraint option.
+    // Note: A separate variant was added to avoid breaking changes with the existing drop constraint option.
     DropConstraintIfExists(DropConstraintOption),
 }
 
