@@ -66,7 +66,9 @@ pub enum TableAlterOption {
     DropColumn(DropColumnOption),
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
-    DropConstraint(DropConstraintOption),
+    DropConstraint(DynIden),
+    // Note: A separate variant was added to avoid breaking changed with the existing drop constraint option.
+    DropConstraintIfExists(DropConstraintOption),
 }
 
 impl TableAlterStatement {
@@ -426,10 +428,7 @@ impl TableAlterStatement {
     where
         T: IntoIden,
     {
-        self.add_alter_option(TableAlterOption::DropConstraint(DropConstraintOption{
-            constraint_name: name.into_iden(),
-            if_exists: false
-        }))
+        self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
     }
 
     /// Drop a named constraint from an existing table if it exists.
@@ -454,7 +453,7 @@ impl TableAlterStatement {
     where
         T: IntoIden,
     {
-        self.add_alter_option(TableAlterOption::DropConstraint(DropConstraintOption{
+        self.add_alter_option(TableAlterOption::DropConstraintIfExists(DropConstraintOption{
             constraint_name: name.into_iden(),
             if_exists: true
         }))
