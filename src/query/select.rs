@@ -5,7 +5,7 @@ use crate::{
     IntoCondition, IntoIden, IntoTableRef, IntoValueTuple, JoinOn, JoinType, LogicalChainOper,
     NullOrdering, Order, OrderExpr, OrderedStatement, QueryStatement, QueryStatementBuilder,
     QueryStatementWriter, SqlWriter, SubQueryStatement, TableRef, Value, ValueTuple, Values,
-    WindowStatement, WithClause, WithQuery, backend::QueryBuilder,
+    WindowSelectType, WindowStatement, WithClause, WithQuery, backend::QueryBuilder,
 };
 
 /// Select rows from an existing table
@@ -124,16 +124,6 @@ pub enum SelectDistinct {
     DistinctOn(Vec<ColumnRef>),
 }
 
-/// Window type in [`SelectExpr`]
-#[derive(Debug, Clone, PartialEq)]
-#[non_exhaustive]
-pub enum WindowSelectType {
-    /// Name in [`SelectStatement`]
-    Name(DynIden),
-    /// Inline query in [`SelectExpr`]
-    Query(WindowStatement),
-}
-
 /// Select expression used in select statement
 #[derive(Debug, Clone, PartialEq)]
 pub struct SelectExpr {
@@ -240,18 +230,6 @@ impl SelectInto {
     pub fn modifier(mut self, modifier: SelectIntoTableModifier) -> Self {
         self.target_table_modifier = Some(modifier);
         self
-    }
-}
-
-impl From<WindowStatement> for WindowSelectType {
-    fn from(stmt: WindowStatement) -> Self {
-        Self::Query(stmt)
-    }
-}
-
-impl<T: IntoIden> From<T> for WindowSelectType {
-    fn from(iden: T) -> Self {
-        Self::Name(iden.into_iden())
     }
 }
 

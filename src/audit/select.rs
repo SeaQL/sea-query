@@ -2,7 +2,8 @@ use super::*;
 use crate::{
     CaseStatement, CommonTableExpression, Condition, ConditionExpression, ConditionHolder,
     ConditionHolderContents, CteQuery, Cycle, Expr, FunctionCall, LogicalChainOper, Search,
-    SelectStatement, SubQueryStatement, TableRef, WithClause, WithQuery,
+    SelectStatement, SubQueryStatement, TableRef, WindowSelectType, WindowStatement, WithClause,
+    WithQuery,
 };
 use std::collections::HashSet;
 
@@ -55,9 +56,22 @@ pub(super) struct Walker {
 }
 
 impl Walker {
+    fn recurse_audit_window(&mut self, window: &WindowStatement) -> Result<(), Error> {
+        for expr in &window.partition_by {
+            self.recurse_audit_expr(expr)?;
+        }
+        for order in &window.order_by {
+            self.recurse_audit_expr(&order.expr)?;
+        }
+        Ok(())
+    }
+
     fn recurse_audit_select(&mut self, select: &SelectStatement) -> Result<(), Error> {
         for select in &select.selects {
             self.recurse_audit_expr(&select.expr)?;
+            if let Some(WindowSelectType::Query(window)) = &select.window {
+                self.recurse_audit_window(window)?;
+            }
         }
         for table_ref in &select.from {
             self.recurse_audit_table(table_ref)?;
@@ -65,8 +79,14 @@ impl Walker {
         for join in &select.join {
             self.recurse_audit_table(&join.table)?;
         }
+        if let Some((_, window)) = &select.window {
+            self.recurse_audit_window(window)?;
+        }
         for (_, select) in &select.unions {
             self.recurse_audit_select(select)?;
+        }
+        for order in &select.orders {
+            self.recurse_audit_expr(&order.expr)?;
         }
         self.recurse_audit_condition_holder(&select.r#where)?;
         if let Some(with) = &select.with {
@@ -115,6 +135,12 @@ impl Walker {
             Expr::Column(_) => (),
             Expr::Unary(_, expr) | Expr::AsEnum(_, expr) => self.recurse_audit_expr(expr)?,
             Expr::FunctionCall(function) => self.recurse_audit_function(function)?,
+            Expr::WindowFunction(expr) => {
+                self.recurse_audit_function(&expr.function)?;
+                if let WindowSelectType::Query(window) = &expr.window {
+                    self.recurse_audit_window(window)?;
+                }
+            }
             Expr::Binary(left, _, right) => {
                 self.recurse_audit_expr(left)?;
                 self.recurse_audit_expr(right)?;

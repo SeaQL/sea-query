@@ -1,9 +1,13 @@
 //! For calling built-in SQL functions.
 
+mod window;
+
 use crate::{expr::*, query::Condition, types::*};
 
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgAdvisoryLockKey, PgFunc};
+pub use window::WindowFunctionCall;
+pub(crate) use window::WindowFunctionExpr;
 
 /// Known SQL functions.
 ///
@@ -17,6 +21,13 @@ pub enum Func {
     Avg,
     Abs,
     Count,
+    RowNumber,
+    Rank,
+    DenseRank,
+    Lead,
+    Lag,
+    FirstValue,
+    LastValue,
     IfNull,
     Greatest,
     Least,

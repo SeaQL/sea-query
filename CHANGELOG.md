@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
+- Add `Func::row_number`, `Func::rank`, `Func::dense_rank`, `Func::lead`, `Func::lag`, `Func::first_value`, and `Func::last_value` (#1150).
+
+  ```rust
+  use sea_query::{Expr, Func, Order, Query, WindowStatement};
+
+  let window_name = "by_score";
+  let query = Query::select()
+      .column("score")
+      .expr_as(Func::dense_rank().over(window_name), "place")
+      .expr_as(Func::lag(Expr::col("score")).over(window_name), "previous_score")
+      .from("results")
+      .window(
+          window_name,
+          WindowStatement::new().order_by("score", Order::Desc).take(),
+      )
+      .to_owned();
+  ```
+
 - Add `TypeAlterStatement::add_value_if_not_exists`.
 - Add Postgres `PgFunc::set_config` (#1145).
 - Support creating PostgreSQL composite types with `Type::create_composite` (#1087).
