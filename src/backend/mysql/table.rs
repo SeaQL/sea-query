@@ -217,9 +217,9 @@ impl TableBuilder for MysqlQueryBuilder {
                             Mode::TableAlter,
                         );
                     }
-                    TableAlterOption::DropConstraint(name) => {
+                    TableAlterOption::DropConstraint(DropConstraintOption { constraint_name, .. }) => {
                         sql.write_str("DROP CONSTRAINT ").unwrap();
-                        self.prepare_iden(name, sql);
+                        self.prepare_iden(constraint_name, sql);
                     }
                 };
             }

@@ -48,6 +48,13 @@ pub struct DropColumnOption {
     pub(crate) if_exists: bool,
 }
 
+/// table alter drop constraint options
+#[derive(Debug, Clone)]
+pub struct DropConstraintOption {
+    pub(crate) constraint_name: DynIden,
+    pub(crate) if_exists: bool,
+}
+
 /// All available table alter options
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
@@ -59,7 +66,7 @@ pub enum TableAlterOption {
     DropColumn(DropColumnOption),
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
-    DropConstraint(DynIden),
+    DropConstraint(DropConstraintOption),
 }
 
 impl TableAlterStatement {
@@ -419,7 +426,38 @@ impl TableAlterStatement {
     where
         T: IntoIden,
     {
-        self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
+        self.add_alter_option(TableAlterOption::DropConstraint(DropConstraintOption{
+            constraint_name: name.into_iden(),
+            if_exists: false
+        }))
+    }
+
+    /// Drop a named constraint from an existing table if it exists.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .drop_constraint_if_exists("font_name_key")
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" DROP CONSTRAINT IF EXISTS "font_name_key""#
+    /// );
+    /// // MySQL and Sqlite do not support DROP CONSTRAINT IF EXISTS
+    /// ```
+    pub fn drop_constraint_if_exists<T>(&mut self, name: T) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.add_alter_option(TableAlterOption::DropConstraint(DropConstraintOption{
+            constraint_name: name.into_iden(),
+            if_exists: true
+        }))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {

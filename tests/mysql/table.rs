@@ -502,6 +502,28 @@ fn alter_with_named_check_constraint() {
 }
 
 #[test]
+fn drop_contraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_constraint("blah")
+            .to_string(MysqlQueryBuilder),
+        "ALTER TABLE `font` DROP CONSTRAINT `blah`"
+    );
+}
+
+#[test]
+fn drop_contraint_if_exists_not_supported() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_constraint_if_exists("blah")
+            .to_string(MysqlQueryBuilder),
+        "ALTER TABLE `font` DROP CONSTRAINT `blah`"
+    );
+}
+
+#[test]
 fn create_partition_range() {
     assert_eq!(
         Table::create()

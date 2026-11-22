@@ -612,6 +612,28 @@ fn alter_with_named_check_constraint() {
 }
 
 #[test]
+fn drop_contraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_constraint("blah")
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "font" DROP CONSTRAINT "blah""#
+    );
+}
+
+#[test]
+fn drop_contraint_if_exists() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_constraint_if_exists("blah")
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "font" DROP CONSTRAINT IF EXISTS "blah""#
+    );
+}
+
+#[test]
 fn create_16() {
     assert_eq!(
         Table::create()
