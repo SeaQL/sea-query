@@ -748,7 +748,7 @@ fn alter_with_named_check_constraint() {
 }
 
 #[test]
-#[should_panic(expected = "Sqlite doesn't support DROP CONSTRAINT on alter table statements")]
+#[should_panic(expected = "Sqlite does not support dropping constraints from existing tables")]
 fn drop_contraint_not_supported() {
     assert_eq!(
         Table::alter()
@@ -760,7 +760,7 @@ fn drop_contraint_not_supported() {
 }
 
 #[test]
-#[should_panic(expected = "Sqlite doesn't support DROP CONSTRAINT IF EXISTS on alter table statements")]
+#[should_panic(expected = "Sqlite does not support dropping constraints from existing tables")]
 fn drop_contraint_if_exists_not_supported() {
     assert_eq!(
         Table::alter()
