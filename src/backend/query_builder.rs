@@ -1325,9 +1325,7 @@ pub trait QueryBuilder:
                 OptionEnum::Some(v) => self.write_string_quoted(v.value.as_ref(), buf),
                 OptionEnum::None(_) => buf.write_str("NULL")?,
             },
-            Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
-            }
+            Value::Char(Some(v)) => self.write_string_quoted(v.encode_utf8(&mut [0; 4]), buf),
             Value::Bytes(Some(v)) => self.write_bytes(v, buf),
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buf),

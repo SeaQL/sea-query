@@ -871,53 +871,22 @@ pub trait ExprTrait: Sized {
 
     /// Express a `LIKE` expression.
     ///
+    /// Pass a string or an expression as the pattern.
+    /// Use [`LikeExpr::escape`] to specify an `ESCAPE` character.
+    ///
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where((Char::Table, Char::Character).into_column_ref().like("Ours'%"))
-    ///     .to_owned();
+    /// use sea_query::*;
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE E'Ours\'%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
-    /// );
-    /// ```
-    ///
-    /// Like with ESCAPE
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where((Char::Table, Char::Character).into_column_ref().like(LikeExpr::new(r"|_Our|_").escape('|')))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    ///     Query::select()
+    ///         .expr(Expr::col("name").like(Expr::col("pattern")))
+    ///         .expr(Expr::col("name").like(Func::lower(Expr::col("pattern"))))
+    ///         .expr(Expr::col("name").like(LikeExpr::from(Expr::col("pattern")).escape('|')))
+    ///         .from("items")
+    ///         .to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "name" LIKE "pattern", "name" LIKE LOWER("pattern"), "name" LIKE "pattern" ESCAPE '|' FROM "items""#
     /// );
     /// ```
     fn like<L>(self, like: L) -> Expr

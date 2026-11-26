@@ -1180,15 +1180,17 @@ fn select_61() {
 
 #[test]
 fn select_ilike_escape() {
+    let pattern = Expr::col(Char::Character).concat("B");
+
     assert_eq!(
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).ilike(LikeExpr::new("A").escape('\\')))
-            .and_where(Expr::col(Char::Character).not_ilike(LikeExpr::new("B").escape('\\')))
+            .and_where(Expr::col(Char::Character).not_ilike(LikeExpr::from(pattern).escape('\\')))
             .build(PostgresQueryBuilder),
         (
-            r#"SELECT "character" FROM "character" WHERE "character" ILIKE $1 ESCAPE E'\\' AND "character" NOT ILIKE $2 ESCAPE E'\\'"#
+            r#"SELECT "character" FROM "character" WHERE "character" ILIKE $1 ESCAPE E'\\' AND "character" NOT ILIKE ("character" || $2) ESCAPE E'\\'"#
                 .to_owned(),
             Values(vec!["A".into(), "B".into()])
         )

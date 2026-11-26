@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{Values, expr::*, query::*};
+use crate::{Values, expr::*, func::FunctionCall, query::*};
 use std::fmt::Debug;
 
 #[cfg(feature = "backend-postgres")]
@@ -172,7 +172,7 @@ pub enum Keyword {
 /// Like Expression
 #[derive(Debug, Clone)]
 pub struct LikeExpr {
-    pub(crate) pattern: String,
+    pub(crate) pattern: Expr,
     pub(crate) escape: Option<char>,
 }
 
@@ -181,10 +181,8 @@ impl LikeExpr {
     where
         T: Into<String>,
     {
-        Self {
-            pattern: pattern.into(),
-            escape: None,
-        }
+        let pattern: String = pattern.into();
+        Self::from(Expr::from(pattern))
     }
 
     #[deprecated(since = "0.29.0", note = "Please use the [`LikeExpr::new`] method")]
@@ -192,10 +190,7 @@ impl LikeExpr {
     where
         T: Into<String>,
     {
-        Self {
-            pattern: pattern.into(),
-            escape: None,
-        }
+        Self::new(pattern)
     }
 
     pub fn escape(self, c: char) -> Self {
@@ -225,6 +220,21 @@ where
 {
     fn from(value: T) -> Self {
         LikeExpr::new(value)
+    }
+}
+
+impl From<Expr> for LikeExpr {
+    fn from(pattern: Expr) -> Self {
+        Self {
+            pattern,
+            escape: None,
+        }
+    }
+}
+
+impl From<FunctionCall> for LikeExpr {
+    fn from(pattern: FunctionCall) -> Self {
+        Self::from(Expr::from(pattern))
     }
 }
 

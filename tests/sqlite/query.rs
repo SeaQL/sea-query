@@ -306,6 +306,18 @@ fn select_20() {
 }
 
 #[test]
+fn unicode_char_literals() {
+    for pattern in ['é', '中'] {
+        assert_eq!(
+            Query::select()
+                .expr(Expr::val(pattern))
+                .to_string(SqliteQueryBuilder),
+            format!("SELECT '{pattern}'")
+        );
+    }
+}
+
+#[test]
 fn select_21() {
     assert_eq!(
         Query::select()

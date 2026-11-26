@@ -871,11 +871,11 @@ impl From<LikeExpr> for Expr {
     fn from(like: LikeExpr) -> Self {
         match like.escape {
             Some(escape) => Self::Binary(
-                Box::new(like.pattern.into()),
+                Box::new(like.pattern),
                 BinOper::Escape,
                 Box::new(Expr::Constant(escape.into())),
             ),
-            None => like.pattern.into(),
+            None => like.pattern,
         }
     }
 }
