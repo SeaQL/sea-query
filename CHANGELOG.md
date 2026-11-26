@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The existing `with-jiff` feature now forwards to the new `with-jiff-0_2` feature.
   Both Jiff versions can be enabled together.
 - Use `From` instead of `Into` to implement the conversion from `CaseStatement` to `Expr`.
-- Allow `like`, `not_like`, `ilike`, and `not_ilike` to accept `Into<Expr>` patterns (#1064).
+- Allow `like`, `not_like`, `ilike`, and `not_ilike` to accept `Expr` and `FunctionCall` patterns (#1064).
 
 ### Performance
 

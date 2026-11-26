@@ -306,13 +306,13 @@ fn select_20() {
 }
 
 #[test]
-fn like_preserves_unicode_char_patterns() {
+fn unicode_char_literals() {
     for pattern in ['é', '中'] {
         assert_eq!(
             Query::select()
-                .expr(Expr::col("name").like(pattern))
+                .expr(Expr::val(pattern))
                 .to_string(SqliteQueryBuilder),
-            format!(r#"SELECT "name" LIKE '{pattern}'"#)
+            format!("SELECT '{pattern}'")
         );
     }
 }

@@ -1,5 +1,5 @@
 use super::PgBinOper;
-use crate::{Expr, ExprTrait};
+use crate::{Expr, ExprTrait, IntoLikeExpr};
 
 /// Postgres-specific operator methods for building expressions.
 pub trait PgExpr: ExprTrait {
@@ -140,19 +140,19 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "name" FROM "items" WHERE "name" ILIKE "pattern""#
     /// );
     /// ```
-    fn ilike<R>(self, right: R) -> Expr
+    fn ilike<L>(self, like: L) -> Expr
     where
-        R: Into<Expr>,
+        L: IntoLikeExpr,
     {
-        self.binary(PgBinOper::ILike, right)
+        self.binary(PgBinOper::ILike, like.into_like_expr())
     }
 
     /// Express a `NOT ILIKE` expression
-    fn not_ilike<R>(self, right: R) -> Expr
+    fn not_ilike<L>(self, like: L) -> Expr
     where
-        R: Into<Expr>,
+        L: IntoLikeExpr,
     {
-        self.binary(PgBinOper::NotILike, right)
+        self.binary(PgBinOper::NotILike, like.into_like_expr())
     }
 
     /// Express a postgres retrieves JSON field as JSON value (`->`).

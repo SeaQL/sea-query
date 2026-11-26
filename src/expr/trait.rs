@@ -872,7 +872,7 @@ pub trait ExprTrait: Sized {
     /// Express a `LIKE` expression.
     ///
     /// Pass a string or an expression as the pattern.
-    /// Use [`LikeExpr::escape`] to specify an `ESCAPE` character for a string pattern.
+    /// Use [`LikeExpr::escape`] to specify an `ESCAPE` character.
     ///
     /// # Examples
     ///
@@ -883,17 +883,17 @@ pub trait ExprTrait: Sized {
     ///     Query::select()
     ///         .expr(Expr::col("name").like(Expr::col("pattern")))
     ///         .expr(Expr::col("name").like(Func::lower(Expr::col("pattern"))))
-    ///         .expr(Expr::col("name").like(LikeExpr::new("|_%").escape('|')))
+    ///         .expr(Expr::col("name").like(LikeExpr::from(Expr::col("pattern")).escape('|')))
     ///         .from("items")
     ///         .to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "name" LIKE "pattern", "name" LIKE LOWER("pattern"), "name" LIKE '|_%' ESCAPE '|' FROM "items""#
+    ///     r#"SELECT "name" LIKE "pattern", "name" LIKE LOWER("pattern"), "name" LIKE "pattern" ESCAPE '|' FROM "items""#
     /// );
     /// ```
-    fn like<R>(self, right: R) -> Expr
+    fn like<L>(self, like: L) -> Expr
     where
-        R: Into<Expr>,
+        L: IntoLikeExpr,
     {
-        self.binary(BinOper::Like, right)
+        self.binary(BinOper::Like, like.into_like_expr())
     }
 
     /// Express a less than (`<`) expression.
@@ -1224,11 +1224,11 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE 'Ours''%'"#
     /// );
     /// ```
-    fn not_like<R>(self, right: R) -> Expr
+    fn not_like<L>(self, like: L) -> Expr
     where
-        R: Into<Expr>,
+        L: IntoLikeExpr,
     {
-        self.binary(BinOper::NotLike, right)
+        self.binary(BinOper::NotLike, like.into_like_expr())
     }
 
     /// Express a logical `OR` operation.
