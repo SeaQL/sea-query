@@ -122,22 +122,22 @@ pub trait PgExpr: ExprTrait {
         self.binary(PgBinOper::Contained, expr)
     }
 
-    /// Express a `ILIKE` expression.
+    /// Express an `ILIKE` expression.
     ///
     /// # Examples
     ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::PgExpr};
+    /// Match against a pattern stored in another column:
     ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::Character)).ilike("Ours'%"))
-    ///     .to_owned();
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, *};
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" ILIKE E'Ours\'%'"#
+    ///     Query::select()
+    ///         .column("name")
+    ///         .from("items")
+    ///         .and_where(Expr::col("name").ilike(Expr::col("pattern")))
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name" FROM "items" WHERE "name" ILIKE "pattern""#
     /// );
     /// ```
     fn ilike<R>(self, right: R) -> Expr
