@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The existing `with-jiff` feature now forwards to the new `with-jiff-0_2` feature.
   Both Jiff versions can be enabled together.
 - Use `From` instead of `Into` to implement the conversion from `CaseStatement` to `Expr`.
+- Allow `like`, `not_like`, `ilike`, and `not_ilike` to accept `Into<Expr>` patterns (#1064).
 
 ### Performance
 
@@ -69,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix PostgreSQL `USING` placement in `ALTER COLUMN ... TYPE` statements (#1115).
 - Fix PostgreSQL index columns rendering the operator class after `ASC` / `DESC`; it now comes first, as in `col opclass DESC` (#1128).
 - Fix PostgreSQL `ILIKE` and `NOT ILIKE` parentheses, which also broke `ESCAPE` (#776).
+- Fix SQL literal rendering for non-ASCII `char` values, which could panic or render the wrong character (#1064).
 
 ## 1.0.2 - 2026-08-12
 
