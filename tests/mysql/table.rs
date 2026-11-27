@@ -502,7 +502,7 @@ fn alter_with_named_check_constraint() {
 }
 
 #[test]
-fn drop_contraint() {
+fn drop_constraint() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
@@ -514,14 +514,11 @@ fn drop_contraint() {
 
 #[test]
 #[should_panic(expected = "MySQL does not support IF EXISTS on DROP CONSTRAINT clauses")]
-fn drop_contraint_if_exists_not_supported() {
-    assert_eq!(
-        Table::alter()
-            .table(Font::Table)
-            .drop_constraint_if_exists("blah")
-            .to_string(MysqlQueryBuilder),
-        "this should panic"
-    );
+fn drop_constraint_if_exists_not_supported() {
+    Table::alter()
+        .table(Font::Table)
+        .drop_constraint_if_exists("blah")
+        .to_string(MysqlQueryBuilder);
 }
 
 #[test]

@@ -612,7 +612,7 @@ fn alter_with_named_check_constraint() {
 }
 
 #[test]
-fn drop_contraint() {
+fn drop_constraint() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
@@ -623,7 +623,7 @@ fn drop_contraint() {
 }
 
 #[test]
-fn drop_contraint_if_exists() {
+fn drop_constraint_if_exists() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)

@@ -749,24 +749,18 @@ fn alter_with_named_check_constraint() {
 
 #[test]
 #[should_panic(expected = "Sqlite does not support dropping constraints from existing tables")]
-fn drop_contraint_not_supported() {
-    assert_eq!(
-        Table::alter()
-            .table(Font::Table)
-            .drop_constraint("blah")
-            .to_string(SqliteQueryBuilder),
-        "this should panic"
-    );
+fn drop_constraint_not_supported() {
+    Table::alter()
+        .table(Font::Table)
+        .drop_constraint("blah")
+        .to_string(SqliteQueryBuilder);
 }
 
 #[test]
 #[should_panic(expected = "Sqlite does not support dropping constraints from existing tables")]
-fn drop_contraint_if_exists_not_supported() {
-    assert_eq!(
-        Table::alter()
-            .table(Font::Table)
-            .drop_constraint_if_exists("blah")
-            .to_string(SqliteQueryBuilder),
-        "this should panic"
-    );
+fn drop_constraint_if_exists_not_supported() {
+    Table::alter()
+        .table(Font::Table)
+        .drop_constraint_if_exists("blah")
+        .to_string(SqliteQueryBuilder);
 }
