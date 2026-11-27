@@ -209,15 +209,9 @@ impl TableBuilder for PostgresQueryBuilder {
                         sql.write_str("DROP CONSTRAINT ").unwrap();
                         self.prepare_iden(name, sql);
                     }
-                    TableAlterOption::DropConstraintIfExists(DropConstraintOption {
-                        constraint_name,
-                        if_exists
-                    }) => {
-                        sql.write_str("DROP CONSTRAINT ").unwrap();
-                        if *if_exists {
-                            sql.write_str("IF EXISTS ").unwrap();
-                        }
-                        self.prepare_iden(constraint_name, sql);
+                    TableAlterOption::DropConstraintIfExists(name) => {
+                        sql.write_str("DROP CONSTRAINT IF EXISTS ").unwrap();
+                        self.prepare_iden(name, sql);
                     }
                 }
             }

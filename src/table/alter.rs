@@ -48,13 +48,6 @@ pub struct DropColumnOption {
     pub(crate) if_exists: bool,
 }
 
-/// table alter drop constraint options
-#[derive(Debug, Clone)]
-pub struct DropConstraintOption {
-    pub(crate) constraint_name: DynIden,
-    pub(crate) if_exists: bool,
-}
-
 /// All available table alter options
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
@@ -68,7 +61,7 @@ pub enum TableAlterOption {
     DropForeignKey(DynIden),
     DropConstraint(DynIden),
     // Note: A separate variant was added to avoid breaking changes with the existing drop constraint option.
-    DropConstraintIfExists(DropConstraintOption),
+    DropConstraintIfExists(DynIden),
 }
 
 impl TableAlterStatement {
@@ -453,12 +446,7 @@ impl TableAlterStatement {
     where
         T: IntoIden,
     {
-        self.add_alter_option(TableAlterOption::DropConstraintIfExists(
-            DropConstraintOption {
-                constraint_name: name.into_iden(),
-                if_exists: true,
-            },
-        ))
+        self.add_alter_option(TableAlterOption::DropConstraintIfExists(name.into_iden()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
