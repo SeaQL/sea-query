@@ -60,6 +60,8 @@ pub enum TableAlterOption {
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
     DropConstraint(DynIden),
+    // Note: A separate variant was added to avoid breaking changes with the existing drop constraint option.
+    DropConstraintIfExists(DynIden),
 }
 
 impl TableAlterStatement {
@@ -420,6 +422,31 @@ impl TableAlterStatement {
         T: IntoIden,
     {
         self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
+    }
+
+    /// Drop a named constraint from an existing table if it exists.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .drop_constraint_if_exists("font_name_key")
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" DROP CONSTRAINT IF EXISTS "font_name_key""#
+    /// );
+    /// // MySQL and Sqlite do not support DROP CONSTRAINT IF EXISTS
+    /// ```
+    pub fn drop_constraint_if_exists<T>(&mut self, name: T) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.add_alter_option(TableAlterOption::DropConstraintIfExists(name.into_iden()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {

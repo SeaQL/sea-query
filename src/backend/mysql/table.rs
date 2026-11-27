@@ -221,6 +221,9 @@ impl TableBuilder for MysqlQueryBuilder {
                         sql.write_str("DROP CONSTRAINT ").unwrap();
                         self.prepare_iden(name, sql);
                     }
+                    TableAlterOption::DropConstraintIfExists(_) => {
+                        panic!("MySQL does not support IF EXISTS on DROP CONSTRAINT clauses")
+                    }
                 };
             }
         );

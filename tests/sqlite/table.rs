@@ -746,3 +746,21 @@ fn alter_with_named_check_constraint() {
         r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer NOT NULL DEFAULT 101 CONSTRAINT "positive_aspect" CHECK ("aspect" > 100)"#,
     );
 }
+
+#[test]
+#[should_panic(expected = "Sqlite does not support dropping constraints from existing tables")]
+fn drop_constraint_not_supported() {
+    Table::alter()
+        .table(Font::Table)
+        .drop_constraint("blah")
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "Sqlite does not support dropping constraints from existing tables")]
+fn drop_constraint_if_exists_not_supported() {
+    Table::alter()
+        .table(Font::Table)
+        .drop_constraint_if_exists("blah")
+        .to_string(SqliteQueryBuilder);
+}

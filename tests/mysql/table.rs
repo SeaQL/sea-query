@@ -519,6 +519,26 @@ fn alter_with_named_check_constraint() {
 }
 
 #[test]
+fn drop_constraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_constraint("blah")
+            .to_string(MysqlQueryBuilder),
+        "ALTER TABLE `font` DROP CONSTRAINT `blah`"
+    );
+}
+
+#[test]
+#[should_panic(expected = "MySQL does not support IF EXISTS on DROP CONSTRAINT clauses")]
+fn drop_constraint_if_exists_not_supported() {
+    Table::alter()
+        .table(Font::Table)
+        .drop_constraint_if_exists("blah")
+        .to_string(MysqlQueryBuilder);
+}
+
+#[test]
 fn create_partition_range() {
     assert_eq!(
         Table::create()
