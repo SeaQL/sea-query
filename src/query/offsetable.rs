@@ -3,7 +3,8 @@ pub trait OffsetableStatement {
     #[doc(hidden)]
     // Implementation for the trait.
     fn add_offset(&mut self, offset: u64) -> &mut Self;
-
+    
+    #[doc(hidden)]
     /// Clear offset expressions
     fn clear_offset(&mut self) -> &mut Self;
 
@@ -38,7 +39,7 @@ pub trait OffsetableStatement {
         self.add_offset(offset)
     }
 
-    /// Reset the offset from `Some` quantity to `None`.`
+    /// Reset the offset from `Some` quantity to `None`.
     fn reset_offset(&mut self) -> &mut Self {
         self.clear_offset()
     }

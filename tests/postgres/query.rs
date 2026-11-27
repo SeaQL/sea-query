@@ -2638,3 +2638,38 @@ fn select_audit_subquery_in_aggregate_order_by() {
         [Glyph::Table.into_iden(), Char::Table.into_iden()]
     );
 }
+
+#[test]
+fn offset_works() {
+    let query = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .offset(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT * FROM "character" OFFSET 10"#
+    );
+}
+
+#[test]
+fn reset_offset_works() {
+    let mut query = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .offset(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT * FROM "character" OFFSET 10"#
+    );
+
+    query.reset_offset();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT * FROM "character""#
+    );
+}

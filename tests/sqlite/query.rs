@@ -1924,3 +1924,38 @@ fn select_group_concat_order_by() {
         r#"SELECT GROUP_CONCAT("character", ', ' ORDER BY "id" DESC) FROM "character""#
     );
 }
+
+#[test]
+fn offset_works() {
+    let query = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .offset(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT * FROM "character" OFFSET 10"#
+    );
+}
+
+#[test]
+fn reset_offset_works() {
+    let mut query = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .offset(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT * FROM "character" OFFSET 10"#
+    );
+
+    query.reset_offset();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT * FROM "character""#
+    );
+}
