@@ -2648,7 +2648,7 @@ fn offset_works() {
         .to_owned();
 
     assert_eq!(
-        query.to_string(SqliteQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"SELECT * FROM "character" OFFSET 10"#
     );
 }
@@ -2662,14 +2662,14 @@ fn reset_offset_works() {
         .to_owned();
 
     assert_eq!(
-        query.to_string(SqliteQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"SELECT * FROM "character" OFFSET 10"#
     );
 
     query.reset_offset();
 
     assert_eq!(
-        query.to_string(SqliteQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"SELECT * FROM "character""#
     );
 }
