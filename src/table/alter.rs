@@ -453,10 +453,12 @@ impl TableAlterStatement {
     where
         T: IntoIden,
     {
-        self.add_alter_option(TableAlterOption::DropConstraintIfExists(DropConstraintOption{
-            constraint_name: name.into_iden(),
-            if_exists: true
-        }))
+        self.add_alter_option(TableAlterOption::DropConstraintIfExists(
+            DropConstraintOption {
+                constraint_name: name.into_iden(),
+                if_exists: true,
+            },
+        ))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
