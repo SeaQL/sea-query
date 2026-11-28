@@ -2,9 +2,9 @@ use std::borrow::Cow;
 
 use crate::{
     ConditionHolder, ConditionalStatement, Expr, IntoColumnRef, IntoCondition, IntoTableRef,
-    LogicalChainOper, NullOrdering, Order, OrderExpr, OrderedStatement, QueryBuilder,
-    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause, SqlWriter,
-    SubQueryStatement, TableRef, Value, Values, WithClause, WithQuery,
+    LimitableStatement, LogicalChainOper, NullOrdering, Order, OrderExpr, OrderedStatement, 
+    QueryBuilder, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause, 
+    SqlWriter, SubQueryStatement, TableRef, Value, Values, WithClause, WithQuery,
 };
 
 /// Delete existing rows from the table
@@ -98,12 +98,6 @@ impl DeleteStatement {
         T: IntoTableRef,
     {
         self.table = Some(Box::new(tbl_ref.into_table_ref()));
-        self
-    }
-
-    /// Limit number of updated rows.
-    pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(limit.into());
         self
     }
 
@@ -488,5 +482,31 @@ impl DeleteStatement {
 
     pub fn cond_where<C: IntoCondition>(&mut self, condition: C) -> &mut Self {
         <Self as ConditionalStatement>::cond_where(self, condition)
+    }
+}
+
+impl DeleteStatement {
+    /// Limit number of deleted rows.
+    pub fn limit(&mut self, limit: u64) -> &mut Self {
+        self.limit = Some(limit.into());
+        self
+    }
+
+    /// Reset the limit on a query, setting the value to `None`.
+    pub fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
+    }
+}
+
+impl LimitableStatement for DeleteStatement {
+    fn limit(&mut self, limit: u64) -> &mut Self {
+        self.limit = Some(limit.into());
+        self
+    }
+
+    fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
     }
 }

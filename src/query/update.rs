@@ -2,9 +2,9 @@ use std::borrow::Cow;
 
 use crate::{
     ConditionHolder, ConditionalStatement, DynIden, Expr, IntoColumnRef, IntoCondition, IntoIden,
-    IntoTableRef, LogicalChainOper, NullOrdering, Order, OrderExpr, OrderedStatement, QueryBuilder,
-    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause, SqlWriter,
-    SubQueryStatement, TableRef, Value, Values, WithClause, WithQuery,
+    IntoTableRef, LimitableStatement, LogicalChainOper, NullOrdering, Order, OrderExpr, 
+    OrderedStatement, QueryBuilder, QueryStatement, QueryStatementBuilder, QueryStatementWriter, 
+    ReturningClause, SqlWriter, SubQueryStatement, TableRef, Value, Values, WithClause, WithQuery,
 };
 
 /// Update existing rows in the table
@@ -230,12 +230,6 @@ impl UpdateStatement {
         T: Into<Expr>,
     {
         self.values.push((col.into_iden(), Box::new(value.into())));
-        self
-    }
-
-    /// Limit number of updated rows.
-    pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(limit.into());
         self
     }
 
@@ -632,5 +626,31 @@ impl UpdateStatement {
 
     pub fn cond_where<C: IntoCondition>(&mut self, condition: C) -> &mut Self {
         <Self as ConditionalStatement>::cond_where(self, condition)
+    }
+}
+
+impl UpdateStatement {
+    /// Limit number of updated rows.
+    pub fn limit(&mut self, limit: u64) -> &mut Self {
+        self.limit = Some(limit.into());
+        self
+    }
+
+    /// Reset the limit on a query, setting the value to `None`.
+    pub fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
+    }
+}
+
+impl LimitableStatement for UpdateStatement {
+    fn limit(&mut self, limit: u64) -> &mut Self {
+        self.limit = Some(limit.into());
+        self
+    }
+
+    fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
     }
 }
