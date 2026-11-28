@@ -2938,13 +2938,25 @@ impl SelectStatement {
     }
 }
 
-impl OffsetableStatement for SelectStatement {
-    fn add_offset(&mut self, offset: u64) -> &mut Self {
+impl SelectStatement {
+    pub fn offset(&mut self, offset: u64) -> &mut Self {
         self.offset = Some(offset.into());
         self
     }
 
-    fn clear_offset(&mut self) -> &mut Self {
+    pub fn reset_offset(&mut self) -> &mut Self {
+        self.offset = None;
+        self
+    }
+}
+
+impl OffsetableStatement for SelectStatement {
+    fn offset(&mut self, offset: u64) -> &mut Self {
+        self.offset = Some(offset.into());
+        self
+    }
+
+    fn reset_offset(&mut self) -> &mut Self {
         self.offset = None;
         self
     }

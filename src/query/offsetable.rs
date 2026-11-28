@@ -1,13 +1,5 @@
 /// Provides an interface for utilizing the `OFFSET` clause on a query.
 pub trait OffsetableStatement {
-    #[doc(hidden)]
-    // Implementation for the trait.
-    fn add_offset(&mut self, offset: u64) -> &mut Self;
-    
-    #[doc(hidden)]
-    /// Clear offset expressions
-    fn clear_offset(&mut self) -> &mut Self;
-
     /// Offset number of returned rows.
     ///
     /// # Examples
@@ -35,12 +27,8 @@ pub trait OffsetableStatement {
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10 OFFSET 10"#
     /// );
     /// ```
-    fn offset(&mut self, offset: u64) -> &mut Self {
-        self.add_offset(offset)
-    }
+    fn offset(&mut self, offset: u64) -> &mut Self;
 
     /// Reset the offset from `Some` quantity to `None`.
-    fn reset_offset(&mut self) -> &mut Self {
-        self.clear_offset()
-    }
+    fn reset_offset(&mut self) -> &mut Self;
 }
