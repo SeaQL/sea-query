@@ -2638,3 +2638,116 @@ fn select_audit_subquery_in_aggregate_order_by() {
         [Glyph::Table.into_iden(), Char::Table.into_iden()]
     );
 }
+
+#[test]
+fn does_select_limit_work() {
+    let query = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .limit(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT * FROM "character" LIMIT 10"#,
+    );
+}
+
+#[test]
+fn does_select_reset_limit_work() {
+    let mut query = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .limit(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT * FROM "character" LIMIT 10"#,
+    );
+
+    query.reset_limit();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT * FROM "character""#,
+    );
+}
+
+#[test]
+fn does_update_limit_work() {
+    let query = Query::update()
+        .table(Glyph::Table)
+        .values([
+            (Glyph::Aspect, 2.123.into()),
+        ])
+        .limit(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"UPDATE "glyph" SET "aspect" = 2.123 LIMIT 10"#,
+    );
+}
+
+#[test]
+fn does_update_reset_limit_work() {
+    let mut query = Query::update()
+        .table(Glyph::Table)
+        .values([
+            (Glyph::Aspect, 2.123.into())
+        ])
+        .limit(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"UPDATE "glyph" SET "aspect" = 2.123 LIMIT 10"#,
+    );
+
+    query.reset_limit();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"UPDATE "glyph" SET "aspect" = 2.123"#,
+    );
+}
+
+#[test]
+fn does_delete_limit_work() {
+    let query = Query::delete()
+        .from_table(Char::Table)
+        .and_where(
+            Char::Character.into_column_ref().eq("a")
+        )
+        .limit(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"DELETE FROM "character" WHERE "character" = 'a' LIMIT 10"#,
+    );
+}
+
+#[test]
+fn does_delete_reset_limit_work() {
+    let mut query = Query::delete()
+        .from_table(Char::Table)
+        .and_where(
+            Char::Character.into_column_ref().eq("a")
+        )
+        .limit(10)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"DELETE FROM "character" WHERE "character" = 'a' LIMIT 10"#,
+    );
+
+    query.reset_limit();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"DELETE FROM "character" WHERE "character" = 'a'"#,
+    );
+}

@@ -2,10 +2,11 @@ use std::{borrow::Cow, fmt::Display};
 
 use crate::{
     ColumnRef, ConditionHolder, ConditionalStatement, DynIden, Expr, FunctionCall, IntoColumnRef,
-    IntoCondition, IntoIden, IntoTableRef, IntoValueTuple, JoinOn, JoinType, LogicalChainOper,
-    NullOrdering, Order, OrderExpr, OrderedStatement, QueryStatement, QueryStatementBuilder,
-    QueryStatementWriter, SqlWriter, SubQueryStatement, TableRef, Value, ValueTuple, Values,
-    WindowSelectType, WindowStatement, WithClause, WithQuery, backend::QueryBuilder,
+    IntoCondition, IntoIden, IntoTableRef, IntoValueTuple, JoinOn, JoinType, LimitableStatement, 
+    LogicalChainOper,NullOrdering, Order, OrderExpr, OrderedStatement, QueryStatement, 
+    QueryStatementBuilder, QueryStatementWriter, SqlWriter, SubQueryStatement, TableRef, Value, 
+    ValueTuple, Values, WindowSelectType, WindowStatement, WithClause, WithQuery, 
+    backend::QueryBuilder,
 };
 
 /// Select rows from an existing table
@@ -2235,43 +2236,6 @@ impl SelectStatement {
         self.cond_having(other)
     }
 
-    /// Limit the number of returned rows.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .limit(10)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
-    /// );
-    /// ```
-    pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(limit.into());
-        self
-    }
-
-    /// Reset limit
-    pub fn reset_limit(&mut self) -> &mut Self {
-        self.limit = None;
-        self
-    }
-
     /// Offset number of returned rows.
     ///
     /// # Examples
@@ -2973,5 +2937,55 @@ impl SelectStatement {
 
     pub fn cond_where<C: IntoCondition>(&mut self, condition: C) -> &mut Self {
         <Self as ConditionalStatement>::cond_where(self, condition)
+    }
+}
+
+impl SelectStatement {
+    pub fn limit(&mut self, limit: u64) -> &mut Self {
+        self.limit = Some(limit.into());
+        self
+    }
+
+    pub fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
+    }
+}
+
+impl LimitableStatement for SelectStatement {
+    /// Limit the number of returned rows.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Aspect)
+    ///     .from(Glyph::Table)
+    ///     .limit(10)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
+    /// );
+    /// ```
+    fn limit(&mut self, limit: u64) -> &mut Self {
+        self.limit = Some(limit.into());
+        self
+    }
+
+    fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
     }
 }
