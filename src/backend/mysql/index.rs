@@ -86,6 +86,8 @@ impl IndexBuilder for MysqlQueryBuilder {
                 sql.write_str(match index_type {
                     IndexType::BTree => "BTREE",
                     IndexType::FullText => unreachable!(),
+                    IndexType::Gin => "GIN",
+                    IndexType::Gist => "GIST",
                     IndexType::Hash => "HASH",
                     IndexType::Custom(custom) => &custom.0,
                 })
